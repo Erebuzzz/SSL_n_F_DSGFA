@@ -1,0 +1,46 @@
+{
+  "experiment": {
+    "name": "mock_bounded",
+    "mode": "single_integrator",
+    "seed": 1,
+    "duration": 50.0,
+    "dt": 0.004
+  },
+  "paper_parameters": {
+    "n": 6,
+    "source": [5.5, 5.5],
+    "kappa": 1.0,
+    "R": 2.0,
+    "Dmax": 12.0,
+    "alpha": 10.0,
+    "beta": 0.05
+  },
+  "noise": {
+    "model": "bounded",
+    "std": 0.2,
+    "bound": 0.2
+  },
+  "topology": {
+    "name": "paper_fig1_reconstructed",
+    "adjacency": null,
+    "edges": [[0, 1], [0, 2], [0, 5], [1, 2], [1, 4], [2, 3], [3, 4], [4, 5]]
+  },
+  "robot_model": {
+    "type": "unicycle",
+    "unicycle_shift_r": 0.5,
+    "max_linear_velocity": null,
+    "max_angular_velocity": null,
+    "wheel_radius": 0.033,
+    "wheel_base": 0.16
+  },
+  "coppelia": {
+    "backend": "mock"
+  },
+  "outputs": {
+    "folder": "outputs/coppelia",
+    "save_plots": true,
+    "save_animation": true,
+    "animation_format": "gif",
+    "animation_fps": 20
+  }
+}

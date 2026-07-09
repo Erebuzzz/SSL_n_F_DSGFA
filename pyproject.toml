@@ -1,0 +1,13 @@
+[project]
+name = "sgf-sim"
+version = "0.1.0"
+description = "Numerical validation simulator for Du et al. sign gradient-free source localization and formation."
+requires-python = ">=3.11"
+dependencies = [
+  "matplotlib",
+  "numpy",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,44 @@
+{
+  "experiment": {
+    "name": "parity_none",
+    "mode": "single_integrator",
+    "seed": 1,
+    "duration": 5.0,
+    "dt": 0.01
+  },
+  "paper_parameters": {
+    "n": 6,
+    "source": [5.5, 5.5],
+    "kappa": 1.0,
+    "R": 2.0,
+    "Dmax": 12.0,
+    "alpha": 100.0,
+    "beta": 0.05
+  },
+  "noise": {
+    "model": "none",
+    "std": 0.2,
+    "bound": 0.2
+  },
+  "topology": {
+    "name": "paper_fig1_reconstructed",
+    "adjacency": null,
+    "edges": [[0, 1], [0, 2], [0, 5], [1, 2], [1, 4], [2, 3], [3, 4], [4, 5]]
+  },
+  "robot_model": {
+    "type": "single_integrator",
+    "unicycle_shift_r": 0.025,
+    "max_linear_velocity": null,
+    "max_angular_velocity": null
+  },
+  "outputs": {
+    "folder": "outputs/parity",
+    "run_id": "parity_none",
+    "save_plots": false,
+    "save_report": false,
+    "save_animation": false,
+    "animation_format": "gif",
+    "animation_fps": 20,
+    "show_error_panels": true
+  }
+}

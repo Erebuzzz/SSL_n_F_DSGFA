@@ -1,0 +1,44 @@
+{
+  "experiment": {
+    "name": "unicycle_default",
+    "mode": "unicycle",
+    "seed": 1,
+    "duration": 60.0,
+    "dt": 0.001
+  },
+  "paper_parameters": {
+    "n": 6,
+    "source": [5.5, 5.5],
+    "kappa": 1.0,
+    "R": 2.0,
+    "Dmax": 12.0,
+    "alpha": 100.0,
+    "beta": 0.05
+  },
+  "noise": {
+    "model": "bounded",
+    "std": 0.2,
+    "bound": 0.2
+  },
+  "topology": {
+    "name": "paper_fig1_reconstructed",
+    "adjacency": null,
+    "edges": [[0, 1], [0, 2], [0, 5], [1, 2], [1, 4], [2, 3], [3, 4], [4, 5]]
+  },
+  "robot_model": {
+    "type": "unicycle",
+    "unicycle_shift_r": 0.025,
+    "max_linear_velocity": 0.22,
+    "max_angular_velocity": 2.84
+  },
+  "outputs": {
+    "folder": "outputs/runs",
+    "run_id": "config_unicycle_default",
+    "save_plots": true,
+    "save_report": true,
+    "save_animation": true,
+    "animation_format": "gif",
+    "animation_fps": 20,
+    "show_error_panels": true
+  }
+}

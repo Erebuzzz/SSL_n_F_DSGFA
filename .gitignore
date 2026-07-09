@@ -1,0 +1,16 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+outputs/
+tmp/
+
+# MATLAB / Simulink build artifacts
+slprj/
+*.slxc
+*.autosave
+
+.mcp.json
+.claude
+.agents
+.codex
+AGENTS.md
