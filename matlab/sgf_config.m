@@ -31,7 +31,13 @@ cfg.noise_bound = double(raw.noise.bound);
 
 cfg.topology_name = string(raw.topology.name);
 cfg.adjacency = sgf_topology(raw.topology, cfg.n);
-cfg.initial_positions = default_initial_positions(cfg.n);
+% Optional custom initial positions. Absent -> fixed default layout (n = 6).
+% A JSON list of [x, y] pairs decodes to an n-by-2 matrix via jsondecode.
+if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'positions')
+    cfg.initial_positions = double(raw.initial_conditions.positions);
+else
+    cfg.initial_positions = default_initial_positions(cfg.n);
+end
 
 cfg.output_folder = char(string(raw.outputs.folder));
 if isfield(raw.outputs, 'run_id')
@@ -83,6 +89,9 @@ if ~ismember(cfg.noise_model, ["none", "gaussian", "bounded"])
 end
 if any(size(cfg.adjacency) ~= [cfg.n, cfg.n])
     error('adjacency must have shape n by n.');
+end
+if any(size(cfg.initial_positions) ~= [cfg.n, 2])
+    error('initial_positions must have shape n by 2.');
 end
 if any(diag(cfg.adjacency) ~= 0) || any(any(cfg.adjacency ~= cfg.adjacency'))
     error('adjacency must be undirected with a zero diagonal.');

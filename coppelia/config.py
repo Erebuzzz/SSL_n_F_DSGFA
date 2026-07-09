@@ -239,6 +239,13 @@ class CoppeliaConfig:
             n = kwargs.get("n", cls.n)
             kwargs["adjacency"] = _adjacency_from_edge_list(n, edges)
 
+        initial = data.get("initial_conditions", {})
+        if isinstance(initial, dict):
+            if initial.get("positions") is not None:
+                kwargs["initial_positions"] = np.asarray(initial["positions"], dtype=float)
+            if initial.get("headings") is not None:
+                kwargs["initial_headings"] = np.asarray(initial["headings"], dtype=float)
+
         put("control_point_offset", robot.get("unicycle_shift_r"))
         controller = data.get("controller") if isinstance(data.get("controller"), dict) else {}
         put("sign_boundary_layer", controller.get("sign_boundary_layer"))

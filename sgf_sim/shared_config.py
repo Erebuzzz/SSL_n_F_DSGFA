@@ -52,6 +52,7 @@ def load_shared_config(path: str | Path) -> SharedRunConfig:
     n = int(paper.get("n", 6))
     adjacency = _adjacency_from_topology_section(topology, n)
     controller = raw.get("controller") if isinstance(raw.get("controller"), dict) else {}
+    initial_positions = _initial_positions_from_section(raw, n)
     simulation = SimulationConfig(
         n=n,
         source=tuple(float(x) for x in paper.get("source", [5.5, 5.5])),
@@ -68,6 +69,7 @@ def load_shared_config(path: str | Path) -> SharedRunConfig:
         noise_bound=float(noise.get("bound", 0.2)),
         topology=str(topology.get("name", "paper_fig1_reconstructed")),
         sign_boundary_layer=float(controller.get("sign_boundary_layer", 0.0)),
+        initial_positions=initial_positions,
         adjacency=adjacency,
         output_dir=Path(outputs.get("folder", Path("outputs") / "runs")),
     )
@@ -89,6 +91,29 @@ def _section(raw: dict[str, Any], key: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"config section '{key}' must be an object")
     return value
+
+
+def _initial_positions_from_section(raw: dict[str, Any], n: int) -> np.ndarray | None:
+    """Parse the optional ``initial_conditions.positions`` field.
+
+    Absent section/field -> None, so the simulator falls back to the fixed
+    ``default_initial_positions()`` layout (back-compatible). When present, it must
+    be an ``(n, 2)`` list of ``[x, y]`` coordinates; the shape is re-checked by
+    ``SimulationConfig.resolved_initial_positions()`` as well.
+    """
+
+    initial = raw.get("initial_conditions")
+    if not isinstance(initial, dict):
+        return None
+    positions = initial.get("positions")
+    if positions is None:
+        return None
+    matrix = np.asarray(positions, dtype=float)
+    if matrix.shape != (n, 2):
+        raise ValueError(
+            f"initial_conditions.positions must have shape {(n, 2)}, got {matrix.shape}"
+        )
+    return matrix
 
 
 def _adjacency_from_topology_section(topology: dict[str, Any], n: int) -> IntArray | None:

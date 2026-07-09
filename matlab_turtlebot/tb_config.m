@@ -62,8 +62,18 @@ else
     cfg.simulink_model_name = "sgf_turtlebot_swarm";
 end
 
-cfg.initial_positions = default_initial_positions(cfg.n);
-cfg.initial_headings = zeros(cfg.n, 1);
+% Optional custom initial positions / headings. Absent -> fixed default layout.
+% A JSON list of [x, y] pairs decodes to an n-by-2 matrix; headings to a column.
+if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'positions')
+    cfg.initial_positions = double(raw.initial_conditions.positions);
+else
+    cfg.initial_positions = default_initial_positions(cfg.n);
+end
+if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'headings')
+    cfg.initial_headings = double(raw.initial_conditions.headings(:));
+else
+    cfg.initial_headings = zeros(cfg.n, 1);
+end
 
 cfg.output_folder = char(string(raw.outputs.folder));
 if isfield(raw.outputs, 'run_id')
@@ -145,5 +155,11 @@ if cfg.command_period < 0
 end
 if cfg.sign_boundary_layer < 0
     error('sign_boundary_layer must be non-negative (0 = exact paper sgn).');
+end
+if any(size(cfg.initial_positions) ~= [cfg.n, 2])
+    error('initial_positions must have shape n by 2.');
+end
+if numel(cfg.initial_headings) ~= cfg.n
+    error('initial_headings must have n elements.');
 end
 end

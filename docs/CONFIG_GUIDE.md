@@ -27,7 +27,11 @@ Controls run identity and integration timing.
 | `duration` | Total simulation time in seconds. |
 | `dt` | Numerical integration step in seconds. |
 
-Only `single_integrator` is implemented in Python right now. Other modes are present so future MATLAB, Simulink, unicycle, TurtleBot, and CoppeliaSim phases use the same config shape.
+Implemented paths: `single_integrator` (Python `sgf_sim` + MATLAB `matlab/`), `coppelia`
+(Python `coppelia` package, mock + physics backends), `turtlebot_numeric` and
+`turtlebot_simulink` (MATLAB `matlab_turtlebot/`). The Python `sgf_sim` unicycle model
+is CLI-driven (`python -m sgf_sim unicycle …`) rather than config-driven. All modes share
+this one config shape so parameters stay comparable across paths.
 
 ### `paper_parameters`
 
@@ -69,6 +73,37 @@ Controls graph communication.
 
 If both `adjacency` and `edges` are null, Python uses the named topology.
 
+> **Loader divergence (important).** The three runtimes resolve `topology` differently.
+> Python `sgf_sim` and MATLAB use `adjacency` → `edges` → `name` (so a present `edges`
+> list wins over `name`). The `coppelia` package uses `adjacency` → `name`, and only reads
+> `edges` when `name` is null or `"custom"`. The shipped configs carry **both** a
+> `name: "paper_fig1_reconstructed"` and an explicit 6-node `edges` list, so the same file
+> can build its graph from different sources across runtimes. When you change the topology
+> or `n`, set the field you actually want and null out the other, or set `name: "custom"`
+> and supply `edges`/`adjacency` for the new size.
+
+### `initial_conditions`
+
+Optional. Sets each robot's starting pose explicitly. **Omit the whole section** to keep the
+built-in fixed 6-robot layout (fully back-compatible — this is what every shipped config does).
+
+| Field | Meaning |
+|---|---|
+| `positions` | List of `n` `[x, y]` coordinates (meters). Must have exactly `n` rows. |
+| `headings` | List of `n` initial headings (radians). Honoured by paths with robot orientation (`coppelia`, MATLAB TurtleBot); ignored by the point-robot single-integrator paths. |
+
+```json
+"initial_conditions": {
+  "positions": [[0, 0], [2.5, -0.5], [5, 0], [0.5, 3.5], [3, 4], [5.5, 3]],
+  "headings":  [0, 0, 0, 0, 0, 0]
+}
+```
+
+Honoured by Python `sgf_sim` (`run-config`), the `coppelia` package (mock + physics), and
+both MATLAB paths (`matlab/`, `matlab_turtlebot/`). The shape is validated against `n`; a
+mismatched row count raises a clear error. **This section is also the mechanism for running
+`n ≠ 6`** — see "Changing the number of robots" below.
+
 ### `robot_model`
 
 Holds robot-model parameters for later phases.
@@ -79,8 +114,8 @@ Holds robot-model parameters for later phases.
 | `unicycle_shift_r` | Feedback-linearization offset distance. Must be positive for unicycle/TurtleBot modes. |
 | `max_linear_velocity` | Optional command saturation. |
 | `max_angular_velocity` | Optional command saturation. |
-| `wheel_radius` | TurtleBot wheel radius for differential-drive conversion. |
-| `wheel_separation` | TurtleBot wheel separation. |
+| `wheel_radius` | Wheel radius for differential-drive conversion (meters). |
+| `wheel_base` | Wheel separation / track width (meters). The `coppelia` loader reads the key `wheel_base` (not `wheel_separation`). Defaults are TurtleBot3 Burger values (`0.033`, `0.16`); set them to match your actual robot model — e.g. the Pioneer p3dx used by the default CoppeliaSim scene has different geometry. |
 | `command_period` | Sampled command period, matching the paper's Section V value when set to `0.1`. |
 
 ### `controller`
@@ -142,6 +177,63 @@ run_from_config('configs/paper_default.json')
 ```
 
 MATLAB implementation should preserve the same section names and field meanings.
+
+## Changing the number of robots `n`
+
+The default is `n = 6` (paper Section IV). Valid range is `n ≥ 3` (`validate()` requires
+`n > 2`). Most of the machinery scales automatically, but four things are pinned to 6 and
+must be handled when you change `n`. Here is exactly what to do.
+
+**Scales automatically — no action needed:**
+
+- **Formation target circle** — slots are `θ_i = 2π i / n`, `φ_i = (cos θ_i, sin θ_i)`,
+  generated from `n` in every path.
+- **`ring` and `complete` topologies** — rebuilt from `n` for any size.
+- **Theory bounds** — `gain_threshold = 4·n·f_Dmax/R` and the `epsilon` bound both take `n`
+  and `n_informed` directly; the all-informed case reduces to Remark 4 `δ/(κR)` for any `n`.
+- **Runtime arrays, centroid, error series, `n_informed`** — all sized from `n`.
+- **Plots / animation** — per-robot loops are dynamic. (Cosmetic only: with `n > 10`, trail
+  colors from the default cycle repeat and the legend gets crowded — not an error.)
+- **CoppeliaSim scene** — the builder loads `n` robot models automatically.
+
+**Manual edits required:**
+
+1. **Set `paper_parameters.n`** in every config you run.
+2. **Do not use `topology.name = "paper_fig1_reconstructed"` for `n ≠ 6`.** That preset is a
+   fixed 6-node, 8-edge graph and **raises an error** for any other `n` (in Python, MATLAB,
+   and coppelia). Switch to `ring`, `complete`, or `default`, or supply your own
+   `adjacency` / `edges` for the new size.
+3. **Fix the `topology.edges` list.** The shipped configs also carry an explicit 6-node
+   `edges` array. Because Python/MATLAB prefer `edges` over `name` (see the loader-divergence
+   note above), leaving the old list in place builds a wrong/broken graph for `n ≠ 6`
+   (it throws for `n < 6` and leaves nodes ≥ 6 disconnected for `n > 6`). Replace it with an
+   edge list for the new `n`, or null it out and rely on a scalable `name`.
+4. **Provide `initial_conditions.positions` for the new `n`** (and `headings` for
+   orientation-aware paths). The built-in default layout is defined only for `n = 6` and the
+   MATLAB paths hard-error otherwise. This is the whole reason the `initial_conditions`
+   section exists — with it, `n ≠ 6` works from the config file alone, no code edit.
+5. **CLI note:** the Python `sgf_sim` CLI has no `--n` flag, so change `n` via a JSON config
+   and `run-config` (not the bare `run`/`validate` subcommands).
+6. **Tests:** a few fixtures assume the 6-robot default (`tests/test_theory.py`,
+   `tests/test_unicycle.py`, `coppelia/tests/…`) — update them only if you change the
+   *default* `n` in code, not for a one-off config run.
+
+**Minimal example — an 8-robot ring:**
+
+```json
+{
+  "paper_parameters": { "n": 8, "source": [5.5, 5.5], "kappa": 1.0, "R": 2.0, "Dmax": 12.0, "alpha": 100.0, "beta": 0.05 },
+  "topology": { "name": "ring", "adjacency": null, "edges": null },
+  "initial_conditions": {
+    "positions": [[0,0],[1,0],[2,0],[3,0],[0,3],[1,3],[2,3],[3,3]]
+  }
+}
+```
+
+(Include the other sections — `experiment`, `noise`, `outputs` — as usual.) With a
+scalable topology (`ring`), custom positions, and `edges` nulled out, this runs unchanged
+through `python -m sgf_sim run-config`, the MATLAB `run_from_config`, and the `coppelia`
+package.
 
 ## Editing Rules
 

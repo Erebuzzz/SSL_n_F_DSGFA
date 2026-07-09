@@ -21,6 +21,7 @@ phi = formation_slots(cfg.n);
 plot_trajectory(result, cfg, phi);
 plot_series(result.times, result.formation_error, 'Formation error', ...
     'formation error', [], fullfile(cfg.run_dir, 'formation_error.png'));
+plot_formation_error_per_robot(result, cfg, phi);
 
 epsilon = localization_bound(result);
 plot_series(result.times, result.localization_error, 'Localization error', ...
@@ -72,6 +73,36 @@ xlabel('x [m]');
 ylabel('y [m]');
 title(sprintf('Robot trajectories (MATLAB, %s)', cfg.topology_name));
 saveas(fig, fullfile(cfg.run_dir, 'trajectory.png'));
+close(fig);
+end
+
+
+function plot_formation_error_per_robot(result, cfg, phi)
+%PLOT_FORMATION_ERROR_PER_ROBOT Per-robot formation error e_i = ||z_i - z*||
+% (paper Fig. 3). z_i = p_i - R*phi_i is the shifted state; z* = mean_j z_j is
+% the shifted centroid. The aggregate formation error equals the L2 norm of these
+% per-robot curves stacked. result.positions is (n, 2, steps+1).
+T = numel(result.times);
+z = result.positions - cfg.R * phi;            % (n,2,T) via implicit expansion
+z_star = mean(z, 1);                           % (1,2,T)
+diff = z - z_star;                             % (n,2,T)
+e = squeeze(sqrt(sum(diff .^ 2, 2)));          % (n,T)
+if T == 1
+    e = e(:);
+end
+
+fig = figure('Visible', 'off');
+hold on
+for i = 1:cfg.n
+    plot(result.times, e(i, :), 'LineWidth', 1.0);
+end
+grid on
+xlabel('time [s]');
+ylabel('||z_i - z*||');
+title('Per-robot formation error (paper Fig. 3)');
+legend(arrayfun(@(i) sprintf('robot %d', i - 1), 1:cfg.n, 'UniformOutput', false), ...
+    'Location', 'best', 'FontSize', 7);
+saveas(fig, fullfile(cfg.run_dir, 'formation_error_per_robot.png'));
 close(fig);
 end
 

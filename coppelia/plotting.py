@@ -52,6 +52,34 @@ def save_plots(result: CoppeliaResult, output_dir: Path) -> None:
         output_dir / "localization_error.png",
         bound=result.epsilon if result.bound_applicable else None,
     )
+    _save_formation_error_per_robot(result, output_dir / "formation_error_per_robot.png")
+
+
+def _save_formation_error_per_robot(result: CoppeliaResult, path: Path) -> None:
+    """Per-robot formation error e_i = ||z_i - z*|| on the control points (paper Fig. 3).
+
+    z_i = s_i - R * phi_i (shifted control-point state), z* = mean_j z_j. The aggregate
+    ``formation_error`` is the L2 norm of these per-robot curves stacked.
+    """
+
+    config = result.config
+    phi = formation_slots(config.n)  # (n, 2)
+    z = result.control_points - config.radius * phi  # (steps+1, n, 2)
+    z_star = z.mean(axis=1, keepdims=True)  # (steps+1, 1, 2)
+    per_robot = np.linalg.norm(z - z_star, axis=2)  # (steps+1, n)
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    stride = max(1, len(result.times) // 5000)
+    for i in range(config.n):
+        ax.plot(result.times[::stride], per_robot[::stride, i], linewidth=1.0, label=f"robot {i}")
+    ax.set_title("Per-Robot Formation Error (paper Fig. 3)")
+    ax.set_xlabel("time [s]")
+    ax.set_ylabel(r"$\|z_i - z^*\|$")
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=8, ncol=2, loc="best")
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
 
 
 def _save_trajectory(result: CoppeliaResult, path: Path) -> None:

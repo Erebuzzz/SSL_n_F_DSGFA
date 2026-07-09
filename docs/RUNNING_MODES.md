@@ -236,6 +236,10 @@ an empty scene (ZMQ remote API on port 23000), then:
 python -m coppelia run --backend coppelia --noise bounded --run-id physics_demo
 ```
 
+> **Full step-by-step CoppeliaSim walkthrough:** see
+> [docs/COPPELIASIM_SETUP_GUIDE.md](COPPELIASIM_SETUP_GUIDE.md) — install, scene builder,
+> wheel-geometry caveats, the inside-the-bound tuning recipe, and troubleshooting.
+
 - **Configs:** `coppelia/configs/mock_bounded.json`, `coppelia/configs/coppelia_default.json`.
 - **Output:** `outputs/coppelia/<run_id>/` — `trajectory.png`, error PNGs,
   `animation.gif`, `summary.json`, `validation_report.md`.
