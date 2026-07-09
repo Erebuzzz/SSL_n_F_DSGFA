@@ -281,7 +281,7 @@ def run_unicycle_simulation(config: UnicycleConfig) -> UnicycleResult:
         else:
             # record informed count each step for min/final reporting
             distances = np.linalg.norm(s - source, axis=1)
-            n_informed[step] = int(np.sum(distances < base.dmax))
+            n_informed[step] = int(np.sum((distances < base.dmax) & base.resolved_informed_mask()))
 
         if step == steps:
             break

@@ -70,7 +70,9 @@ def measurements(
 
     source = config.source_array()
     distances = np.linalg.norm(positions - source, axis=1)
-    informed = distances < config.dmax
+    # A robot senses the source only if it is BOTH within the sensing radius
+    # (paper rule) AND flagged as sensing-capable (config mask, all-True default).
+    informed = (distances < config.dmax) & config.resolved_informed_mask()
     sigma = np.full(
         config.n,
         config.kappa * config.dmax * config.dmax + config.noise_bound,

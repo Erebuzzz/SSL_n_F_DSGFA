@@ -54,7 +54,7 @@ for step = 1:(steps + 1)
         [v, omega] = clip_commands(v, omega, cfg.max_linear_velocity, cfg.max_angular_velocity);
     else
         distances = sqrt(sum((s - cfg.source) .^ 2, 2));
-        n_informed(step) = sum(distances < cfg.Dmax);
+        n_informed(step) = sum((distances < cfg.Dmax) & cfg.informed_mask);
     end
 
     if step == steps + 1

@@ -39,3 +39,20 @@ def all_informed_epsilon(kappa: float, radius: float, delta: float) -> float:
     """Remark 4 simplification: n_informed = n gives epsilon = delta / (kappa R)."""
 
     return delta / (kappa * radius)
+
+
+def min_informed_for_valid_bound(n: int) -> int:
+    """Smallest informed count in [1, n] with a positive epsilon denominator.
+
+    Always 1 (the denominator is positive for every k >= 1); exposed for explicit
+    reporting. The real caveat is inflation: epsilon grows without limit as the
+    informed fraction k/n shrinks. k = 0 means no source signal (localization
+    undefined). Kept identical to ``sgf_sim.theory.min_informed_for_valid_bound``.
+    """
+
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    for k in range(1, n + 1):
+        if 2.0 * math.pi * k - n * abs(math.sin(2.0 * math.pi * k / n)) > 0.0:
+            return k
+    raise ValueError("no valid informed count found")

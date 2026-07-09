@@ -53,6 +53,7 @@ def load_shared_config(path: str | Path) -> SharedRunConfig:
     adjacency = _adjacency_from_topology_section(topology, n)
     controller = raw.get("controller") if isinstance(raw.get("controller"), dict) else {}
     initial_positions = _initial_positions_from_section(raw, n)
+    informed = _informed_from_section(raw, n)
     simulation = SimulationConfig(
         n=n,
         source=tuple(float(x) for x in paper.get("source", [5.5, 5.5])),
@@ -70,6 +71,7 @@ def load_shared_config(path: str | Path) -> SharedRunConfig:
         topology=str(topology.get("name", "paper_fig1_reconstructed")),
         sign_boundary_layer=float(controller.get("sign_boundary_layer", 0.0)),
         initial_positions=initial_positions,
+        informed=informed,
         adjacency=adjacency,
         output_dir=Path(outputs.get("folder", Path("outputs") / "runs")),
     )
@@ -114,6 +116,27 @@ def _initial_positions_from_section(raw: dict[str, Any], n: int) -> np.ndarray |
             f"initial_conditions.positions must have shape {(n, 2)}, got {matrix.shape}"
         )
     return matrix
+
+
+def _informed_from_section(raw: dict[str, Any], n: int) -> np.ndarray | None:
+    """Parse the optional ``initial_conditions.informed`` per-robot mask.
+
+    Absent -> None (all robots sensing-capable, back-compatible). When present,
+    must be a length-``n`` list of 0/1 flags.
+    """
+
+    initial = raw.get("initial_conditions")
+    if not isinstance(initial, dict):
+        return None
+    informed = initial.get("informed")
+    if informed is None:
+        return None
+    arr = np.asarray(informed, dtype=int)
+    if arr.shape != (n,):
+        raise ValueError(
+            f"initial_conditions.informed must have shape {(n,)}, got {arr.shape}"
+        )
+    return arr
 
 
 def _adjacency_from_topology_section(topology: dict[str, Any], n: int) -> IntArray | None:

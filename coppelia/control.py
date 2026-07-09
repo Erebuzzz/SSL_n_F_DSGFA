@@ -67,7 +67,8 @@ def measurements(
 
     source = config.source_array()
     distances = np.linalg.norm(positions - source, axis=1)
-    informed = distances < config.dmax
+    # Within sensing radius (paper rule) AND flagged sensing-capable (mask default all-True).
+    informed = (distances < config.dmax) & config.resolved_informed_mask()
     sigma = np.full(
         config.n,
         config.kappa * config.dmax * config.dmax + config.noise_bound,

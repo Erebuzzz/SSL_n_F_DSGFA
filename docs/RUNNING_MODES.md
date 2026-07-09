@@ -250,6 +250,22 @@ python -m pytest coppelia/tests -p no:hypothesispytest -q
 
 ---
 
+## Unified launcher (all modes, one window)
+
+A tkinter GUI that configures and runs any mode, showing a live theory readout (gain
+condition, epsilon bound, informed-robot diagnostics) before the run:
+
+```powershell
+python -m launcher
+```
+
+Pick a Platform (Python / MATLAB / CoppeliaSim) and Mode (auto-filtered), set the source,
+`R`, `Dmax`, gains, noise, `sgn` controller, `dt`, and each robot's initial position +
+`informed` flag, then Run. Python and CoppeliaSim-mock run in-process; MATLAB is dispatched
+via `matlab -batch`; CoppeliaSim physics drives a live simulator. See
+[launcher/README.md](../launcher/README.md) for details. The headless logic lives in
+`launcher.core` (covered by `tests/test_launcher.py`).
+
 ## Config inventory
 
 | Config | Mode | Used by |

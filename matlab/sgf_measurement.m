@@ -3,6 +3,11 @@ function [sigma, informed] = sgf_measurement(positions, cfg)
 
 distances = sqrt(sum((positions - cfg.source) .^ 2, 2));
 informed = distances < cfg.Dmax;
+% A robot senses only if within range AND flagged sensing-capable. The mask is
+% optional so older callers (e.g. the golden-parity harness) stay bit-identical.
+if isfield(cfg, 'informed_mask')
+    informed = informed & cfg.informed_mask;
+end
 sigma = ones(cfg.n, 1) * (cfg.kappa * cfg.Dmax * cfg.Dmax + cfg.noise_bound);
 
 if any(informed)

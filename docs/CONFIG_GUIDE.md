@@ -91,13 +91,37 @@ built-in fixed 6-robot layout (fully back-compatible — this is what every ship
 |---|---|
 | `positions` | List of `n` `[x, y]` coordinates (meters). Must have exactly `n` rows. |
 | `headings` | List of `n` initial headings (radians). Honoured by paths with robot orientation (`coppelia`, MATLAB TurtleBot); ignored by the point-robot single-integrator paths. |
+| `informed` | List of `n` flags, `1` = sensing-capable, `0` = forced blind. Optional; absent ⇒ all `1`. See "Informed vs. uninformed robots" below. |
 
 ```json
 "initial_conditions": {
   "positions": [[0, 0], [2.5, -0.5], [5, 0], [0.5, 3.5], [3, 4], [5.5, 3]],
-  "headings":  [0, 0, 0, 0, 0, 0]
+  "headings":  [0, 0, 0, 0, 0, 0],
+  "informed":  [1, 1, 1, 1, 1, 1]
 }
 ```
+
+#### Informed vs. uninformed robots
+
+The paper splits robots into **informed** (within sensing range `Dmax` of the source — they
+measure the true field `f(p_i) + noise`) and **blind/uninformed** (outside range — they get
+only the constant saturation value `f_Dmax = kappa*Dmax^2 + delta`). This is computed
+**automatically every step from each robot's distance to the source**, so a robot that leaves
+the sensing radius becomes uninformed on its own.
+
+The optional `informed` mask adds a **user override on top of that rule**: a robot flagged `0`
+is treated as blind even while inside `Dmax` (e.g. a failed/disabled sensor). The effective
+status is `informed[i] == 1 AND ||p_i - source|| < Dmax`. Honoured by all paths
+(Python single-integrator/unicycle, `coppelia`, MATLAB `matlab/` and `matlab_turtlebot/`);
+the generated Simulink model uses all-informed only.
+
+Theory notes surfaced in `summary.json` (`validation` block): `min_n_informed`,
+`min_informed_for_valid_bound` (always 1 — the bound is valid for any `n_informed ≥ 1`),
+`epsilon_all_informed` (the Remark-4 best case `delta/(kappa*R)`), and
+`epsilon_inflation_factor`. The practical rule of thumb: **at least one informed robot is
+required** for localization (with zero, there is no source signal and the centroid cannot
+converge); and as the informed *fraction* shrinks, `epsilon` inflates (valid but loose).
+Formation (the circle shape) still forms from the consensus term regardless of informed count.
 
 Honoured by Python `sgf_sim` (`run-config`), the `coppelia` package (mock + physics), and
 both MATLAB paths (`matlab/`, `matlab_turtlebot/`). The shape is validated against `n`; a

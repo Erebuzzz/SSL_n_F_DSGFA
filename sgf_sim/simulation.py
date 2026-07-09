@@ -8,7 +8,12 @@ import numpy as np
 
 from .config import FloatArray, IntArray, SimulationConfig
 from .control import control_input, formation_slots, measurements, shifted_positions
-from .theory import epsilon_bound, gain_ratio_threshold
+from .theory import (
+    all_informed_epsilon,
+    epsilon_bound,
+    gain_ratio_threshold,
+    min_informed_for_valid_bound,
+)
 
 
 @dataclass(frozen=True)
@@ -33,6 +38,17 @@ class SimulationResult:
         inside_bound = None
         if self.epsilon is not None and self.bound_applicable:
             inside_bound = final_localization <= self.epsilon
+        min_informed = int(np.min(self.n_informed))
+        # Honest "informed robots matter" reporting: the bound is valid for any
+        # informed count >= 1, but it inflates as the informed fraction shrinks.
+        eps_all_informed = all_informed_epsilon(
+            self.config.kappa, self.config.radius, self.config.noise_bound
+        )
+        epsilon_inflation = (
+            float(self.epsilon / eps_all_informed)
+            if (self.epsilon is not None and eps_all_informed > 0)
+            else None
+        )
         tail_start = int(0.75 * len(self.localization_error))
         localization_tail = self.localization_error[tail_start:]
         formation_tail = self.formation_error[tail_start:]
@@ -60,9 +76,14 @@ class SimulationResult:
                 "gain_ratio": self.gain_ratio,
                 "gain_threshold": self.gain_threshold,
                 "gain_condition_passed": self.gain_ratio > self.gain_threshold,
-                "min_n_informed": int(np.min(self.n_informed)),
+                "min_n_informed": min_informed,
                 "final_n_informed": int(self.n_informed[-1]),
+                "min_informed_for_valid_bound": min_informed_for_valid_bound(self.config.n),
+                "all_informed": bool(min_informed == self.config.n),
+                "no_source_signal": bool(min_informed == 0),
                 "epsilon": self.epsilon,
+                "epsilon_all_informed": eps_all_informed,
+                "epsilon_inflation_factor": epsilon_inflation,
                 "bound_applicable": self.bound_applicable,
                 "inside_bound": inside_bound,
             },

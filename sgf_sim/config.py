@@ -54,6 +54,11 @@ class SimulationConfig:
     # eps = 0 keeps MATLAB<->Python parity bit-identical.
     sign_boundary_layer: float = 0.0
     initial_positions: FloatArray | None = None
+    # Optional per-robot "can sense the source" mask (1 = informed-capable,
+    # 0 = forced blind). None => all robots informed-capable. The EFFECTIVE
+    # informed status is still gated by the paper's sensing-radius rule at
+    # runtime: a capable robot only senses while within Dmax of the source.
+    informed: IntArray | None = None
     adjacency: IntArray | None = None
     output_dir: Path = field(default_factory=lambda: Path("outputs") / "runs")
 
@@ -65,6 +70,18 @@ class SimulationConfig:
         if positions.shape != (self.n, 2):
             raise ValueError(f"initial_positions must have shape {(self.n, 2)}")
         return positions.copy()
+
+    def resolved_informed_mask(self) -> NDArray[np.bool_]:
+        """Per-robot sensing-capability mask (all True when unset)."""
+
+        if self.informed is None:
+            return np.ones(self.n, dtype=bool)
+        mask = np.asarray(self.informed, dtype=int)
+        if mask.shape != (self.n,):
+            raise ValueError(f"informed must have shape {(self.n,)}")
+        if not np.all(np.isin(mask, (0, 1))):
+            raise ValueError("informed entries must be 0 or 1")
+        return mask.astype(bool)
 
     def resolved_adjacency(self) -> IntArray:
         if self.adjacency is None:
@@ -108,4 +125,5 @@ class SimulationConfig:
         if self.sign_boundary_layer < 0:
             raise ValueError("sign_boundary_layer must be non-negative (0 = exact sgn)")
         self.resolved_initial_positions()
+        self.resolved_informed_mask()
         self.resolved_adjacency()

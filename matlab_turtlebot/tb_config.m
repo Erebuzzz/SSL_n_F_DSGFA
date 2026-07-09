@@ -74,6 +74,12 @@ if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'headin
 else
     cfg.initial_headings = zeros(cfg.n, 1);
 end
+% Optional per-robot sensing-capability mask (1 = capable, 0 = forced blind).
+if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'informed')
+    cfg.informed_mask = logical(raw.initial_conditions.informed(:));
+else
+    cfg.informed_mask = true(cfg.n, 1);
+end
 
 cfg.output_folder = char(string(raw.outputs.folder));
 if isfield(raw.outputs, 'run_id')
@@ -161,5 +167,8 @@ if any(size(cfg.initial_positions) ~= [cfg.n, 2])
 end
 if numel(cfg.initial_headings) ~= cfg.n
     error('initial_headings must have n elements.');
+end
+if numel(cfg.informed_mask) ~= cfg.n
+    error('informed must have n elements.');
 end
 end

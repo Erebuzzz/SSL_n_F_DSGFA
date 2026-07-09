@@ -35,3 +35,22 @@ def all_informed_epsilon(kappa: float, radius: float, delta: float) -> float:
     """Return the Remark 4 simplification for all robots informed."""
 
     return delta / (kappa * radius)
+
+
+def min_informed_for_valid_bound(n: int) -> int:
+    """Smallest informed count in [1, n] with a positive epsilon denominator.
+
+    The denominator ``2*pi*k - n*|sin(2*pi*k/n)|`` is strictly positive for every
+    ``k`` in ``[1, n]`` (since ``theta - |sin theta| > 0`` on ``(0, 2*pi]``), so this
+    is always **1**. It is exposed for explicit reporting/guarding. The real caveat
+    is not validity but *inflation*: as the informed fraction ``k/n`` shrinks, the
+    bound ``epsilon`` grows without limit (valid, but practically useless). With
+    ``k = 0`` there is no source signal at all and localization is undefined.
+    """
+
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    for k in range(1, n + 1):
+        if 2.0 * math.pi * k - n * abs(math.sin(2.0 * math.pi * k / n)) > 0.0:
+            return k
+    raise ValueError("no valid informed count found")  # unreachable for n >= 1

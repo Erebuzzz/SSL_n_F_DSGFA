@@ -38,6 +38,13 @@ if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'positi
 else
     cfg.initial_positions = default_initial_positions(cfg.n);
 end
+% Optional per-robot sensing-capability mask (1 = informed-capable, 0 = forced
+% blind). Absent -> all capable. Effective informed status is still gated by Dmax.
+if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'informed')
+    cfg.informed_mask = logical(raw.initial_conditions.informed(:));
+else
+    cfg.informed_mask = true(cfg.n, 1);
+end
 
 cfg.output_folder = char(string(raw.outputs.folder));
 if isfield(raw.outputs, 'run_id')
@@ -63,11 +70,11 @@ if n ~= 6
 end
 positions = [
     0.0, 0.0;
-    2.5, -0.5;
-    5.0, 0.0;
+    -2.5, -0.5;
+    5.0, 1.0;
     0.5, 3.5;
-    3.0, 4.0;
-    5.5, 3.0
+    1.0, 4.0;
+    6.0, 2.0
 ];
 end
 
@@ -92,6 +99,9 @@ if any(size(cfg.adjacency) ~= [cfg.n, cfg.n])
 end
 if any(size(cfg.initial_positions) ~= [cfg.n, 2])
     error('initial_positions must have shape n by 2.');
+end
+if numel(cfg.informed_mask) ~= cfg.n
+    error('informed must have n elements.');
 end
 if any(diag(cfg.adjacency) ~= 0) || any(any(cfg.adjacency ~= cfg.adjacency'))
     error('adjacency must be undirected with a zero diagonal.');

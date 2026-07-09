@@ -104,6 +104,9 @@ class CoppeliaConfig:
     # --- initial conditions ---
     initial_positions: FloatArray | None = None
     initial_headings: FloatArray | None = None
+    # Per-robot sensing-capability mask (1 = informed-capable, 0 = forced blind).
+    # None => all capable. Effective informed status is still gated by the Dmax rule.
+    informed: IntArray | None = None
 
     # --- backend selection ---
     backend: str = "mock"  # one of: mock, coppelia
@@ -140,6 +143,18 @@ class CoppeliaConfig:
         if headings.shape != (self.n,):
             raise ValueError(f"initial_headings must have shape {(self.n,)}")
         return headings.copy()
+
+    def resolved_informed_mask(self) -> NDArray[np.bool_]:
+        """Per-robot sensing-capability mask (all True when unset)."""
+
+        if self.informed is None:
+            return np.ones(self.n, dtype=bool)
+        mask = np.asarray(self.informed, dtype=int)
+        if mask.shape != (self.n,):
+            raise ValueError(f"informed must have shape {(self.n,)}")
+        if not np.all(np.isin(mask, (0, 1))):
+            raise ValueError("informed entries must be 0 or 1")
+        return mask.astype(bool)
 
     def resolved_adjacency(self) -> IntArray:
         from .topology import adjacency_for_topology, is_connected
@@ -188,6 +203,7 @@ class CoppeliaConfig:
             raise ValueError("animation_format must be gif or mp4")
         self.resolved_initial_positions()
         self.resolved_initial_headings()
+        self.resolved_informed_mask()
         self.resolved_adjacency()
 
     # ------------------------------------------------------------------
@@ -245,6 +261,8 @@ class CoppeliaConfig:
                 kwargs["initial_positions"] = np.asarray(initial["positions"], dtype=float)
             if initial.get("headings") is not None:
                 kwargs["initial_headings"] = np.asarray(initial["headings"], dtype=float)
+            if initial.get("informed") is not None:
+                kwargs["informed"] = np.asarray(initial["informed"], dtype=int)
 
         put("control_point_offset", robot.get("unicycle_shift_r"))
         controller = data.get("controller") if isinstance(data.get("controller"), dict) else {}
@@ -275,7 +293,7 @@ class CoppeliaConfig:
 
         data = asdict(self)
         data["output_dir"] = str(self.output_dir)
-        for key in ("adjacency", "initial_positions", "initial_headings"):
+        for key in ("adjacency", "initial_positions", "initial_headings", "informed"):
             value = data.get(key)
             if isinstance(value, np.ndarray):
                 data[key] = value.tolist()
