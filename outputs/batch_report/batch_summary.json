@@ -1,0 +1,2071 @@
+{
+  "si_n4_srcA_gaussian": {
+    "run_id": "si_n4_srcA_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n4_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n4_srcA_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 4,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": true,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.10742191718379969,
+        "initial_localization_error": 2.050152433357091,
+        "final_localization_error": 0.03541950154450856,
+        "formation_error_drop": 15.072746066076466,
+        "localization_error_drop": 2.014732931812582,
+        "tail_formation_error_span": 0.15646822917302305,
+        "tail_formation_error_std": 0.05992189080566105,
+        "tail_localization_error_span": 0.0032777696898404346,
+        "tail_localization_error_std": 0.0008520174729959531,
+        "formation_threshold": 0.7590083991630133,
+        "formation_entry_time": 0.048,
+        "localization_threshold": 0.1692491099499089,
+        "localization_entry_time": 25.1035,
+        "time_inside_localization_threshold_after_entry": 34.897
+      }
+    },
+    "elapsed_s": 329.0369851
+  },
+  "si_n4_srcA_none": {
+    "run_id": "si_n4_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n4_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n4_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 4,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": true,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.10695864594822134,
+        "initial_localization_error": 2.050152433357091,
+        "final_localization_error": 0.035491941509076114,
+        "formation_error_drop": 15.073209337312043,
+        "localization_error_drop": 2.014660491848015,
+        "tail_formation_error_span": 0.15530764563862814,
+        "tail_formation_error_std": 0.05945802930039936,
+        "tail_localization_error_span": 0.003223246185094286,
+        "tail_localization_error_std": 0.0008701753065550026,
+        "formation_threshold": 0.7590083991630133,
+        "formation_entry_time": 0.048,
+        "localization_threshold": 0.1692491099499089,
+        "localization_entry_time": 25.0825,
+        "time_inside_localization_threshold_after_entry": 34.918
+      }
+    },
+    "elapsed_s": 9.2189302
+  },
+  "si_n4_srcB_gaussian": {
+    "run_id": "si_n4_srcB_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n4_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n4_srcB_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 4,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": true,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.10742191718384371,
+        "initial_localization_error": 2.050152433357091,
+        "final_localization_error": 0.0354195015445582,
+        "formation_error_drop": 15.072746066076421,
+        "localization_error_drop": 2.0147329318125324,
+        "tail_formation_error_span": 0.15646822917281772,
+        "tail_formation_error_std": 0.059921890805612554,
+        "tail_localization_error_span": 0.003277769689784271,
+        "tail_localization_error_std": 0.0008520174729755599,
+        "formation_threshold": 0.7590083991630133,
+        "formation_entry_time": 0.048,
+        "localization_threshold": 0.1692491099499089,
+        "localization_entry_time": 25.1035,
+        "time_inside_localization_threshold_after_entry": 34.897
+      }
+    },
+    "elapsed_s": 9.279822
+  },
+  "si_n4_srcB_none": {
+    "run_id": "si_n4_srcB_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n4_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n4_srcB_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 4,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": true,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.10695864594824644,
+        "initial_localization_error": 2.050152433357091,
+        "final_localization_error": 0.03549194150910562,
+        "formation_error_drop": 15.073209337312019,
+        "localization_error_drop": 2.014660491847985,
+        "tail_formation_error_span": 0.15530764563855376,
+        "tail_formation_error_std": 0.05945802930039721,
+        "tail_localization_error_span": 0.0032232461850295463,
+        "tail_localization_error_std": 0.0008701753065397077,
+        "formation_threshold": 0.7590083991630133,
+        "formation_entry_time": 0.048,
+        "localization_threshold": 0.1692491099499089,
+        "localization_entry_time": 25.0825,
+        "time_inside_localization_threshold_after_entry": 34.918
+      }
+    },
+    "elapsed_s": 9.5858968
+  },
+  "si_n6_srcA_gaussian": {
+    "run_id": "si_n6_srcA_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n6_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n6_srcA_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.1871570683918047,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.020118776574884385,
+        "formation_error_drop": 21.46369875327879,
+        "localization_error_drop": 2.3995814833287628,
+        "tail_formation_error_span": 0.17309331876504425,
+        "tail_formation_error_std": 0.02455555919974335,
+        "tail_localization_error_span": 0.013165877385805807,
+        "tail_localization_error_std": 0.003930077594421989,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 0.0855,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.4875,
+        "time_inside_localization_threshold_after_entry": 34.513
+      }
+    },
+    "elapsed_s": 283.852632
+  },
+  "si_n6_srcA_none": {
+    "run_id": "si_n6_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n6_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n6_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.17756696094709118,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.020072507474853663,
+        "formation_error_drop": 21.473288860723507,
+        "localization_error_drop": 2.3996277524287937,
+        "tail_formation_error_span": 0.19243608710042293,
+        "tail_formation_error_std": 0.027118223116698446,
+        "tail_localization_error_span": 0.013310315769239873,
+        "tail_localization_error_std": 0.004025261758688262,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 0.0855,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.4805,
+        "time_inside_localization_threshold_after_entry": 34.52
+      }
+    },
+    "elapsed_s": 336.7948114
+  },
+  "si_n6_srcB_gaussian": {
+    "run_id": "si_n6_srcB_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n6_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n6_srcB_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.6508558216706,
+        "final_formation_error": 0.1871570683919771,
+        "initial_localization_error": 2.419700259903647,
+        "final_localization_error": 0.020118776574856678,
+        "formation_error_drop": 21.463698753278624,
+        "localization_error_drop": 2.3995814833287903,
+        "tail_formation_error_span": 0.17309331876533476,
+        "tail_formation_error_std": 0.024555559199758145,
+        "tail_localization_error_span": 0.013165877385745945,
+        "tail_localization_error_std": 0.0039300775943962385,
+        "formation_threshold": 1.0825427910835301,
+        "formation_entry_time": 0.0855,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.4875,
+        "time_inside_localization_threshold_after_entry": 34.513
+      }
+    },
+    "elapsed_s": 10.9980023
+  },
+  "si_n6_srcB_none": {
+    "run_id": "si_n6_srcB_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n6_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n6_srcB_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.6508558216706,
+        "final_formation_error": 0.17756696094686833,
+        "initial_localization_error": 2.419700259903647,
+        "final_localization_error": 0.020072507474896317,
+        "formation_error_drop": 21.47328886072373,
+        "localization_error_drop": 2.3996277524287506,
+        "tail_formation_error_span": 0.19243608710063323,
+        "tail_formation_error_std": 0.027118223116729148,
+        "tail_localization_error_span": 0.013310315769140296,
+        "tail_localization_error_std": 0.004025261758662262,
+        "formation_threshold": 1.0825427910835301,
+        "formation_entry_time": 0.0855,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.4805,
+        "time_inside_localization_threshold_after_entry": 34.52
+      }
+    },
+    "elapsed_s": 11.8215339
+  },
+  "si_n8_srcA_gaussian": {
+    "run_id": "si_n8_srcA_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n8_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n8_srcA_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 8,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.2346381058466685,
+        "initial_localization_error": 2.4830958812161286,
+        "final_localization_error": 0.01728555277117495,
+        "formation_error_drop": 25.62650054753993,
+        "localization_error_drop": 2.4658103284449537,
+        "tail_formation_error_span": 0.21916227197479057,
+        "tail_formation_error_std": 0.03297283468840711,
+        "tail_localization_error_span": 0.015400020054881457,
+        "tail_localization_error_std": 0.004383665210458371,
+        "formation_threshold": 1.29305693266933,
+        "formation_entry_time": 0.114,
+        "localization_threshold": 0.19513700609460416,
+        "localization_entry_time": 25.5385,
+        "time_inside_localization_threshold_after_entry": 34.462
+      }
+    },
+    "elapsed_s": 295.4185966
+  },
+  "si_n8_srcA_none": {
+    "run_id": "si_n8_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n8_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n8_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 8,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.2527344488702007,
+        "initial_localization_error": 2.4830958812161286,
+        "final_localization_error": 0.014018827239739974,
+        "formation_error_drop": 25.608404204516397,
+        "localization_error_drop": 2.4690770539763887,
+        "tail_formation_error_span": 0.22180265947042926,
+        "tail_formation_error_std": 0.032100204854221534,
+        "tail_localization_error_span": 0.017996719280079482,
+        "tail_localization_error_std": 0.00482531172617309,
+        "formation_threshold": 1.29305693266933,
+        "formation_entry_time": 0.114,
+        "localization_threshold": 0.19513700609460416,
+        "localization_entry_time": 25.5945,
+        "time_inside_localization_threshold_after_entry": 34.406
+      }
+    },
+    "elapsed_s": 12.6300906
+  },
+  "si_n8_srcB_gaussian": {
+    "run_id": "si_n8_srcB_gaussian",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n8_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/si_n8_srcB_gaussian_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 8,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_std": 0.2,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.23463810584649153,
+        "initial_localization_error": 2.4830958812161295,
+        "final_localization_error": 0.01728555277122856,
+        "formation_error_drop": 25.626500547540104,
+        "localization_error_drop": 2.465810328444901,
+        "tail_formation_error_span": 0.2191622719749391,
+        "tail_formation_error_std": 0.032972834688429146,
+        "tail_localization_error_span": 0.015400020054834734,
+        "tail_localization_error_std": 0.004383665210442771,
+        "formation_threshold": 1.29305693266933,
+        "formation_entry_time": 0.114,
+        "localization_threshold": 0.19513700609460416,
+        "localization_entry_time": 25.5385,
+        "time_inside_localization_threshold_after_entry": 34.462
+      }
+    },
+    "elapsed_s": 12.3041995
+  },
+  "si_n8_srcB_none": {
+    "run_id": "si_n8_srcB_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/si_n8_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/si_n8_srcB_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 8,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.25273444887022345,
+        "initial_localization_error": 2.4830958812161295,
+        "final_localization_error": 0.014018827239641945,
+        "formation_error_drop": 25.608404204516372,
+        "localization_error_drop": 2.4690770539764877,
+        "tail_formation_error_span": 0.22180265947047204,
+        "tail_formation_error_std": 0.03210020485419754,
+        "tail_localization_error_span": 0.017996719280139933,
+        "tail_localization_error_std": 0.004825311726194516,
+        "formation_threshold": 1.29305693266933,
+        "formation_entry_time": 0.114,
+        "localization_threshold": 0.19513700609460416,
+        "localization_entry_time": 25.5945,
+        "time_inside_localization_threshold_after_entry": 34.406
+      }
+    },
+    "elapsed_s": 12.6793677
+  },
+  "ts_n4_srcA_gaussian": {
+    "run_id": "ts_n4_srcA_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n4_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n4_srcA_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 4,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": false,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.0039376582992650495,
+        "initial_localization_error": 1.7897276329095442,
+        "final_localization_error": 0.0008901867475983298,
+        "tail_formation_error_span": 0.0003256332318272953,
+        "tail_localization_error_span": 0.0019498571107193342,
+        "max_commanded_linear_velocity": 24.15592128462703,
+        "max_commanded_angular_velocity": 13.605
+      }
+    },
+    "elapsed_s": 208.5540891
+  },
+  "ts_n4_srcA_none": {
+    "run_id": "ts_n4_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n4_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n4_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 4,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": false,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.003992019987314913,
+        "initial_localization_error": 1.7897276329095442,
+        "final_localization_error": 0.0001958401577587167,
+        "tail_formation_error_span": 3.817872762726382e-09,
+        "tail_localization_error_span": 0.0016567313166143552,
+        "max_commanded_linear_velocity": 24.177854871052322,
+        "max_commanded_angular_velocity": 13.605
+      }
+    },
+    "elapsed_s": 7.1575029
+  },
+  "ts_n4_srcB_gaussian": {
+    "run_id": "ts_n4_srcB_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n4_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n4_srcB_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 4,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": false,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.003937658299264139,
+        "initial_localization_error": 1.7897276329095442,
+        "final_localization_error": 0.000890186747605153,
+        "tail_formation_error_span": 0.0003256332318269015,
+        "tail_localization_error_span": 0.001949857110667782,
+        "max_commanded_linear_velocity": 24.166331636627067,
+        "max_commanded_angular_velocity": 13.605
+      }
+    },
+    "elapsed_s": 7.2300485
+  },
+  "ts_n4_srcB_none": {
+    "run_id": "ts_n4_srcB_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n4_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n4_srcB_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 4,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1153.6,
+        "gain_condition_passed": false,
+        "min_n_informed": 3,
+        "final_n_informed": 4,
+        "epsilon": 0.1692491099499089,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 15.180167983260265,
+        "final_formation_error": 0.003992019987314913,
+        "initial_localization_error": 1.7897276329095442,
+        "final_localization_error": 0.00019584015774220265,
+        "tail_formation_error_span": 3.817873650904802e-09,
+        "tail_localization_error_span": 0.001656731316605344,
+        "max_commanded_linear_velocity": 24.177854871052297,
+        "max_commanded_angular_velocity": 13.605
+      }
+    },
+    "elapsed_s": 5.544115
+  },
+  "ts_n6_srcA_gaussian": {
+    "run_id": "ts_n6_srcA_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n6_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n6_srcA_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.009696871863822487,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.0005691936170837348,
+        "tail_formation_error_span": 0.0004310914813757498,
+        "tail_localization_error_span": 0.002124959284197377,
+        "max_commanded_linear_velocity": 30.410760844339777,
+        "max_commanded_angular_velocity": 17.64000436805685
+      }
+    },
+    "elapsed_s": 196.1588106
+  },
+  "ts_n6_srcA_none": {
+    "run_id": "ts_n6_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n6_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n6_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.009758962200693135,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.00027609511849194013,
+        "tail_formation_error_span": 1.73479355759093e-08,
+        "tail_localization_error_span": 0.0023288535676944814,
+        "max_commanded_linear_velocity": 30.410760846773996,
+        "max_commanded_angular_velocity": 17.64000436805685
+      }
+    },
+    "elapsed_s": 340.4155345
+  },
+  "ts_n6_srcB_gaussian": {
+    "run_id": "ts_n6_srcB_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n6_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n6_srcB_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.6508558216706,
+        "final_formation_error": 0.009696871863825141,
+        "initial_localization_error": 2.63932112757134,
+        "final_localization_error": 0.000569193617086859,
+        "tail_formation_error_span": 0.00043109148137617827,
+        "tail_localization_error_span": 0.0021249592841643492,
+        "max_commanded_linear_velocity": 30.410760844340256,
+        "max_commanded_angular_velocity": 17.64000436805685
+      }
+    },
+    "elapsed_s": 7.1505506
+  },
+  "ts_n6_srcB_none": {
+    "run_id": "ts_n6_srcB_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n6_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n6_srcB_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.6508558216706,
+        "final_formation_error": 0.00975896220069287,
+        "initial_localization_error": 2.63932112757134,
+        "final_localization_error": 0.0002760951185233322,
+        "tail_formation_error_span": 1.734793789523459e-08,
+        "tail_localization_error_span": 0.002328853567671214,
+        "max_commanded_linear_velocity": 30.41076084677452,
+        "max_commanded_angular_velocity": 17.64000436805685
+      }
+    },
+    "elapsed_s": 5.7867531
+  },
+  "ts_n8_srcA_gaussian": {
+    "run_id": "ts_n8_srcA_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n8_srcA_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n8_srcA_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 8,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.019090750553722034,
+        "initial_localization_error": 2.8004490988611996,
+        "final_localization_error": 0.000534761364885073,
+        "tail_formation_error_span": 0.0005701886923481329,
+        "tail_localization_error_span": 0.0032523376932526663,
+        "max_commanded_linear_velocity": 27.51029280070128,
+        "max_commanded_angular_velocity": 14.709884082361173
+      }
+    },
+    "elapsed_s": 186.3504647
+  },
+  "ts_n8_srcA_none": {
+    "run_id": "ts_n8_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n8_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n8_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 8,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.019182941713657822,
+        "initial_localization_error": 2.8004490988611996,
+        "final_localization_error": 0.0002930743995948058,
+        "tail_formation_error_span": 3.777084216921578e-08,
+        "tail_localization_error_span": 0.002461339646393185,
+        "max_commanded_linear_velocity": 27.49815395321226,
+        "max_commanded_angular_velocity": 14.710403446139035
+      }
+    },
+    "elapsed_s": 5.8636474
+  },
+  "ts_n8_srcB_gaussian": {
+    "run_id": "ts_n8_srcB_gaussian",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n8_srcB_gaussian.json",
+    "run_dir": "outputs/batch_report/runs/ts_n8_srcB_gaussian_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 8,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "gaussian",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.01909075055372848,
+        "initial_localization_error": 2.8004490988612014,
+        "final_localization_error": 0.000534761364871721,
+        "tail_formation_error_span": 0.0005701886923533926,
+        "tail_localization_error_span": 0.003252337693260818,
+        "max_commanded_linear_velocity": 27.493313627368043,
+        "max_commanded_angular_velocity": 14.709884082361238
+      }
+    },
+    "elapsed_s": 7.4382342
+  },
+  "ts_n8_srcB_none": {
+    "run_id": "ts_n8_srcB_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/ts_n8_srcB_none.json",
+    "run_dir": "outputs/batch_report/runs/ts_n8_srcB_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 8,
+        "source": [
+          30,
+          -20
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 200,
+        "gain_threshold": 2307.2,
+        "gain_condition_passed": false,
+        "min_n_informed": 5,
+        "final_n_informed": 8,
+        "epsilon": 0.19513700609460416,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 25.861138653386597,
+        "final_formation_error": 0.019182941713658603,
+        "initial_localization_error": 2.8004490988612014,
+        "final_localization_error": 0.00029307439959998797,
+        "tail_formation_error_span": 3.7770838120371186e-08,
+        "tail_localization_error_span": 0.0024613396463820155,
+        "max_commanded_linear_velocity": 27.498153953212142,
+        "max_commanded_angular_velocity": 14.710403446139143
+      }
+    },
+    "elapsed_s": 6.0214136
+  },
+  "fg_n6_a100_srcA_none": {
+    "run_id": "fg_n6_a100_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/fg_n6_a100_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fg_n6_a100_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.17756696094709118,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.020072507474853663,
+        "formation_error_drop": 21.473288860723507,
+        "localization_error_drop": 2.3996277524287937,
+        "tail_formation_error_span": 0.19243608710042293,
+        "tail_formation_error_std": 0.027118223116698446,
+        "tail_localization_error_span": 0.013310315769239873,
+        "tail_localization_error_std": 0.004025261758688262,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 0.0855,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.4805,
+        "time_inside_localization_threshold_after_entry": 34.52
+      }
+    },
+    "elapsed_s": 456.8231304
+  },
+  "fg_n6_a1_srcA_none": {
+    "run_id": "fg_n6_a1_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/fg_n6_a1_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fg_n6_a1_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 1,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 20,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.0022872160248412527,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.002294755221314604,
+        "formation_error_drop": 21.648568605645757,
+        "localization_error_drop": 2.417405504682333,
+        "tail_formation_error_span": 0.0027266202478341563,
+        "tail_formation_error_std": 0.0003492638206049365,
+        "tail_localization_error_span": 0.007951778718597318,
+        "tail_localization_error_std": 0.002256551594325472,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 2.918,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 15.8405,
+        "time_inside_localization_threshold_after_entry": 44.160000000000004
+      }
+    },
+    "elapsed_s": 456.8231304
+  },
+  "fg_n6_a20_srcA_none": {
+    "run_id": "fg_n6_a20_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/fg_n6_a20_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fg_n6_a20_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 20,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 400,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.04730686766663374,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.005352606371158699,
+        "formation_error_drop": 21.603548954003962,
+        "localization_error_drop": 2.4143476535324884,
+        "tail_formation_error_span": 0.051962872577412236,
+        "tail_formation_error_std": 0.007444226135970401,
+        "tail_localization_error_span": 0.018930582926096312,
+        "tail_localization_error_std": 0.005458748272135722,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 0.3845,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 24.2335,
+        "time_inside_localization_threshold_after_entry": 35.767
+      }
+    },
+    "elapsed_s": 262.7063846
+  },
+  "fg_n6_a50_srcA_none": {
+    "run_id": "fg_n6_a50_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/fg_n6_a50_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fg_n6_a50_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 50,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 1000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.10009561646033076,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.011633037551359816,
+        "formation_error_drop": 21.550760205210267,
+        "localization_error_drop": 2.408067222352287,
+        "tail_formation_error_span": 0.07814279351270892,
+        "tail_formation_error_std": 0.007302749671325791,
+        "tail_localization_error_span": 0.013519142709772029,
+        "tail_localization_error_std": 0.0038243165786657884,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 0.166,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 25.057000000000002,
+        "time_inside_localization_threshold_after_entry": 34.9435
+      }
+    },
+    "elapsed_s": 134.901321
+  },
+  "fg_n6_a5_srcA_none": {
+    "run_id": "fg_n6_a5_srcA_none",
+    "mode": "single_integrator",
+    "config_path": "outputs/batch_report/configs/fg_n6_a5_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fg_n6_a5_srcA_none_matlab",
+    "success": true,
+    "error": "",
+    "summary": {
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 5,
+        "beta": 0.05,
+        "duration": 60,
+        "dt": 0.0005,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_std": 0,
+        "noise_bound": 0.2,
+        "topology": "ring"
+      },
+      "validation": {
+        "gain_ratio": 100,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.011470046326108178,
+        "initial_localization_error": 2.4197002599036472,
+        "final_localization_error": 0.00396369256130789,
+        "formation_error_drop": 21.63938577534449,
+        "localization_error_drop": 2.415736567342339,
+        "tail_formation_error_span": 0.011475767792419107,
+        "tail_formation_error_std": 0.0016061303162084699,
+        "tail_localization_error_span": 0.014097051165974105,
+        "tail_localization_error_std": 0.003989393068458896,
+        "formation_threshold": 1.08254279108353,
+        "formation_entry_time": 1.166,
+        "localization_threshold": 0.18909509650773187,
+        "localization_entry_time": 21.5075,
+        "time_inside_localization_threshold_after_entry": 38.493
+      }
+    },
+    "elapsed_s": 518.5008813
+  },
+  "fgb_n6_a100_srcA_none": {
+    "run_id": "fgb_n6_a100_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgb_n6_a100_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgb_n6_a100_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 10000,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 0.01,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 0,
+        "final_n_informed": 0,
+        "epsilon": [],
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 192422895.81117436,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 10731074.02408175,
+        "tail_formation_error_span": 48110018.39453578,
+        "tail_localization_error_span": 2660785.196259276,
+        "max_commanded_linear_velocity": 1441999.9994974253,
+        "max_commanded_angular_velocity": 720999.9999842911
+      }
+    },
+    "elapsed_s": 47.5727277
+  },
+  "fgb_n6_a10_srcA_none": {
+    "run_id": "fgb_n6_a10_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgb_n6_a10_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgb_n6_a10_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 10,
+        "beta": 10000,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 0.001,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 0,
+        "final_n_informed": 0,
+        "epsilon": [],
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 192287368.4304038,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 10942416.398101684,
+        "tail_formation_error_span": 48083571.2616635,
+        "tail_localization_error_span": 2759764.588048905,
+        "max_commanded_linear_velocity": 1441999.9949500342,
+        "max_commanded_angular_velocity": 720999.9999973724
+      }
+    },
+    "elapsed_s": 15.9507333
+  },
+  "fgb_n6_a1_srcA_none": {
+    "run_id": "fgb_n6_a1_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgb_n6_a1_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgb_n6_a1_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 1,
+        "beta": 10000,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 0.0001,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 0,
+        "final_n_informed": 0,
+        "epsilon": [],
+        "bound_applicable": false,
+        "inside_bound": []
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 192306975.78220913,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 10887682.593727041,
+        "tail_formation_error_span": 48062656.56231719,
+        "tail_localization_error_span": 2740934.066370232,
+        "max_commanded_linear_velocity": 1441999.9997555634,
+        "max_commanded_angular_velocity": 720999.9999945965
+      }
+    },
+    "elapsed_s": 16.3575414
+  },
+  "fgt_n6_a100_srcA_none": {
+    "run_id": "fgt_n6_a100_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgt_n6_a100_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgt_n6_a100_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 100,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 2000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": true,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.8665245862692975,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.0018872209859569413,
+        "tail_formation_error_span": 9.099438624815548e-08,
+        "tail_localization_error_span": 0.010990860030184261,
+        "max_commanded_linear_velocity": 282.7508755318113,
+        "max_commanded_angular_velocity": 139.15344594745184
+      }
+    },
+    "elapsed_s": 147.4992503
+  },
+  "fgt_n6_a1_srcA_none": {
+    "run_id": "fgt_n6_a1_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgt_n6_a1_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgt_n6_a1_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 1,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 20,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.09424601233249554,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.00021417554716509645,
+        "tail_formation_error_span": 9.399325613668186e-08,
+        "tail_localization_error_span": 0.0017046578615488707,
+        "max_commanded_linear_velocity": 9.804421036612759,
+        "max_commanded_angular_velocity": 4.984473702227316
+      }
+    },
+    "elapsed_s": 133.1168195
+  },
+  "fgt_n6_a20_srcA_none": {
+    "run_id": "fgt_n6_a20_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgt_n6_a20_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgt_n6_a20_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 20,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 400,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.004889206066506076,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.00029616352202046787,
+        "tail_formation_error_span": 1.0041166001971413e-08,
+        "tail_localization_error_span": 0.002506476712962139,
+        "max_commanded_linear_velocity": 49.91854821193883,
+        "max_commanded_angular_velocity": 31.741390053477073
+      }
+    },
+    "elapsed_s": 129.8997888
+  },
+  "fgt_n6_a50_srcA_none": {
+    "run_id": "fgt_n6_a50_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgt_n6_a50_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgt_n6_a50_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 50,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 1000,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": false
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.0936254760733943,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.26789183654746007,
+        "tail_formation_error_span": 0.1495105073318192,
+        "tail_localization_error_span": 0.20352938639044194,
+        "max_commanded_linear_velocity": 107.12828426187289,
+        "max_commanded_angular_velocity": 74.1723437003171
+      }
+    },
+    "elapsed_s": 133.3723046
+  },
+  "fgt_n6_a5_srcA_none": {
+    "run_id": "fgt_n6_a5_srcA_none",
+    "mode": "turtlebot_simulink",
+    "config_path": "outputs/batch_report/configs/fgt_n6_a5_srcA_none.json",
+    "run_dir": "outputs/batch_report/runs/fgt_n6_a5_srcA_none_turtlebot",
+    "success": true,
+    "error": "",
+    "summary": {
+      "model": "turtlebot_simulink",
+      "parameters": {
+        "n": 6,
+        "source": [
+          5.5,
+          5.5
+        ],
+        "kappa": 1,
+        "radius": 2,
+        "dmax": 12,
+        "alpha": 5,
+        "beta": 0.05,
+        "duration": 90,
+        "dt": 0.004,
+        "seed": 1,
+        "noise_model": "none",
+        "noise_bound": 0.2,
+        "topology": "ring",
+        "control_point_offset": 2,
+        "command_period": 0,
+        "wheel_radius": 0.033,
+        "wheel_separation": 0.16,
+        "sign_boundary_layer": 0.2
+      },
+      "validation": {
+        "gain_ratio": 100,
+        "gain_threshold": 1730.3999999999999,
+        "gain_condition_passed": false,
+        "min_n_informed": 4,
+        "final_n_informed": 6,
+        "epsilon": 0.18909509650773187,
+        "bound_applicable": true,
+        "inside_bound": true
+      },
+      "metrics": {
+        "initial_formation_error": 21.650855821670596,
+        "final_formation_error": 0.019440701247665237,
+        "initial_localization_error": 2.6393211275713395,
+        "final_localization_error": 0.0002508381316548498,
+        "tail_formation_error_span": 2.8296660663923445e-08,
+        "tail_localization_error_span": 0.002101819261817413,
+        "max_commanded_linear_velocity": 19.91873649088039,
+        "max_commanded_angular_velocity": 10.59439044802727
+      }
+    },
+    "elapsed_s": 133.9237154
+  }
+}

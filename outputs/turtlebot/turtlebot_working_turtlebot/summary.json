@@ -1,0 +1,46 @@
+{
+  "model": "turtlebot",
+  "parameters": {
+    "n": 6,
+    "source": [
+      5.5,
+      5.5
+    ],
+    "kappa": 1,
+    "radius": 2,
+    "dmax": 12,
+    "alpha": 10,
+    "beta": 0.05,
+    "duration": 90,
+    "dt": 0.004,
+    "seed": 1,
+    "noise_model": "bounded",
+    "noise_bound": 0.2,
+    "topology": "paper_fig1_reconstructed",
+    "control_point_offset": 2,
+    "command_period": 0,
+    "wheel_radius": 0.033,
+    "wheel_separation": 0.16,
+    "sign_boundary_layer": 0.2
+  },
+  "validation": {
+    "gain_ratio": 200,
+    "gain_threshold": 1730.3999999999999,
+    "gain_condition_passed": false,
+    "min_n_informed": 6,
+    "final_n_informed": 6,
+    "epsilon": 0.1,
+    "bound_applicable": true,
+    "inside_bound": true
+  },
+  "metrics": {
+    "initial_formation_error": 9.9090410962346152,
+    "final_formation_error": 0.0052284978481569469,
+    "initial_localization_error": 3.9060138817526546,
+    "final_localization_error": 0.000886757534983477,
+    "tail_formation_error_span": 0.00020848278882779417,
+    "tail_localization_error_span": 0.0044693895567353616,
+    "max_commanded_linear_velocity": 29.737824936170824,
+    "max_commanded_angular_velocity": 16.238817079467836
+  }
+}

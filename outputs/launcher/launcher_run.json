@@ -1,0 +1,85 @@
+{
+  "experiment": {
+    "name": "launcher_run",
+    "mode": "single_integrator",
+    "seed": 1,
+    "duration": 60.0,
+    "dt": 0.0005
+  },
+  "paper_parameters": {
+    "n": 6,
+    "source": [
+      2.0,
+      2.0
+    ],
+    "kappa": 1.0,
+    "R": 1.5,
+    "Dmax": 10.0,
+    "alpha": 100.0,
+    "beta": 0.05
+  },
+  "noise": {
+    "model": "bounded",
+    "std": 0.2,
+    "bound": 0.5
+  },
+  "topology": {
+    "name": "paper_fig1_reconstructed",
+    "adjacency": null,
+    "edges": null
+  },
+  "robot_model": {
+    "type": "single_integrator",
+    "unicycle_shift_r": 2.0,
+    "max_linear_velocity": null,
+    "max_angular_velocity": null
+  },
+  "controller": {
+    "sign_boundary_layer": 0.2
+  },
+  "initial_conditions": {
+    "positions": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        2.5,
+        -0.5
+      ],
+      [
+        5.0,
+        0.0
+      ],
+      [
+        0.5,
+        3.5
+      ],
+      [
+        3.0,
+        4.0
+      ],
+      [
+        5.5,
+        3.0
+      ]
+    ],
+    "informed": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "outputs": {
+    "folder": "outputs\\launcher",
+    "run_id": "launcher_run",
+    "save_plots": true,
+    "save_report": true,
+    "save_animation": true,
+    "animation_format": "gif",
+    "animation_fps": 20
+  }
+}

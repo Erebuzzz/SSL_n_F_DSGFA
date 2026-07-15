@@ -1,0 +1,88 @@
+{
+  "experiment": {
+    "name": "ts_n4_srcB_none",
+    "mode": "turtlebot_simulink",
+    "seed": 1,
+    "duration": 90.0,
+    "dt": 0.004
+  },
+  "paper_parameters": {
+    "n": 4,
+    "source": [
+      30.0,
+      -20.0
+    ],
+    "kappa": 1.0,
+    "R": 2.0,
+    "Dmax": 12.0,
+    "alpha": 10.0,
+    "beta": 0.05
+  },
+  "noise": {
+    "model": "none",
+    "std": 0.0,
+    "bound": 0.2
+  },
+  "topology": {
+    "name": "ring",
+    "adjacency": null,
+    "edges": null
+  },
+  "robot_model": {
+    "type": "turtlebot_simulink",
+    "unicycle_shift_r": 2.0,
+    "wheel_radius": 0.033,
+    "wheel_separation": 0.16,
+    "max_linear_velocity": null,
+    "max_angular_velocity": null,
+    "command_period": 0.0
+  },
+  "controller": {
+    "sign_boundary_layer": 0.2
+  },
+  "simulink": {
+    "solver": "ode4",
+    "model_name": "sgf_turtlebot_swarm"
+  },
+  "initial_conditions": {
+    "positions": [
+      [
+        35.0,
+        -20.0
+      ],
+      [
+        30.0,
+        -12.5
+      ],
+      [
+        20.0,
+        -20.0
+      ],
+      [
+        30.0,
+        -34.0
+      ]
+    ],
+    "headings": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "informed": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "outputs": {
+    "folder": "outputs/batch_report/runs",
+    "run_id": "ts_n4_srcB_none",
+    "save_plots": true,
+    "save_report": true,
+    "save_animation": false,
+    "animation_format": "gif",
+    "animation_fps": 20
+  }
+}

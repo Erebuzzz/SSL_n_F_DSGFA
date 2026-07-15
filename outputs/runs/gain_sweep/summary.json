@@ -1,0 +1,32 @@
+[
+  {
+    "param": "beta",
+    "value": 0.025,
+    "topology": "paper_fig1_reconstructed",
+    "alpha": 50.0,
+    "beta": 0.025,
+    "gain_ratio": 2000.0,
+    "final_formation_error": 0.23451168317109117,
+    "final_localization_error": 3.6994698597529627,
+    "tail_formation_error_span": 0.16888278786437788,
+    "tail_localization_error_span": 0.2340555599946419,
+    "epsilon": 0.1,
+    "inside_bound": null,
+    "gain_condition_passed": true
+  },
+  {
+    "param": "beta",
+    "value": 0.05,
+    "topology": "paper_fig1_reconstructed",
+    "alpha": 100.0,
+    "beta": 0.05,
+    "gain_ratio": 2000.0,
+    "final_formation_error": 0.5358605471064499,
+    "final_localization_error": 2.9106896699526192,
+    "tail_formation_error_span": 0.3759583600713897,
+    "tail_localization_error_span": 0.37330992079988556,
+    "epsilon": 0.1,
+    "inside_bound": null,
+    "gain_condition_passed": true
+  }
+]

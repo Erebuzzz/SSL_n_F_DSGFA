@@ -1,0 +1,48 @@
+{
+  "parameters": {
+    "n": 6,
+    "source": [
+      5.5,
+      5.5
+    ],
+    "kappa": 1.0,
+    "radius": 2.0,
+    "dmax": 12.0,
+    "alpha": 100.0,
+    "beta": 0.05,
+    "duration": 60.0,
+    "dt": 0.0005,
+    "seed": 1,
+    "noise_model": "bounded",
+    "noise_std": 0.2,
+    "noise_bound": 0.2,
+    "topology": "paper_fig1_reconstructed"
+  },
+  "validation": {
+    "gain_ratio": 2000.0,
+    "gain_threshold": 1730.3999999999999,
+    "gain_condition_passed": true,
+    "min_n_informed": 6,
+    "final_n_informed": 6,
+    "epsilon": 0.1,
+    "bound_applicable": true,
+    "inside_bound": true
+  },
+  "metrics": {
+    "initial_formation_error": 9.909041096234613,
+    "final_formation_error": 0.275381529151567,
+    "initial_localization_error": 4.717726618239387,
+    "final_localization_error": 0.02819648421304502,
+    "formation_error_drop": 9.633659567083047,
+    "localization_error_drop": 4.689530134026342,
+    "tail_formation_error_span": 0.18950966676165631,
+    "tail_formation_error_std": 0.035213501257860866,
+    "tail_localization_error_span": 0.03737937151409838,
+    "tail_localization_error_std": 0.010967441508023965,
+    "formation_threshold": 0.4954520548117307,
+    "formation_entry_time": 0.0285,
+    "localization_threshold": 0.1,
+    "localization_entry_time": 39.918,
+    "time_inside_localization_threshold_after_entry": 20.0825
+  }
+}

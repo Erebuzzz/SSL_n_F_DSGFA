@@ -1,0 +1,47 @@
+{
+  "backend": "mock",
+  "parameters": {
+    "n": 6,
+    "source": [
+      5.5,
+      5.5
+    ],
+    "kappa": 1.0,
+    "radius": 2.0,
+    "dmax": 12.0,
+    "alpha": 100.0,
+    "beta": 0.05,
+    "duration": 60.0,
+    "dt": 0.004,
+    "seed": 1,
+    "noise_model": "bounded",
+    "noise_std": 0.2,
+    "noise_bound": 0.2,
+    "topology": "paper_fig1_reconstructed",
+    "control_point_offset": 2.0,
+    "max_linear_velocity": null,
+    "max_angular_velocity": null
+  },
+  "validation": {
+    "gain_ratio": 2000.0,
+    "gain_threshold": 1730.3999999999999,
+    "gain_condition_passed": true,
+    "min_n_informed": 4,
+    "final_n_informed": 6,
+    "epsilon": 0.18909509650773187,
+    "bound_applicable": true,
+    "inside_bound": false
+  },
+  "metrics": {
+    "initial_formation_error": 9.909041096234613,
+    "final_formation_error": 2.5571619384706645,
+    "initial_localization_error": 3.906013881752655,
+    "final_localization_error": 0.8603080963674062,
+    "formation_error_drop": 7.351879157763949,
+    "localization_error_drop": 3.0457057853852487,
+    "tail_formation_error_span": 1.46808367965755,
+    "tail_formation_error_std": 0.27311323176337654,
+    "tail_localization_error_span": 0.49525228576702507,
+    "tail_localization_error_std": 0.09590865565271059
+  }
+}

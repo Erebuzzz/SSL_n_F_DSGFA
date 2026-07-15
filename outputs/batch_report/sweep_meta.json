@@ -1,0 +1,67 @@
+{
+  "fg_n6_a1_srcA_none": {
+    "formation_entry": 2.918,
+    "final_formation": 0.0022872160248412527,
+    "final_localization": 0.0022947552213146041
+  },
+  "fg_n6_a5_srcA_none": {
+    "formation_entry": 1.166,
+    "final_formation": 0.011470046326108178,
+    "final_localization": 0.00396369256130789
+  },
+  "fg_n6_a20_srcA_none": {
+    "formation_entry": 0.3845,
+    "final_formation": 0.047306867666633737,
+    "final_localization": 0.0053526063711586986
+  },
+  "fg_n6_a50_srcA_none": {
+    "formation_entry": 0.166,
+    "final_formation": 0.10009561646033076,
+    "final_localization": 0.011633037551359816
+  },
+  "fg_n6_a100_srcA_none": {
+    "formation_entry": 0.0855,
+    "final_formation": 0.17756696094709118,
+    "final_localization": 0.020072507474853663
+  },
+  "fgt_n6_a1_srcA_none": {
+    "formation_entry": 2.884,
+    "final_formation": 0.094246012332495535,
+    "final_localization": 0.00021417554716509645
+  },
+  "fgt_n6_a5_srcA_none": {
+    "formation_entry": 1.164,
+    "final_formation": 0.019440701247665237,
+    "final_localization": 0.00025083813165484981
+  },
+  "fgt_n6_a20_srcA_none": {
+    "formation_entry": 0.384,
+    "final_formation": 0.0048892060665060759,
+    "final_localization": 0.00029616352202046787
+  },
+  "fgt_n6_a50_srcA_none": {
+    "formation_entry": 0.168,
+    "final_formation": 0.0936254760733943,
+    "final_localization": 0.26789183654746007
+  },
+  "fgt_n6_a100_srcA_none": {
+    "formation_entry": 0.096,
+    "final_formation": 0.86652458626929751,
+    "final_localization": 0.0018872209859569413
+  },
+  "fgb_n6_a1_srcA_none": {
+    "formation_entry": null,
+    "final_formation": 1.9230697578220913E+8,
+    "final_localization": 1.0887682593727041E+7
+  },
+  "fgb_n6_a10_srcA_none": {
+    "formation_entry": null,
+    "final_formation": 1.922873684304038E+8,
+    "final_localization": 1.0942416398101684E+7
+  },
+  "fgb_n6_a100_srcA_none": {
+    "formation_entry": null,
+    "final_formation": 1.9242289581117436E+8,
+    "final_localization": 1.073107402408175E+7
+  }
+}

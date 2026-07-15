@@ -1,0 +1,48 @@
+{
+  "parameters": {
+    "n": 6,
+    "source": [
+      5.5,
+      5.5
+    ],
+    "kappa": 1,
+    "radius": 2,
+    "dmax": 12,
+    "alpha": 20,
+    "beta": 0.05,
+    "duration": 60,
+    "dt": 0.0005,
+    "seed": 1,
+    "noise_model": "none",
+    "noise_std": 0,
+    "noise_bound": 0.2,
+    "topology": "ring"
+  },
+  "validation": {
+    "gain_ratio": 400,
+    "gain_threshold": 1730.3999999999999,
+    "gain_condition_passed": false,
+    "min_n_informed": 4,
+    "final_n_informed": 6,
+    "epsilon": 0.18909509650773187,
+    "bound_applicable": true,
+    "inside_bound": true
+  },
+  "metrics": {
+    "initial_formation_error": 21.650855821670596,
+    "final_formation_error": 0.047306867666633737,
+    "initial_localization_error": 2.4197002599036472,
+    "final_localization_error": 0.0053526063711586986,
+    "formation_error_drop": 21.603548954003962,
+    "localization_error_drop": 2.4143476535324884,
+    "tail_formation_error_span": 0.051962872577412236,
+    "tail_formation_error_std": 0.0074442261359704007,
+    "tail_localization_error_span": 0.018930582926096312,
+    "tail_localization_error_std": 0.0054587482721357222,
+    "formation_threshold": 1.08254279108353,
+    "formation_entry_time": 0.3845,
+    "localization_threshold": 0.18909509650773187,
+    "localization_entry_time": 24.2335,
+    "time_inside_localization_threshold_after_entry": 35.767
+  }
+}

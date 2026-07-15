@@ -1,7 +1,6 @@
 __pycache__/
 .pytest_cache/
 *.pyc
-outputs/
 tmp/
 
 # MATLAB / Simulink build artifacts
