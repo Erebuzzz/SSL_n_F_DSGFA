@@ -66,6 +66,8 @@ class ZmqBackend:
         self._left_motors: list[int] = []
         self._right_motors: list[int] = []
         self._source_handle: int | None = None
+        self._floor_handle: int | None = None
+        self._field_contours_handle: int | None = None
 
     # ------------------------------------------------------------------
     # lifecycle
@@ -86,6 +88,8 @@ class ZmqBackend:
             self._left_motors = handles["left_motors"]
             self._right_motors = handles["right_motors"]
             self._source_handle = handles.get("source")
+            self._floor_handle = handles.get("floor")
+            self._field_contours_handle = handles.get("field_contours")
         else:
             self._resolve_existing_handles(sim)
 

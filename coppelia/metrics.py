@@ -51,6 +51,15 @@ class CoppeliaResult:
     epsilon: float | None
     bound_applicable: bool
 
+    # --- per-step telemetry (see coppelia.telemetry); optional for callers that
+    # build a result without the raw signals. The terminal step has no command,
+    # so the last row of commands/linear_velocity/angular_velocity is NaN. ---
+    commands: FloatArray | None = None  # (steps+1, n, 2) single-integrator f_i
+    linear_velocity: FloatArray | None = None  # (steps+1, n) commanded v_i [m/s]
+    angular_velocity: FloatArray | None = None  # (steps+1, n) commanded omega_i [rad/s]
+    measurements: FloatArray | None = None  # (steps+1, n) field samples sigma_i
+    informed_mask: IntArray | None = None  # (steps+1, n) per-robot informed flag (0/1)
+
     def summary(self) -> dict[str, object]:
         final_formation = float(self.formation_error[-1])
         final_localization = float(self.localization_error[-1])

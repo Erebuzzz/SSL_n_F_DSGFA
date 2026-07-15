@@ -13,20 +13,31 @@ FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int_]
 
 
-def default_initial_positions() -> FloatArray:
-    """Return a deterministic six-robot starting layout near the paper source."""
+# The paper's Section IV source. The default start layout is defined *relative*
+# to it so that moving the source moves the whole layout with it -- keeping every
+# robot the same distance from the source (well within Dmax), so localization
+# works for any source. With source == PAPER_SOURCE the layout is bit-identical to
+# the original (parity preserved).
+PAPER_SOURCE = np.array([5.5, 5.5], dtype=float)
+_BASE_LAYOUT = np.array(
+    [
+        [0.0, 0.0],
+        [2.5, -0.5],
+        [5.0, 0.0],
+        [0.5, 3.5],
+        [3.0, 4.0],
+        [5.5, 3.0],
+    ],
+    dtype=float,
+)
 
-    return np.array(
-        [
-            [0.0, 0.0],
-            [2.5, -0.5],
-            [5.0, 0.0],
-            [0.5, 3.5],
-            [3.0, 4.0],
-            [5.5, 3.0],
-        ],
-        dtype=float,
-    )
+
+def default_initial_positions(source: tuple[float, float] | FloatArray = (5.5, 5.5)) -> FloatArray:
+    """Deterministic six-robot start layout, shifted to keep the paper geometry
+    relative to ``source`` (so any source is within sensing range at t=0)."""
+
+    shift = np.asarray(source, dtype=float) - PAPER_SOURCE
+    return _BASE_LAYOUT + shift
 
 
 @dataclass(frozen=True)
@@ -64,7 +75,7 @@ class SimulationConfig:
 
     def resolved_initial_positions(self) -> FloatArray:
         if self.initial_positions is None:
-            positions = default_initial_positions()
+            positions = default_initial_positions(self.source)
         else:
             positions = np.asarray(self.initial_positions, dtype=float)
         if positions.shape != (self.n, 2):

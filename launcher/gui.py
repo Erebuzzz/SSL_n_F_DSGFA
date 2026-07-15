@@ -60,6 +60,10 @@ class LauncherGUI:
         self.state = state or LauncherState()
         self._result_queue: "queue.Queue" = queue.Queue()
         self._pos_entries: list[tuple[tk.Entry, tk.Entry, tk.IntVar]] = []
+        # While True, the per-robot layout auto-follows the source (so moving the
+        # source keeps every robot within sensing range). Any manual position edit
+        # turns this off so the user's custom layout is preserved.
+        self._positions_are_default = self.state.positions is None
         root.title("SGF Simulator — Launcher")
         self._build()
         self._sync_modes()
@@ -105,8 +109,8 @@ class LauncherGUI:
         self.src_y.insert(0, str(self.state.source[1]))
         self.src_x.grid(row=r, column=1, sticky="w")
         self.src_y.grid(row=r, column=2, sticky="w")
-        self.src_x.bind("<FocusOut>", self._on_change)
-        self.src_y.bind("<FocusOut>", self._on_change)
+        self.src_x.bind("<FocusOut>", self._on_source_change)
+        self.src_y.bind("<FocusOut>", self._on_source_change)
         r += 1
 
         # n with a rebuild button for the positions grid
@@ -177,8 +181,8 @@ class LauncherGUI:
             var = tk.IntVar(value=int(informed[i]))
             chk = ttk.Checkbutton(self.pos_container, variable=var, command=self._on_change)
             chk.grid(row=i, column=3)
-            ex.bind("<FocusOut>", self._on_change)
-            ey.bind("<FocusOut>", self._on_change)
+            ex.bind("<FocusOut>", self._on_position_edit)
+            ey.bind("<FocusOut>", self._on_position_edit)
             self._pos_entries.append((ex, ey, var))
 
     # -- state sync -----------------------------------------------------
@@ -239,15 +243,35 @@ class LauncherGUI:
             messagebox.showerror("invalid n", "n must be >= 3")
             return
         self.state.n = n
-        self.state.positions = default_positions(n)
+        self.state.positions = default_positions(n, self.state.source)
         self.state.informed = np.ones(n, dtype=int)
+        self._positions_are_default = True
         self._build_position_grid()
         self._on_change()
 
     def _reset_positions(self) -> None:
-        self.state.positions = default_positions(self.state.n)
+        self.state.positions = default_positions(self.state.n, self.state.source)
         self.state.informed = np.ones(self.state.n, dtype=int)
+        self._positions_are_default = True
         self._build_position_grid()
+        self._on_change()
+
+    def _on_source_change(self, event=None) -> None:
+        try:
+            self.state.source = (float(self.src_x.get()), float(self.src_y.get()))
+        except ValueError:
+            self._on_change()
+            return
+        # If the layout is still the auto default, slide it to follow the source so
+        # every robot keeps starting within sensing range. Custom layouts are left
+        # untouched (a runtime warning fires later if that leaves nobody informed).
+        if self._positions_are_default:
+            self.state.positions = default_positions(self.state.n, self.state.source)
+            self._build_position_grid()
+        self._on_change()
+
+    def _on_position_edit(self, event=None) -> None:
+        self._positions_are_default = False
         self._on_change()
 
     def _on_change(self, event=None) -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 
 import numpy as np
@@ -165,6 +166,14 @@ def run_simulation(config: SimulationConfig) -> SimulationResult:
         positions[step + 1] = current + config.dt * u
 
     min_informed = int(np.min(n_informed))
+    if min_informed == 0:
+        warnings.warn(
+            "No robot is ever within Dmax of the source (0 informed robots): there "
+            "is no source signal, so the centroid cannot localize. Move the source "
+            "closer, raise Dmax, or start the robots near the source.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     epsilon = None
     if min_informed > 0:
         epsilon = epsilon_bound(

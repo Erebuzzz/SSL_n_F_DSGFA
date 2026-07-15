@@ -17,6 +17,8 @@ All measurement randomness uses a single seeded generator so a given
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 from .backends import RobotBackend, make_backend
@@ -35,8 +37,33 @@ from .unicycle import (
 )
 
 
+class PartialRunError(RuntimeError):
+    """Raised when a run is interrupted or crashes mid-loop after recording data.
+
+    Carries the :class:`CoppeliaResult` built from the steps that *were* recorded
+    before the failure, so the caller can still persist partial telemetry/plots for
+    analysis. The original cause is chained via ``raise ... from`` and is also kept
+    on :attr:`__cause__`. Only raised once at least two time steps were recorded;
+    earlier failures (e.g. the backend never connected) propagate unchanged.
+    """
+
+    def __init__(self, result: CoppeliaResult, recorded: int) -> None:
+        self.result = result
+        self.recorded = recorded
+        super().__init__(
+            f"run interrupted after {recorded} recorded step(s); "
+            "partial result is available on the .result attribute"
+        )
+
+
 def run_experiment(config: CoppeliaConfig, backend: RobotBackend | None = None) -> CoppeliaResult:
-    """Run one Phase 3 experiment and return the recorded result."""
+    """Run one Phase 3 experiment and return the recorded result.
+
+    If the control loop is interrupted (``KeyboardInterrupt``) or raises after at
+    least two steps were recorded, a :class:`PartialRunError` carrying the partial
+    :class:`CoppeliaResult` is raised instead of returning, so callers can still
+    save what was collected.
+    """
 
     config.validate()
     if backend is None:
@@ -58,6 +85,39 @@ def run_experiment(config: CoppeliaConfig, backend: RobotBackend | None = None) 
     localization_hist = np.zeros(steps + 1, dtype=float)
     n_informed = np.zeros(steps + 1, dtype=int)
 
+    # --- telemetry: raw control/measurement signals recorded every step ---
+    # Commands (f_i, v_i, omega_i) exist for steps 0..steps-1; the terminal step
+    # only reads poses, so its command row stays NaN. Measurements/informed flags
+    # are sampled at every step (including the terminal one).
+    command_hist = np.full((steps + 1, config.n, 2), np.nan, dtype=float)
+    v_hist = np.full((steps + 1, config.n), np.nan, dtype=float)
+    omega_hist = np.full((steps + 1, config.n), np.nan, dtype=float)
+    sigma_hist = np.zeros((steps + 1, config.n), dtype=float)
+    informed_hist = np.zeros((steps + 1, config.n), dtype=int)
+
+    arrays = dict(
+        times=times,
+        positions=positions,
+        control_points=cp_history,
+        headings=heading_history,
+        centroid=centroid,
+        formation_error=formation_hist,
+        localization_error=localization_hist,
+        n_informed=n_informed,
+        commands=command_hist,
+        linear_velocity=v_hist,
+        angular_velocity=omega_hist,
+        measurements=sigma_hist,
+        informed_mask=informed_hist,
+    )
+    backend_name = getattr(backend, "name", config.backend)
+
+    # ``recorded`` counts the time steps whose pose/measurement rows are fully
+    # populated. It advances only after a step's data has been written, so a crash
+    # mid-step leaves it pointing at the last complete row.
+    recorded = 0
+    error: BaseException | None = None
+
     backend.connect()
     try:
         for step in range(steps + 1):
@@ -73,6 +133,9 @@ def run_experiment(config: CoppeliaConfig, backend: RobotBackend | None = None) 
 
             sigma, informed = measurements(s, config, rng)
             n_informed[step] = int(np.sum(informed))
+            sigma_hist[step] = sigma
+            informed_hist[step] = informed.astype(int)
+            recorded = step + 1
 
             if step == steps:
                 break
@@ -82,26 +145,70 @@ def run_experiment(config: CoppeliaConfig, backend: RobotBackend | None = None) 
             v, omega = clip_commands(
                 v, omega, config.max_linear_velocity, config.max_angular_velocity
             )
+            command_hist[step] = f
+            v_hist[step] = v
+            omega_hist[step] = omega
             backend.set_velocity_commands(v, omega)
             backend.step(config.dt)
+    except (KeyboardInterrupt, Exception) as exc:  # noqa: BLE001 - re-raised below
+        error = exc
     finally:
         backend.close()
 
-    threshold, epsilon, bound_applicable = theory_metrics(config, int(np.min(n_informed)))
+    if error is not None and recorded < 2:
+        # Too little collected to be worth analysing (e.g. the very first pose read
+        # failed): surface the original error unchanged rather than an empty run.
+        raise error
+
+    result = _build_result(config, backend_name, arrays, recorded)
+
+    if error is not None:
+        raise PartialRunError(result, recorded) from error
+
+    return result
+
+
+def _build_result(
+    config: CoppeliaConfig, backend_name: str, arrays: dict, recorded: int
+) -> CoppeliaResult:
+    """Assemble a :class:`CoppeliaResult`, slicing every array to ``recorded`` steps.
+
+    On a fully-completed run ``recorded == steps + 1`` so the slices are no-ops; on
+    an interrupted run this drops the untouched trailing rows so plots/telemetry and
+    the theory metrics reflect only the data that was actually recorded.
+    """
+
+    sliced = {key: value[:recorded] for key, value in arrays.items()}
+
+    min_informed = int(np.min(sliced["n_informed"])) if recorded else 0
+    if min_informed == 0:
+        warnings.warn(
+            "No robot is ever within Dmax of the source (0 informed robots): there "
+            "is no source signal, so the centroid cannot localize. Move the source "
+            "closer, raise Dmax, or start the robots near the source.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    threshold, epsilon, bound_applicable = theory_metrics(config, min_informed)
 
     return CoppeliaResult(
         config=config,
-        backend_name=getattr(backend, "name", config.backend),
-        times=times,
-        positions=positions,
-        control_points=cp_history,
-        headings=heading_history,
-        centroid=centroid,
-        formation_error=formation_hist,
-        localization_error=localization_hist,
-        n_informed=n_informed,
+        backend_name=backend_name,
+        times=sliced["times"],
+        positions=sliced["positions"],
+        control_points=sliced["control_points"],
+        headings=sliced["headings"],
+        centroid=sliced["centroid"],
+        formation_error=sliced["formation_error"],
+        localization_error=sliced["localization_error"],
+        n_informed=sliced["n_informed"],
         gain_threshold=threshold,
         gain_ratio=config.alpha / config.beta,
         epsilon=epsilon,
         bound_applicable=bound_applicable,
+        commands=sliced["commands"],
+        linear_velocity=sliced["linear_velocity"],
+        angular_velocity=sliced["angular_velocity"],
+        measurements=sliced["measurements"],
+        informed_mask=sliced["informed_mask"],
     )

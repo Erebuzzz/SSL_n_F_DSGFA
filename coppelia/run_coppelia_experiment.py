@@ -19,11 +19,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import replace
 from pathlib import Path
 
 from .config import CoppeliaConfig
-from .experiment import run_experiment
+from .experiment import PartialRunError, run_experiment
 from .metrics import CoppeliaResult
 from .topology import TOPOLOGY_NAMES
 
@@ -70,6 +71,10 @@ def _add_common_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--coppelia-port", type=int, default=23000)
     parser.add_argument("--no-animation", action="store_true", help="skip the animation export")
     parser.add_argument("--animation-format", choices=["gif", "mp4"], default="gif")
+    parser.add_argument("--no-telemetry", action="store_true",
+                        help="skip the telemetry.npz/telemetry.csv export (on by default)")
+    parser.add_argument("--floor-scale", type=float, default=7.0,
+                        help="isometric scale for the CoppeliaSim floor (coppelia backend only)")
     parser.add_argument("--output-dir", type=Path, default=Path("outputs") / "coppelia")
 
 
@@ -93,50 +98,133 @@ def config_from_args(args: argparse.Namespace) -> CoppeliaConfig:
         max_angular_velocity=args.max_omega,
         coppelia_host=args.coppelia_host,
         coppelia_port=args.coppelia_port,
+        floor_scale=args.floor_scale,
         save_animation=not args.no_animation,
         animation_format=args.animation_format,
+        save_telemetry=not args.no_telemetry,
         output_dir=args.output_dir,
     )
 
 
 def run_command(args: argparse.Namespace) -> int:
     config = config_from_args(args)
-    result = run_experiment(config)
     run_id = args.run_id or _default_run_id(config)
     output_dir = config.output_dir / run_id
-    _save_run(result, output_dir, report=not args.no_report, title="Phase 3 CoppeliaSim Run")
-    return _exit_code(result)
+    return _run_and_save(
+        config, output_dir, report=not args.no_report, title="Phase 3 CoppeliaSim Run"
+    )
 
 
 def run_config_command(args: argparse.Namespace) -> int:
     config = CoppeliaConfig.from_json(args.config_path)
     if args.backend is not None:
         config = replace(config, backend=args.backend)
-    result = run_experiment(config)
     run_id = args.run_id or _default_run_id(config)
     output_dir = config.output_dir / run_id
-    _save_run(result, output_dir, report=True, title="Phase 3 CoppeliaSim Run (from config)")
+    return _run_and_save(
+        config, output_dir, report=True, title="Phase 3 CoppeliaSim Run (from config)"
+    )
+
+
+#: Exit code returned when a run was interrupted/crashed but partial artifacts were
+#: still saved. Distinct from 0 (ok) and 3 (completed but outside the error bound).
+EXIT_PARTIAL = 4
+
+
+def _run_and_save(config: CoppeliaConfig, output_dir: Path, report: bool, title: str) -> int:
+    """Run one experiment and persist artifacts, even if the run is interrupted.
+
+    On a normal completion the full result is saved and the usual exit code is
+    returned. If the control loop is interrupted or crashes after recording some
+    data, the partial telemetry/plots are still written (so the run can be analysed)
+    and :data:`EXIT_PARTIAL` is returned.
+    """
+
+    try:
+        result = run_experiment(config)
+    except PartialRunError as exc:
+        _save_run(exc.result, output_dir, report=report, title=f"{title} (partial)")
+        print(
+            f"Run interrupted after {exc.recorded} step(s) "
+            f"({exc.__cause__!r}); saved partial artifacts to {output_dir}",
+            file=sys.stderr,
+        )
+        return EXIT_PARTIAL
+    _save_run(result, output_dir, report=report, title=title)
     return _exit_code(result)
 
 
-def _save_run(result: CoppeliaResult, output_dir: Path, report: bool, title: str) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    animation_path = None
-    if result.config.save_plots:
-        from .plotting import save_plots
+def _write_artifact(name: str, fn, output_dir: Path) -> None:
+    """Run one artifact-writing step, reporting (not raising) on failure.
 
-        save_plots(result, output_dir)
+    Keeps a single failing artifact from aborting the rest of the save. A
+    ``KeyboardInterrupt`` is deliberately NOT swallowed so the user can still stop
+    the process -- by the time each step runs, everything written before it is
+    already safely on disk.
+    """
+
+    try:
+        fn()
+    except Exception as exc:  # noqa: BLE001 - one artifact failing must not lose others
+        print(f"warning: failed to write {name}: {exc!r}", file=sys.stderr)
+
+
+def _save_run(result: CoppeliaResult, output_dir: Path, report: bool, title: str) -> None:
+    """Persist run artifacts cheapest-and-most-valuable first.
+
+    Order matters: the raw telemetry and the summary are the ground truth for
+    debugging and are cheap to write, so they go FIRST -- before the plots and,
+    crucially, before the slow multi-megabyte animation render. That way a second
+    Ctrl-C, an out-of-memory, or an ffmpeg/Pillow failure during the animation can
+    never cost you the telemetry (the exact failure mode that produced a run with
+    plots+animation but no telemetry). Each artifact is written independently so one
+    failing does not abort the rest.
+    """
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if result.config.save_telemetry:
+        def _telemetry() -> None:
+            from .telemetry import save_telemetry
+
+            save_telemetry(result, output_dir)
+
+        _write_artifact("telemetry", _telemetry, output_dir)
+
+    def _summary() -> None:
+        (output_dir / "summary.json").write_text(
+            json.dumps(result.summary(), indent=2), encoding="utf-8"
+        )
+
+    _write_artifact("summary.json", _summary, output_dir)
+
+    if result.config.save_plots:
+        def _plots() -> None:
+            from .plotting import save_plots
+
+            save_plots(result, output_dir)
+
+        _write_artifact("plots", _plots, output_dir)
+
+    # Animation LAST: it is the slowest artifact and the one most likely to be
+    # interrupted, so everything valuable is already on disk by the time it runs.
+    animation_path = None
     if result.config.save_animation:
         from .plotting import save_animation
 
-        animation_path = save_animation(result, output_dir)
-    (output_dir / "summary.json").write_text(
-        json.dumps(result.summary(), indent=2), encoding="utf-8"
-    )
-    if report:
-        from .reporting import write_report
+        try:
+            animation_path = save_animation(result, output_dir)
+        except Exception as exc:  # noqa: BLE001 - never let the GIF sink the run
+            print(f"warning: animation export failed: {exc!r}", file=sys.stderr)
 
-        write_report(result, output_dir, title, animation_path)
+    if report:
+        def _report() -> None:
+            from .reporting import write_report
+
+            write_report(result, output_dir, title, animation_path)
+
+        _write_artifact("report", _report, output_dir)
+
     print(json.dumps(result.summary(), indent=2))
     print(f"Wrote artifacts to {output_dir}")
 

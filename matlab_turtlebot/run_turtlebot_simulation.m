@@ -68,6 +68,11 @@ for step = 1:(steps + 1)
     headings(:, step + 1) = theta_next;
 end
 
+if min(n_informed) == 0
+    warning(['No robot is ever within Dmax of the source (0 informed robots): ' ...
+        'there is no source signal, so the centroid cannot localize. Move the ' ...
+        'source closer, raise Dmax, or start the robots near the source.']);
+end
 bounds = sgf_theory_bounds(cfg, min(n_informed));
 summary = build_summary(cfg, formation_error, localization_error, n_informed, ...
     commanded_v, commanded_omega, bounds);

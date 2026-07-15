@@ -36,7 +36,7 @@ cfg.adjacency = sgf_topology(raw.topology, cfg.n);
 if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'positions')
     cfg.initial_positions = double(raw.initial_conditions.positions);
 else
-    cfg.initial_positions = default_initial_positions(cfg.n);
+    cfg.initial_positions = default_initial_positions(cfg.n, cfg.source);
 end
 % Optional per-robot sensing-capability mask (1 = informed-capable, 0 = forced
 % blind). Absent -> all capable. Effective informed status is still gated by Dmax.
@@ -64,11 +64,17 @@ end
 validate_config(cfg);
 end
 
-function positions = default_initial_positions(n)
+function positions = default_initial_positions(n, source)
+% Deterministic six-robot layout, shifted to keep the paper geometry relative to
+% the source so every robot starts within Dmax (source = [5.5 5.5] reproduces the
+% original layout exactly).
 if n ~= 6
     error('Default initial positions are defined for n = 6. Provide custom support before changing n.');
 end
-positions = [
+if nargin < 2 || isempty(source)
+    source = [5.5, 5.5];
+end
+base = [
     0.0, 0.0;
     -2.5, -0.5;
     5.0, 1.0;
@@ -76,6 +82,8 @@ positions = [
     1.0, 4.0;
     6.0, 2.0
 ];
+shift = source(:)' - [5.5, 5.5];
+positions = base + shift;
 end
 
 function validate_config(cfg)

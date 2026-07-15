@@ -40,22 +40,27 @@ def valid_modes(platform: str) -> tuple[str, ...]:
     return MODES_BY_PLATFORM.get(platform, ())
 
 
+PAPER_SOURCE = np.array([5.5, 5.5], dtype=float)
 DEFAULT_POSITIONS = np.array(
     [[0.0, 0.0], [2.5, -0.5], [5.0, 0.0], [0.5, 3.5], [3.0, 4.0], [5.5, 3.0]],
     dtype=float,
 )
 
 
-def default_positions(n: int) -> np.ndarray:
-    """A deterministic starting layout for n robots (the paper 6-layout for n=6,
-    otherwise an evenly spread grid so any n has a sane default)."""
+def default_positions(n: int, source: tuple[float, float] | np.ndarray = (5.5, 5.5)) -> np.ndarray:
+    """A deterministic starting layout for n robots, shifted to sit near ``source``
+    so every robot starts within sensing range (the paper 6-layout for n=6,
+    otherwise an evenly spread grid). source == PAPER_SOURCE reproduces the
+    original paper layout exactly."""
 
+    src = np.asarray(source, dtype=float)
     if n == 6:
-        return DEFAULT_POSITIONS.copy()
-    # spread on a coarse grid near the origin, away from the source
+        # keep the paper geometry, translate it to follow the source
+        return DEFAULT_POSITIONS + (src - PAPER_SOURCE)
+    # spread on a coarse grid, then center that grid on the source
     side = int(math.ceil(math.sqrt(n)))
-    pts = [[float(i % side), float(i // side)] for i in range(n)]
-    return np.array(pts, dtype=float)
+    pts = np.array([[float(i % side), float(i // side)] for i in range(n)], dtype=float)
+    return pts + (src - pts.mean(axis=0))
 
 
 @dataclass
@@ -90,7 +95,7 @@ class LauncherState:
     # -- derived helpers ------------------------------------------------
     def resolved_positions(self) -> np.ndarray:
         if self.positions is None:
-            return default_positions(self.n)
+            return default_positions(self.n, self.source)
         p = np.asarray(self.positions, dtype=float)
         if p.shape != (self.n, 2):
             raise ValueError(f"positions must have shape {(self.n, 2)}")

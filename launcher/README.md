@@ -20,6 +20,9 @@ python -m launcher
 - **Sgn controller** — `exact` (paper `sgn`) or `boundary_layer` (chatter-free `sat`).
 - **Per-robot table** — each robot's initial `x, y` and an `informed` checkbox. Defaults are
   filled in; edit any cell. Press **apply n** to change the robot count and regenerate the grid.
+  While you haven't hand-edited a position, the default layout **follows the source**: changing
+  the source slides the whole formation so every robot keeps starting within `Dmax` (editing any
+  cell, or using a custom layout, opts out — then a warning fires if that leaves nobody informed).
 
 ## Live readout
 

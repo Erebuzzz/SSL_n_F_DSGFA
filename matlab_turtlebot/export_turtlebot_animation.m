@@ -8,8 +8,15 @@ function export_turtlebot_animation(result, cfg)
 
 gif_path = fullfile(cfg.run_dir, 'motion.gif');
 n_frames = numel(result.times);
-stride = max(1, floor(n_frames / 240));
+stride = max(1, floor(n_frames / 120));   % ~120 frames: render time is per-frame bound
 frames = 1:stride:n_frames;
+
+% Decimate the plotted history so each frame is cheap to draw (visually identical
+% but far faster than replotting every sample each frame).
+hist_stride = max(1, floor(n_frames / 1200));
+bg_t = result.times(1:hist_stride:end);
+bg_fe = result.formation_error(1:hist_stride:end);
+bg_le = result.localization_error(1:hist_stride:end);
 
 phi = [cos(2 * pi * (0:(cfg.n - 1))' / cfg.n), sin(2 * pi * (0:(cfg.n - 1))' / cfg.n)];
 epsilon = [];
@@ -31,9 +38,10 @@ for idx = frames
     clf(fig);
 
     subplot(1, 2, 1); hold on
+    hist = unique([1:hist_stride:idx, idx]);
     for i = 1:cfg.n
-        xi = reshape(result.control_points(i, 1, 1:idx), [], 1);
-        yi = reshape(result.control_points(i, 2, 1:idx), [], 1);
+        xi = reshape(result.control_points(i, 1, hist), [], 1);
+        yi = reshape(result.control_points(i, 2, hist), [], 1);
         plot(xi, yi, 'LineWidth', 0.7);
     end
     s = result.control_points(:, :, idx);
@@ -50,14 +58,14 @@ for idx = frames
     title(sprintf('TurtleBots and source (t = %.2f s)', result.times(idx)));
 
     subplot(2, 2, 2);
-    plot(result.times, result.formation_error, 'Color', [0.6 0.6 0.6], 'LineWidth', 0.8); hold on
-    plot(result.times(1:idx), result.formation_error(1:idx), 'b', 'LineWidth', 1.2);
+    plot(bg_t, bg_fe, 'Color', [0.6 0.6 0.6], 'LineWidth', 0.8); hold on
+    plot(result.times(hist), result.formation_error(hist), 'b', 'LineWidth', 1.2);
     plot(result.times(idx), result.formation_error(idx), 'ro', 'MarkerFaceColor', 'r');
     grid on; ylabel('formation error'); title('Formation error');
 
     subplot(2, 2, 4);
-    plot(result.times, result.localization_error, 'Color', [0.6 0.6 0.6], 'LineWidth', 0.8); hold on
-    plot(result.times(1:idx), result.localization_error(1:idx), 'b', 'LineWidth', 1.2);
+    plot(bg_t, bg_le, 'Color', [0.6 0.6 0.6], 'LineWidth', 0.8); hold on
+    plot(result.times(hist), result.localization_error(hist), 'b', 'LineWidth', 1.2);
     plot(result.times(idx), result.localization_error(idx), 'ro', 'MarkerFaceColor', 'r');
     if ~isempty(epsilon)
         yline(epsilon, 'r--', 'LineWidth', 1.0);

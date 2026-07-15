@@ -67,7 +67,7 @@ end
 if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'positions')
     cfg.initial_positions = double(raw.initial_conditions.positions);
 else
-    cfg.initial_positions = default_initial_positions(cfg.n);
+    cfg.initial_positions = default_initial_positions(cfg.n, cfg.source);
 end
 if isfield(raw, 'initial_conditions') && isfield(raw.initial_conditions, 'headings')
     cfg.initial_headings = double(raw.initial_conditions.headings(:));
@@ -132,11 +132,17 @@ end
 end
 
 
-function positions = default_initial_positions(n)
+function positions = default_initial_positions(n, source)
+% Six-robot layout shifted to keep the paper geometry relative to the source so
+% every robot starts within Dmax (source = [5.5 5.5] reproduces the paper layout).
 if n ~= 6
     error('Default initial positions are defined for n = 6.');
 end
-positions = [0.0, 0.0; 2.5, -0.5; 5.0, 0.0; 0.5, 3.5; 3.0, 4.0; 5.5, 3.0];
+if nargin < 2 || isempty(source)
+    source = [5.5, 5.5];
+end
+base = [0.0, 0.0; 2.5, -0.5; 5.0, 0.0; 0.5, 3.5; 3.0, 4.0; 5.5, 3.0];
+positions = base + (source(:)' - [5.5, 5.5]);
 end
 
 

@@ -40,11 +40,17 @@ python -m pytest coppelia/tests -p no:hypothesispytest -q
 
 Artifacts land in `outputs/coppelia/<run_id>/`:
 
-- `trajectory.png` — robot trails, target circle, source, centroid path
+- `trajectory.png` — robot trails, target circle, source, centroid path, over a
+  filled contour (heatmap) of the scalar source field `f(z) = kappa*||z - p_s||^2`
+  with a dashed `Dmax` sensing-radius circle
 - `formation_error.png`, `localization_error.png` — raw + smoothed curves
-- `animation.gif` (or `.mp4`) — 4 synchronized panels (formation+source, trails,
-  live formation error, live localization error)
+- `animation.gif` (or `.mp4`) — 4 synchronized panels (formation+source over the
+  field heatmap, trails, live formation error, live localization error)
 - `summary.json` — same shape as the numerical phases
+- `telemetry.npz` / `telemetry.csv` — full per-step signal history (poses, control
+  points, command `f_i`, commanded `v`/`omega`, field samples `sigma_i`, per-robot
+  informed flags, error metrics) for offline analysis; on by default, disable with
+  `--no-telemetry`
 - `validation_report.md` — collaborator-readable report
 
 ## Running against CoppeliaSim
@@ -67,8 +73,9 @@ Artifacts land in `outputs/coppelia/<run_id>/`:
 The `coppelia` backend builds the scene through the remote API
 (`coppelia/scene/build_scene.py`): it loads `n` differential-drive robot models
 (default: the built-in **Pioneer p3dx**), arranges them at the configured initial
-positions, drops a red source marker, then drives the wheels each control period.
-See `coppelia/scene/README.md` for scene details and the manual-setup alternative.
+positions, drops a red source marker, draws concentric field contour rings on the
+floor around the source, then drives the wheels each control period. See
+`coppelia/scene/README.md` for scene details and the manual-setup alternative.
 
 > The `coppelia` backend cannot be exercised in this offline repo checkout — it is
 > validated by running it against a live CoppeliaSim instance. The import of the

@@ -81,11 +81,31 @@ python -m sgf_sim experiment seed-sweep --seeds 1 2 3 4 5
 # run from a shared JSON config
 python -m sgf_sim run-config configs/paper_default.json
 python -m sgf_sim run-config configs/paper_bounded_validation.json
+
+# paper Fig. 3 timescale (formation completes ~5 s, then localizes)
+python -m sgf_sim run-config configs/paper_timescale.json
 ```
 
-- **Configs:** `configs/paper_default.json` (Gaussian), `configs/paper_bounded_validation.json` (bounded).
-- **Output:** `outputs/runs/<run_id>/` — `trajectory.png`, `formation_error.png`, `localization_error.png`, `summary.json`.
+- **Configs:** `configs/paper_default.json` (Gaussian), `configs/paper_bounded_validation.json` (bounded),
+  `configs/paper_timescale.json` (bounded, paper-faithful *timescale*).
+- **Output:** `outputs/runs/<run_id>/` — `trajectory.png`, `formation_error.png`,
+  `formation_error_per_robot.png` (paper Fig. 3), `localization_error.png`, `summary.json`.
 - **Expected:** bounded validation reports `"inside_bound": true` (loc ≈ 0.03 vs ε = 0.1).
+  `paper_timescale` reports `formation_entry_time` ≈ 4.9 s and localization decaying over
+  ~40–60 s (final loc ≈ 0.17) — see the timescale note below.
+
+> **Formation timescale (why the default finishes instantly).** The formation term is a
+> **finite-time sliding-mode** controller, so its convergence time scales as `≈ 3 / alpha`.
+> The default presets use `alpha = 100–2000` (chosen to satisfy the conservative *sufficient*
+> gain ratio `alpha/beta > 4 n f_Dmax / R ≈ 1730` and land inside the tight ε = 0.1 bound), so
+> formation completes in milliseconds. The paper's Fig. 3 shows ~5 s because it uses a modest
+> `alpha ≈ 1`. That gain ratio is **sufficient, not necessary**: taken literally with a small
+> `alpha` it forces `beta ≈ alpha/1730`, making localization (rate `2 beta kappa`) take
+> ~1400 s. `configs/paper_timescale.json` therefore uses `alpha = 1.0, beta = 0.03` (ratio 33 —
+> below the sufficient bound but well inside the empirically stable region) to reproduce the
+> paper's ~5 s formation **and** a visible localization transient, at the cost of the tight
+> ε = 0.1 guarantee. Use the `paper_*` bounded/Gaussian presets when you want the theorem-faithful
+> bound; use `paper_timescale` when you want the paper's Fig. 3 / Fig. 4 *dynamics*.
 
 ```powershell
 python -m pytest tests -p no:hypothesispytest -q
@@ -272,6 +292,7 @@ via `matlab -batch`; CoppeliaSim physics drives a live simulator. See
 |---|---|---|
 | `configs/paper_default.json` | single_integrator (Gaussian) | Mode 1, Mode 2 |
 | `configs/paper_bounded_validation.json` | single_integrator (bounded) | Mode 1, Mode 2 |
+| `configs/paper_timescale.json` | single_integrator (bounded, paper Fig. 3 timescale) | Mode 1, Mode 2 |
 | `configs/unicycle_default.json` | unicycle | shared-schema example (MATLAB TurtleBot layer) |
 | `configs/turtlebot_simulink_default.json` | turtlebot_simulink | shared-schema example |
 | `matlab_turtlebot/configs/turtlebot_working.json` | turtlebot_numeric | Mode 4 |

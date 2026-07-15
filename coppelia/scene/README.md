@@ -15,10 +15,20 @@ reviewable and the robot count/layout follows the config.
    substrings `left` / `right`, so it is robust to exact model naming.
 4. Adds a small red, non-respondable sphere as the **source marker** at
    `config.source`.
-5. Returns the handles the backend needs:
+5. Isometrically (uniform x/y/z) scales the scene **floor** by `config.floor_scale`
+   (default `7.0`). A new CoppeliaSim scene ships a 5 m × 5 m floor, which the
+   paper layout and the localization drift quickly overrun; scaling it to
+   ~35 m × 35 m keeps every robot on the floor. Scaling is best-effort — if the
+   scene has no floor object the step is skipped and the run continues.
+6. Draws concentric **field contour rings** on the floor around the source
+   (`sim.drawing_lines`) at radii bracketing the initial swarm spread. The scalar
+   field `f(z) = kappa*||z - p_s||^2` has circular level sets, so the rings show the
+   "bowl" the swarm descends toward the source. Best-effort like the floor scaling.
+7. Returns the handles the backend needs:
 
    ```python
-   {"robots": [...], "left_motors": [...], "right_motors": [...], "source": handle}
+   {"robots": [...], "left_motors": [...], "right_motors": [...],
+    "source": handle, "floor": handle_or_None, "field_contours": handle_or_None}
    ```
 
 The backend then drives each robot by converting the body command `(v, ω)` into

@@ -44,6 +44,11 @@ for step = 1:(steps + 1)
     positions(:, :, step + 1) = current + cfg.dt * u;
 end
 
+if min(n_informed) == 0
+    warning(['No robot is ever within Dmax of the source (0 informed robots): ' ...
+        'there is no source signal, so the centroid cannot localize. Move the ' ...
+        'source closer, raise Dmax, or start the robots near the source.']);
+end
 bounds = sgf_theory_bounds(cfg, min(n_informed));
 summary = sgf_summary(cfg, times, formation_error, localization_error, n_informed, bounds);
 

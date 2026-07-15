@@ -24,9 +24,46 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FFMpegWriter, FuncAnimation, PillowWriter
+from matplotlib.patches import Circle
 
-from .control import formation_slots
+from .control import formation_slots, signal_field
 from .metrics import CoppeliaResult
+
+
+def _draw_field(ax, config, xlim, ylim, gridsize: int = 240):
+    """Draw the scalar source field f(z) = kappa*||z - p_s||^2 as a filled contour.
+
+    The field is a paraboloid centred on the source, so its level sets are circles.
+    We render the raw (unsaturated) bowl for clarity and mark the sensing radius
+    ``Dmax`` -- beyond which the measurement saturates -- with a dashed circle.
+    Reuses :func:`coppelia.control.signal_field` so the picture matches the exact
+    field the controller measures. Returns the ``contourf`` handle for a colorbar.
+    """
+
+    source = config.source_array()
+    xs = np.linspace(xlim[0], xlim[1], gridsize)
+    ys = np.linspace(ylim[0], ylim[1], gridsize)
+    grid_x, grid_y = np.meshgrid(xs, ys)
+    points = np.column_stack((grid_x.ravel(), grid_y.ravel()))
+    field = signal_field(points, source, config.kappa).reshape(grid_x.shape)
+
+    filled = ax.contourf(grid_x, grid_y, field, levels=24, cmap="viridis", alpha=0.55, zorder=0)
+    lines = ax.contour(grid_x, grid_y, field, levels=8, colors="white", linewidths=0.5, alpha=0.5, zorder=1)
+    ax.clabel(lines, inline=True, fontsize=6, fmt="%.0f")
+    ax.add_patch(
+        Circle(
+            (float(source[0]), float(source[1])),
+            float(config.dmax),
+            fill=False,
+            linestyle="--",
+            edgecolor="white",
+            linewidth=1.0,
+            alpha=0.8,
+            zorder=2,
+            label="Dmax sensing radius",
+        )
+    )
+    return filled
 
 
 # ----------------------------------------------------------------------
@@ -89,23 +126,40 @@ def _save_trajectory(result: CoppeliaResult, path: Path) -> None:
     source = np.asarray(config.source, dtype=float)
 
     fig, ax = plt.subplots(figsize=(7, 6))
+
+    # Spatial extent from the trails + source (with margin); the field heatmap is
+    # drawn over this box, so limits must be fixed before contouring.
+    all_xy = result.control_points.reshape(-1, 2)
+    pad = 1.0
+    xmin, ymin = all_xy.min(axis=0) - pad
+    xmax, ymax = all_xy.max(axis=0) + pad
+    xmin = min(xmin, source[0] - pad)
+    xmax = max(xmax, source[0] + pad)
+    ymin = min(ymin, source[1] - pad)
+    ymax = max(ymax, source[1] + pad)
+
+    filled = _draw_field(ax, config, (xmin, xmax), (ymin, ymax))
+    fig.colorbar(filled, ax=ax, label="field  f(z) = kappa * ||z - p_s||^2", shrink=0.85)
+
     stride = max(1, len(result.times) // 4000)
     for i in range(config.n):
         trail = result.control_points[::stride, i, :]
-        ax.plot(trail[:, 0], trail[:, 1], linewidth=1.2, label=f"robot {i}")
-        ax.scatter(result.control_points[0, i, 0], result.control_points[0, i, 1], marker="o", s=22)
-        ax.scatter(result.control_points[-1, i, 0], result.control_points[-1, i, 1], marker="s", s=28)
+        ax.plot(trail[:, 0], trail[:, 1], linewidth=1.2, zorder=3, label=f"robot {i}")
+        ax.scatter(result.control_points[0, i, 0], result.control_points[0, i, 1], marker="o", s=22, zorder=4)
+        ax.scatter(result.control_points[-1, i, 0], result.control_points[-1, i, 1], marker="s", s=28, zorder=4)
 
     circle = final_centroid + config.radius * phi
     closed = np.vstack((circle, circle[0]))
-    ax.plot(closed[:, 0], closed[:, 1], color="black", linestyle=":", linewidth=1.2, label="final target circle")
-    ax.plot(result.centroid[::stride, 0], result.centroid[::stride, 1], color="black", linewidth=1.0, alpha=0.6, label="centroid path")
-    ax.scatter(source[0], source[1], marker="*", s=130, color="red", label="source")
-    ax.scatter(final_centroid[0], final_centroid[1], marker="x", s=70, color="black", label="final centroid")
+    ax.plot(closed[:, 0], closed[:, 1], color="black", linestyle=":", linewidth=1.2, zorder=3, label="final target circle")
+    ax.plot(result.centroid[::stride, 0], result.centroid[::stride, 1], color="black", linewidth=1.0, alpha=0.6, zorder=3, label="centroid path")
+    ax.scatter(source[0], source[1], marker="*", s=130, color="red", zorder=5, label="source")
+    ax.scatter(final_centroid[0], final_centroid[1], marker="x", s=70, color="black", zorder=5, label="final centroid")
     ax.set_title(f"Robot Trajectories ({result.backend_name})")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    ax.axis("equal")
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_aspect("equal", adjustable="box")
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=8, loc="best")
     fig.tight_layout()
@@ -180,6 +234,10 @@ def save_animation(result: CoppeliaResult, output_dir: Path) -> Path | None:
     xmax = max(xmax, source[0] + pad)
     ymin = min(ymin, source[1] - pad)
     ymax = max(ymax, source[1] + pad)
+
+    # scalar-field heatmap (static background); trails/robots/quiver sit above zorder 0
+    filled = _draw_field(ax_form, config, (xmin, xmax), (ymin, ymax))
+    fig.colorbar(filled, ax=ax_form, label="field  f(z) = kappa * ||z - p_s||^2", shrink=0.7)
 
     # static elements
     ax_form.scatter(source[0], source[1], marker="*", s=160, color="red", zorder=5, label="source")

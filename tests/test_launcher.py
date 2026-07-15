@@ -33,12 +33,33 @@ def test_readout_partial_informed_inflates_epsilon():
 
 
 def test_readout_zero_informed_warns():
-    # source far from all robots so none start within Dmax
-    state = LauncherState(source=(1000.0, 1000.0), dmax=5.0)
+    # explicit positions near the origin with a far source => none within Dmax
+    # (explicit positions opt out of the source-following default layout)
+    positions = np.zeros((6, 2), dtype=float)
+    state = LauncherState(source=(1000.0, 1000.0), dmax=5.0, positions=positions)
     r = compute_readout(state)
     assert r.initial_informed == 0
     assert not r.bound_applicable
     assert any("no source signal" in n.lower() for n in r.notes)
+
+
+def test_default_positions_follow_source():
+    # paper source reproduces the original layout exactly
+    base = LauncherState(source=(5.5, 5.5))
+    np.testing.assert_allclose(
+        base.resolved_positions(),
+        LauncherState(source=(5.5, 5.5)).resolved_positions(),
+    )
+    # moving the source shifts the whole layout, keeping all robots within Dmax
+    moved = LauncherState(source=(40.0, -20.0))
+    r = compute_readout(moved)
+    assert r.initial_informed == moved.n  # every robot still senses the source
+    # the shift is exactly (source - paper_source)
+    shift = np.asarray(moved.source) - np.asarray(base.source)
+    np.testing.assert_allclose(
+        moved.resolved_positions() - base.resolved_positions(),
+        np.tile(shift, (moved.n, 1)),
+    )
 
 
 def test_platform_mode_gating():

@@ -10,6 +10,7 @@ The format is JSON because Python can read it with the standard `json` module an
 |---|---|
 | `configs/paper_default.json` | Paper-like Gaussian single-integrator run. |
 | `configs/paper_bounded_validation.json` | Theorem-valid bounded-noise single-integrator run. |
+| `configs/paper_timescale.json` | Paper Fig. 3 *timescale* — modest gains (`alpha=1.0, beta=0.03`) so formation completes in ~5 s then localizes. Trades the tight ε=0.1 bound for paper-faithful dynamics. |
 | `configs/unicycle_default.json` | Planned numerical unicycle run. |
 | `configs/turtlebot_simulink_default.json` | Planned MATLAB/Simulink TurtleBot run. |
 
@@ -47,7 +48,17 @@ Maps directly to the paper model.
 | `alpha` | Formation gain. |
 | `beta` | Localization gain. |
 
-The gain ratio `alpha / beta` should be compared against `4 * n * f_Dmax / R`.
+The gain ratio `alpha / beta` should be compared against `4 * n * f_Dmax / R` (the paper's
+**sufficient**, not necessary, stability condition).
+
+**Absolute gains set the timescale.** The formation term is finite-time, so formation completes
+in `≈ 3 / alpha` seconds; localization decays exponentially at rate `2 * beta * kappa`. The
+`paper_default` / `paper_bounded_validation` presets use large `alpha` (100–2000) to satisfy the
+conservative ratio and land inside the tight ε bound — formation then finishes almost instantly.
+To reproduce the paper's ~5 s formation (Fig. 3) use `alpha ≈ 1`; because the ratio is sufficient
+(not necessary), `configs/paper_timescale.json` drops to `alpha=1.0, beta=0.03` (ratio 33) to get
+the paper timescale for both formation and localization. See `docs/RUNNING_MODES.md` (Mode 1) for
+the full explanation.
 
 ### `noise`
 
@@ -85,7 +96,15 @@ If both `adjacency` and `edges` are null, Python uses the named topology.
 ### `initial_conditions`
 
 Optional. Sets each robot's starting pose explicitly. **Omit the whole section** to keep the
-built-in fixed 6-robot layout (fully back-compatible — this is what every shipped config does).
+built-in 6-robot layout (fully back-compatible — this is what every shipped config does).
+
+> **Default layout follows the source.** When `positions` is omitted, the built-in layout is
+> defined *relative to* `paper_parameters.source`: it is the paper geometry translated by
+> `source − [5.5, 5.5]`. So changing the source moves the whole starting formation with it,
+> keeping every robot within `Dmax` at `t = 0` (a source far from a fixed origin layout would
+> otherwise leave every robot **uninformed** — no source signal, no localization). At the paper
+> source `[5.5, 5.5]` the layout is bit-identical to the original. Explicit `positions` opt out
+> of this and are used verbatim.
 
 | Field | Meaning |
 |---|---|
@@ -169,6 +188,19 @@ Controls artifact generation.
 | `animation_format` | `gif` or `mp4`. |
 | `animation_fps` | Frames per second for animation export. |
 | `show_error_panels` | Include formation and localization error panels in animation. |
+| `save_telemetry` | (`coppelia` path) Save full per-step telemetry to `telemetry.npz` + `telemetry.csv` for offline analysis. Defaults to `true`; disable on the CLI with `--no-telemetry`. |
+
+### `coppelia`
+
+Backend-specific settings read only by the `coppelia` package (all optional):
+
+| Field | Meaning |
+|---|---|
+| `backend` | `mock` (offline kinematic stand-in) or `coppelia` (live physics via the ZeroMQ remote API). CLI `--backend` overrides. |
+| `host` / `port` | CoppeliaSim ZeroMQ remote-API endpoint (defaults `localhost` / `23000`). |
+| `stepped` | Use CoppeliaSim stepped (synchronous) mode. |
+| `robot_model` | Scene-builder model key (`pioneer`, `dr12`). |
+| `floor_scale` | Isometric (uniform x/y/z) scale applied to the scene floor when building the CoppeliaSim scene. Defaults to `7.0` (a 5 m floor → 35 m) so the paper layout and localization drift stay on the floor. CLI `--floor-scale`. Also accepted under a top-level `scene.floor_scale`. |
 
 ## Python Usage
 

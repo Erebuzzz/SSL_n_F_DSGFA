@@ -16,6 +16,11 @@ def write_report(result: CoppeliaResult, output_dir: Path, title: str, animation
     params = summary["parameters"]
     adjacency = result.config.resolved_adjacency()
     anim_line = f"- `{animation_path.name}`" if animation_path is not None else "- (animation not generated)"
+    telemetry_lines = (
+        ["- `telemetry.npz`", "- `telemetry.csv`"]
+        if result.config.save_telemetry
+        else ["- (telemetry not saved)"]
+    )
 
     report = output_dir / "validation_report.md"
     report.write_text(
@@ -85,6 +90,7 @@ def write_report(result: CoppeliaResult, output_dir: Path, title: str, animation
                 "- `localization_error.png`",
                 "- `summary.json`",
                 anim_line,
+                *telemetry_lines,
                 "",
                 "## Interpretation",
                 "",

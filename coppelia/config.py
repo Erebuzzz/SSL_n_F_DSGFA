@@ -23,24 +23,33 @@ FloatArray = NDArray[np.float64]
 IntArray = NDArray[np.int_]
 
 
-def default_initial_positions() -> FloatArray:
-    """Deterministic six-robot starting layout near the paper source.
+# Paper Section IV source. The default layout is defined relative to it so moving
+# the source moves the whole formation with it (every robot stays within Dmax of
+# the source at t=0). source == PAPER_SOURCE reproduces the original layout exactly.
+PAPER_SOURCE = np.array([5.5, 5.5], dtype=float)
+_BASE_LAYOUT = np.array(
+    [
+        [0.0, 0.0],
+        [2.5, -0.5],
+        [5.0, 0.0],
+        [0.5, 3.5],
+        [3.0, 4.0],
+        [5.5, 3.0],
+    ],
+    dtype=float,
+)
+
+
+def default_initial_positions(source: tuple[float, float] | FloatArray = (5.5, 5.5)) -> FloatArray:
+    """Deterministic six-robot starting layout, shifted to keep the paper geometry
+    relative to ``source``.
 
     Matches the Phase 1 layout (``sgf_sim.config.default_initial_positions``) so
     CoppeliaSim runs are visually comparable to the numerical baseline.
     """
 
-    return np.array(
-        [
-            [0.0, 0.0],
-            [2.5, -0.5],
-            [5.0, 0.0],
-            [0.5, 3.5],
-            [3.0, 4.0],
-            [5.5, 3.0],
-        ],
-        dtype=float,
-    )
+    shift = np.asarray(source, dtype=float) - PAPER_SOURCE
+    return _BASE_LAYOUT + shift
 
 
 def default_initial_headings(n: int) -> FloatArray:
@@ -114,6 +123,13 @@ class CoppeliaConfig:
     coppelia_port: int = 23000
     stepped: bool = True  # use CoppeliaSim stepped (synchronous) mode
     robot_model: str = "pioneer"  # scene-builder robot model key
+    # Safety factor for the size of the generated CoppeliaSim floor. The scene
+    # builder creates a static floor sized to the swarm+source bounding box, with
+    # its half-extents multiplied by this factor (plus a fixed margin), so the
+    # robots' localization drift never runs off the edge. Only used by the coppelia
+    # backend. (Replaces the old approach of up-scaling the shipped 5 m floor,
+    # which also thickened it and ejected the robots on start.)
+    floor_scale: float = 7.0
 
     # --- outputs ---
     output_dir: Path = field(default_factory=lambda: Path("outputs") / "coppelia")
@@ -122,13 +138,18 @@ class CoppeliaConfig:
     animation_format: str = "gif"  # gif or mp4
     animation_fps: int = 20
     animation_max_frames: int = 240
+    # Per-step telemetry (control-point poses, single-integrator command f_i,
+    # commanded v/omega, field measurements sigma_i, per-robot informed flags)
+    # written to telemetry.npz + telemetry.csv for offline analysis. On by default
+    # so every run is reproducible/analysable without re-simulating.
+    save_telemetry: bool = True
 
     # ------------------------------------------------------------------
     # resolution helpers
     # ------------------------------------------------------------------
     def resolved_initial_positions(self) -> FloatArray:
         if self.initial_positions is None:
-            positions = default_initial_positions()
+            positions = default_initial_positions(self.source)
         else:
             positions = np.asarray(self.initial_positions, dtype=float)
         if positions.shape != (self.n, 2):
@@ -199,6 +220,8 @@ class CoppeliaConfig:
             raise ValueError("noise magnitudes must be non-negative")
         if self.backend not in {"mock", "coppelia"}:
             raise ValueError("backend must be one of: mock, coppelia")
+        if self.floor_scale <= 0:
+            raise ValueError("floor_scale must be positive")
         if self.animation_format not in {"gif", "mp4"}:
             raise ValueError("animation_format must be gif or mp4")
         self.resolved_initial_positions()
@@ -279,12 +302,15 @@ class CoppeliaConfig:
         put("save_animation", outputs.get("save_animation"))
         put("animation_format", outputs.get("animation_format"))
         put("animation_fps", outputs.get("animation_fps"))
+        put("save_telemetry", outputs.get("save_telemetry"))
 
+        scene = data.get("scene") if isinstance(data.get("scene"), dict) else {}
         put("backend", coppelia.get("backend"))
         put("coppelia_host", coppelia.get("host"))
         put("coppelia_port", coppelia.get("port"))
         put("stepped", coppelia.get("stepped"))
         put("robot_model", coppelia.get("robot_model"))
+        put("floor_scale", coppelia.get("floor_scale", scene.get("floor_scale")))
 
         return cls(**kwargs)
 

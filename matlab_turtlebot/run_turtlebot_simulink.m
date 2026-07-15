@@ -7,8 +7,11 @@ function [result, model_path] = run_turtlebot_simulink(cfg)
 %   with the shared Phase 1.3 helpers so its outputs are field-compatible with
 %   save_turtlebot_plots / export_turtlebot_animation.
 %
-%   The model is the deterministic (noise=none) continuous reference; compare its
-%   metrics against a noise=none numerical unicycle / TurtleBot run.
+%   The model is a continuous fixed-step reference. Measurement noise, when the
+%   config requests noise_model = "gaussian", is injected by a seeded Random
+%   Number source block sampled at dt (see build_turtlebot_simulink_model), so a
+%   noisy run is reproducible from cfg.seed and distinct from its noise-free twin;
+%   noise_model = "none" reduces to the original deterministic reference.
 
 if ~exist(cfg.run_dir, 'dir')
     mkdir(cfg.run_dir);
