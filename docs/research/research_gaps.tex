@@ -1,0 +1,252 @@
+% research_gaps.tex
+% Research extension framework for Du et al. (2024) sign gradient-free
+% source localization and formation.
+%
+% Build (from docs/research/):
+%   pdflatex research_gaps.tex
+%   bibtex research_gaps
+%   pdflatex research_gaps.tex
+%
+% Status: skeleton for step-by-step proofs. Claims marked \draft{...} are
+% conjectures pending simulation validation in sims/research.m.
+
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+\newcommand{\draft}[1]{\textit{[Draft: #1]}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\sgn}{\mathrm{sgn}}
+
+\title{Research Extensions: Multi-Source Assignment,\\
+Moving Sources, and Global Extremum Seeking\\
+for Sign Gradient-Free Swarm Localization}
+\author{SSL\_n\_F\_DSGFA Research Notes}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We extend the simultaneous source localization and circular formation framework of Du et al.\ (2024) along three directions: (i)~partitioning $n$ robots into $N$ teams for $N$ distinct source minima, (ii)~tracking a non-stationary source $p_s(t)$, and (iii)~escaping local extrema to reach the global maximum of a non-convex scalar field. Each section states the baseline model, identifies which proof pillars fail, proposes a mathematical formulation, and sketches a target theorem. Simulation validation is implemented in \texttt{sims/research.m}.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Baseline model (Du et al., 2024)}
+
+Consider $n$ single-integrator robots
+\begin{equation}
+    \dot p_i = u_i, \qquad p_i \in \R^2,\ i \in \V = \{1,\ldots,n\},
+\end{equation}
+with fixed circular slots $\theta_i = 2\pi i/n$, $\phi(\theta_i) = [\cos\theta_i,\sin\theta_i]^T$, and shifted coordinates $z_i = p_i - R\phi(\theta_i)$. The control law is
+\begin{equation}\label{eq:du4}
+    u_i = \alpha \sum_{j \in \mathcal{N}_i} \sgn(z_j - z_i) - \frac{2\beta}{R}\,\sigma(p_i)\,\phi(\theta_i),
+\end{equation}
+where $\sigma$ is a saturated noisy measurement of the scalar field
+\begin{equation}
+    f(z) = \kappa \|z - p_s\|^2
+\end{equation}
+for a \emph{static} source $p_s \in \R^2$. Let $p^*(t) = \frac{1}{n}\sum_i p_i(t)$ denote the formation centroid.
+
+Du et al.\ prove, under undirected connectivity, bounded noise, and a gain-ratio condition, that all robots achieve circular formation and
+\begin{equation}
+    \limsup_{t \to \infty} \|p^*(t) - p_s\| \le \varepsilon,
+\end{equation}
+with $\varepsilon$ given explicitly in their Theorem~1.
+
+\subsection{Three open gaps}
+
+\begin{enumerate}
+    \item \textbf{Multi-source assignment:} $N$ sources $\{p_s^{(k)}\}_{k=1}^N$, each a local minimum; robots partition into teams minimizing centroid--source distance.
+    \item \textbf{Moving source:} $p_s = p_s(t)$ with bounded velocity; quantify tracking error.
+    \item \textbf{Global maximum:} non-convex $f$ with multiple extrema; avoid traps and reach $\arg\max f$.
+\end{enumerate}
+
+\section{Gap 1: $N$ Teams for $N$ Source Minima}
+
+\subsection{Unified start and timed split}
+
+Robots start \emph{clustered} at a common launch point (not pre-partitioned in space). During the \textbf{unified phase} $t < t_{\mathrm{split}}$:
+\begin{itemize}
+    \item all $n$ robots share one ring communication graph and global slots $\theta_i = 2\pi i/n$;
+    \item measurements use a virtual source at the geometric mean $\bar p_s = \frac{1}{N}\sum_k p_s^{(k)}$ so the swarm forms one circle first;
+    \item formation term uses the full graph (no team isolation yet).
+\end{itemize}
+At $t = t_{\mathrm{split}}$, robots are assigned to teams by a \textbf{balanced minimum-distance rule}: each team receives exactly $n/N$ robots (equal split), minimizing total assignment cost. The controller then switches to per-team graphs, per-team slots, and per-team source measurements.
+
+\subsection{Field and assignment}
+
+Let $p_s^{(1)},\ldots,p_s^{(N)} \in \R^2$ be distinct source locations. A piecewise-smooth multi-basin field is
+\begin{equation}\label{eq:min-of-quad}
+    f(z) = \min_{k=1,\ldots,N} \kappa_k \|z - p_s^{(k)}\|^2.
+\end{equation}
+Within the Voronoi cell $\mathcal{V}_k = \{z : k = \arg\min_j \|z - p_s^{(j)}\|\}$, \eqref{eq:min-of-quad} reduces to a single quadratic well with minimum at $p_s^{(k)}$.
+
+After split, partition robots into teams $\V_1 \sqcup \cdots \sqcup \V_N$ with $|\V_k| = n_k = n/N$. The capacitated assignment at split time is
+\begin{equation}\label{eq:assignment}
+    \min_{\{\V_k\}} \sum_{k=1}^N \sum_{i \in \V_k} \|p_i(t_{\mathrm{split}}) - p_s^{(k)}\|^2,
+    \quad |\V_k| = n/N.
+\end{equation}
+
+\subsection{Per-team extension of \eqref{eq:du4}}
+
+For $i \in \V_k$ after split, re-index local slots $\theta_i^{(k)} = 2\pi r/n_k$ and apply \eqref{eq:du4} with:
+\begin{itemize}
+    \item neighbors restricted to $\mathcal{N}_i \cap \V_k$ in the formation term;
+    \item measurement $\sigma_k(p_i)$ computed relative to $p_s^{(k)}$.
+\end{itemize}
+
+\subsection{Unicycle extension}
+
+For differential-drive robots, the control law is evaluated at shifted points $s_i = p_i + r[\cos\theta_i,\sin\theta_i]^T$ and inverted to $(v_i,\omega_i)$ via feedback linearization (Section~V of Du et al.). Gap~1 validation supports \texttt{robot\_model = unicycle} in \texttt{sims/research.m}.
+
+\subsection{Proof strategy}
+
+\draft{Decompose the global system into $N$ independent subsystems after $t_{\mathrm{split}}$. Each subsystem satisfies Du et al.\ Assumptions~1--2 on its induced subgraph if: (a)~$n_k > 2$, (b)~the gain ratio holds with $n_k$ and team-specific $f_{D_{\max}}^{(k)}$, and (c)~$p_k^*(t_{\mathrm{split}})$ lies in the basin of $p_s^{(k)}$.}
+
+\begin{proposition}[Informal decomposition after split]
+Under the conditions above, for each team $k$ and $t \ge t_{\mathrm{split}}$,
+\begin{equation}
+    \limsup_{t \to \infty} \|p_k^*(t) - p_s^{(k)}\| \le \varepsilon_k,
+\end{equation}
+where $\varepsilon_k$ is Theorem~1 applied with $n \leftarrow n_k$ and source $p_s^{(k)}$.
+\end{proposition}
+
+\begin{remark}
+The unified phase is outside the original theorem. Dynamic reassignment and inter-team collision avoidance are not covered.
+\end{remark}
+
+\subsection{Validation configurations}
+
+\begin{center}
+\begin{tabular}{lccc}
+\hline
+Config & $n$ & $N$ & team sizes \\
+\hline
+\texttt{n8\_N2}  & 8  & 2 & $4{+}4$ \\
+\texttt{n9\_N3}  & 9  & 3 & $3{+}3{+}3$ \\
+\texttt{n12\_N3} & 12 & 3 & $4{+}4{+}4$ \\
+\hline
+\end{tabular}
+\end{center}
+
+All configs: clustered start, $t_{\mathrm{split}} \in \{12, 15\}$~s, bounded noise. Metrics: per-team localization error $e_k(t) = \|p_k^*(t)-p_s^{(k)}\|$, team separation, and comparison to $\varepsilon_k$.
+
+\section{Gap 2: Moving Source $p_s(t)$}
+
+\subsection{Tracking error dynamics}
+
+Define $e(t) = p^*(t) - p_s(t)$. After formation time $T_c$, Du et al.\ approximate $\dot p^* \approx -\beta \nabla f(p^*) + d_f(t)$. For $f(z) = \kappa\|z - p_s(t)\|^2$,
+\begin{equation}
+    \nabla f(p^*) = 2\kappa\bigl(p^* - p_s(t)\bigr),
+\end{equation}
+so
+\begin{equation}\label{eq:tracking}
+    \dot e = -2\beta\kappa\, e - \dot p_s(t) + d_f(t).
+\end{equation}
+
+\subsection{ISS bound sketch}
+
+\begin{assumption}
+$\|\dot p_s(t)\| \le v_{\max}$ and $\|d_f(t)\| \le \bar d_f$ for $t \ge T_c$.
+\end{assumption}
+
+\begin{proposition}[ISS tracking, draft]
+For \eqref{eq:tracking} with $\lambda = 2\beta\kappa > 0$,
+\begin{equation}
+    \limsup_{t \to \infty} \|e(t)\| \le \frac{v_{\max} + \bar d_f}{\lambda} + \varepsilon_{\mathrm{static}},
+\end{equation}
+where $\varepsilon_{\mathrm{static}}$ is the Du et al.\ bound for a fixed source.
+\end{proposition}
+
+\begin{remark}
+Du et al.\ list time-varying sources as future work. Pillars P6--P7 (blind-robot geometry and steady-state $\varepsilon$) require re-derivation when $\dot p_s \neq 0$.
+\end{remark}
+
+\section{Gap 3: Global Maximum on Non-Convex Fields}
+
+\subsection{Multi-peak field}
+
+Consider
+\begin{equation}\label{eq:gaussian-mix}
+    f(z) = \sum_{k=1}^M A_k \exp\!\left(-\frac{\|z - c_k\|^2}{2\sigma_f^2}\right),
+    \quad A_1 > A_2 \ge \cdots \ge A_M > 0.
+\end{equation}
+The global maximum is at $c_1$. For maximum seeking with Eq.~4, flip the sign of the localization term:
+\begin{equation}
+    u_i^{\mathrm{asc}} = \alpha \sum_{j \in \mathcal{N}_i} \sgn(z_j - z_i) + \frac{2\beta}{R}\,\sigma(p_i)\,\phi(\theta_i).
+\end{equation}
+
+\subsection{Trap mechanisms}
+
+\begin{enumerate}
+    \item Basin of attraction: $p^*(0)$ near $c_j$, $j > 1$, converges to a suboptimal peak.
+    \item Flat regions: small $\|\nabla f\|$ slows centroid motion.
+    \item Saturation: outside $D_{\max}$ of all peaks, measurements carry no gradient information.
+\end{enumerate}
+
+\subsection{Escape mechanisms (to validate)}
+
+\draft{Periodic dither on $\beta$; multi-swarm assignment (Gap~1) with amplitude-based peak ranking; stagnation-triggered exploration gain.}
+
+\begin{remark}
+Linking Gap~1 and Gap~3: if each peak hosts one team and teams are assigned by estimated amplitude $\hat A_k$, global optimality reduces to correct peak identification plus per-team convergence.
+\end{remark}
+
+\section{Simulation Validation Plan}
+
+Experiments in \texttt{sims/research.m} (robot model: \texttt{single\_integrator} or \texttt{unicycle}):
+
+\begin{itemize}
+    \item \textbf{Gap 1:} configs \texttt{n8\_N2}, \texttt{n9\_N3}, \texttt{n12\_N3}; unified cluster start, split at $t_{\mathrm{split}}$; plots: trajectory (pre/post split coloring), team localization, phase timeline, deployment map.
+    \item \textbf{Gap 2:} $p_s(t) = p_{s0} + v t$; metric $\|p^* - p_s(t)\|$ vs ISS offset.
+    \item \textbf{Gap 3:} field \eqref{eq:gaussian-mix} with $M=3$; ascent control; metric $f(p^*)$ vs $f(c_1)$.
+\end{itemize}
+
+Example commands:
+\begin{verbatim}
+cd sims
+research gap1              % all Gap 1 configs
+research gap1 n9_N3        % single config
+research gap2 unicycle     % moving source on unicycle
+\end{verbatim}
+
+\section{Conclusion}
+
+This document provides a research-grade skeleton for three extensions of Du et al.\ (2024). Full proofs, citation of extremum-seeking and multi-agent deployment literature, and numerical validation tables will be added as \texttt{research.m} experiments confirm or refute each draft claim.
+
+\begin{thebibliography}{9}
+\bibitem{du2024}
+Y.~Du, X.~Chen, L.~Xiang, K.~Guo, and J.~Chen,
+``Simultaneous source localization and formation via a distributed sign gradient-free algorithm,''
+\emph{IEEE Trans.\ Control Netw.\ Syst.}, vol.~11, no.~1, pp.~--, Mar.~2024.
+
+\bibitem{cortes2004}
+J.~Cort{\'e}s, S.~Mart{\'i}nez, T.~Karatas, and F.~Bullo,
+``Coverage control for mobile sensing networks,''
+\emph{IEEE Trans.\ Autom.\ Control}, vol.~49, no.~5, pp.~685--694, 2004.
+
+\bibitem{tan2014}
+Y.~Tan, W.~H.~Moase, C.~Manzie, D.~Ne{\v{s}}i{\'c}, and I.~M.~Y.~Mareels,
+``Extremum seeking from 1922 to 2010,''
+\emph{IEEE Control Syst.\ Mag.}, vol.~34, no.~3, pp.~41--53, 2014.
+
+\bibitem{khalil2002}
+H.~K.~Khalil,
+\emph{Nonlinear Systems}, 3rd~ed.
+Prentice Hall, 2002.
+\end{thebibliography}
+
+\end{document}

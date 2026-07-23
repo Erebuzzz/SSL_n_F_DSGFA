@@ -1,0 +1,56 @@
+{
+  "gap": "gap1_multi_source",
+  "description": "N teams for N static source minima with Voronoi assignment",
+  "parameters": {
+    "n": 6,
+    "N_sources": 2,
+    "sources": [
+      [
+        2,
+        8
+      ],
+      [
+        9,
+        2
+      ]
+    ],
+    "team_sizes": [
+      3,
+      3
+    ],
+    "assignment": [
+      1,
+      1,
+      1,
+      2,
+      2,
+      2
+    ],
+    "alpha": 100,
+    "beta": 0.05,
+    "duration": 60,
+    "seed": 42
+  },
+  "metrics": {
+    "final_formation_error": 11.284011734853598,
+    "final_team_localization_errors": [
+      0.0041761961483687661,
+      0.0071599702644352548
+    ],
+    "mean_final_team_error": 0.0056680832064020109,
+    "max_final_team_error": 0.0071599702644352548
+  },
+  "validation": {
+    "per_team_epsilon": [
+      0.1,
+      0.1
+    ],
+    "per_team_inside_bound": [
+      true,
+      true
+    ],
+    "all_teams_inside_bound": true,
+    "gain_ratio": 2000,
+    "gain_threshold": 865.19999999999993
+  }
+}

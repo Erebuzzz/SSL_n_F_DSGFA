@@ -11,12 +11,14 @@ All project docs live in [`docs/`](docs/):
 | Doc | Purpose |
 |---|---|
 | [docs/RUNNING_MODES.md](docs/RUNNING_MODES.md) | **Start here** — how to run every mode (Python, MATLAB, Simulink, CoppeliaSim) with exact commands and configs. |
+| [sims/RUN_GUIDE.md](sims/RUN_GUIDE.md) | Standalone MATLAB scripts: mode switching, parameter presets, outputs, troubleshooting. |
 | [docs/CONFIG_GUIDE.md](docs/CONFIG_GUIDE.md) | Shared JSON config schema, section by section. |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased plan and status for the whole reproduction. |
 | [docs/code_review.md](docs/code_review.md) | Collaborator-facing review notes and verification status. |
 | [docs/du_2024_extraction.md](docs/du_2024_extraction.md), [docs/Sign_Gradient_Free_Localization_Deep_Extraction.md](docs/Sign_Gradient_Free_Localization_Deep_Extraction.md) | Paper extraction notes. |
 
-Per-package READMEs stay with their code: [`matlab/`](matlab/README.md),
+Per-package READMEs stay with their code: [`sims/`](sims/README.md),
+[`matlab/`](matlab/README.md),
 [`matlab_turtlebot/`](matlab_turtlebot/README.md), [`coppelia/`](coppelia/README.md).
 
 ## Current Scope
@@ -245,5 +247,28 @@ run_paper_validation
 ```
 
 The MATLAB implementation is meant for workflow parity and control-theory review. Exact equality with Python is not expected for noisy runs because MATLAB and NumPy use different random-number generators. Use `noise.model = "none"` for deterministic controller and integrator comparisons.
+
+## Standalone MATLAB Scripts (self-contained)
+
+Three self-contained scripts live in [`sims/`](sims/). Edit the `%% Configuration` / `%% Parameters` sections, then run:
+
+```matlab
+cd sims
+SingleIntegrator   % point robots, paper bounded-validation defaults
+Unicycle           % feedback-linearized unicycle, working gains + boundary layer
+TurtleBot          % differential-drive numeric (default) or Simulink (set runMode)
+```
+
+| Script | Dynamics | Default preset | Output folder |
+|---|---|---|---|
+| `sims/SingleIntegrator.m` | `p_dot = u` | bounded noise, `alpha=100`, `dt=0.0005` | `sims/outputs/SingleIntegrator/` |
+| `sims/Unicycle.m` | control-point FL + Euler | bounded, `alpha=10`, `r=2`, `eps_bl=0.2` | `sims/outputs/Unicycle/` |
+| `sims/TurtleBot.m` | same as unicycle + wheels; optional Simulink `ode4` | numeric working preset | `sims/outputs/TurtleBot/` |
+
+**Run guide:** [`sims/RUN_GUIDE.md`](sims/RUN_GUIDE.md) documents mode switching, noise cases, parameter presets, and troubleshooting.
+
+`sims/TurtleBot.m` Simulink mode needs Simulink + Stateflow (MATLAB Function blocks). Set `runMode = "simulink"` near the top of the script. Alternative parameters and the pure-`sgn` controller are kept as commented blocks inside each file.
+
+The older modular packages (`matlab/`, `matlab_turtlebot/`) remain available for JSON-config / parity workflows; see [docs/RUNNING_MODES.md](docs/RUNNING_MODES.md).
 
 

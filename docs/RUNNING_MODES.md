@@ -14,13 +14,31 @@ PowerShell; MATLAB snippets use the MATLAB command window.
 |---|------|---------|-------------|-------|
 | 1 | Single-integrator (point robots) | Python | `python -m sgf_sim` | 1 / 1.1 / 1.2 / 1.25 |
 | 2 | Single-integrator parity | MATLAB | `matlab/` scripts | 1.3 |
+| 2b | **Standalone single-integrator** | MATLAB | `sims/SingleIntegrator.m` | consolidated |
 | 3 | Numerical unicycle | Python | `python -m sgf_sim unicycle` | 2 |
+| 3b | **Standalone unicycle** | MATLAB | `sims/Unicycle.m` | consolidated |
 | 4 | TurtleBot differential-drive (numeric) | MATLAB | `matlab_turtlebot/` | 2.5 |
 | 5 | TurtleBot swarm (Simulink block diagram) | MATLAB/Simulink | `matlab_turtlebot/` | 2.5 |
+| 5b | **Standalone TurtleBot (numeric or Simulink)** | MATLAB/Simulink | `sims/TurtleBot.m` | consolidated |
 | 6 | Multi-robot simulator | Python + CoppeliaSim | `python -m coppelia` | 3 |
 
 Modes 1–3 and 6 (mock) run offline with only Python + NumPy + Matplotlib. Modes
 2/4/5 need MATLAB (+ Simulink for mode 5). Mode 6 physics needs CoppeliaSim.
+
+### Standalone scripts (recommended for distribution)
+
+Scripts live in [`sims/`](../sims/). Each is fully self-contained: parameters, adjacency, controller, measurement, integrator, plots, and summary export in one file. No `addpath`, no JSON, no helper folders.
+
+```matlab
+cd sims
+SingleIntegrator
+Unicycle
+TurtleBot   % set runMode = "simulink" inside the script for the .slx path
+```
+
+**Run guide:** [`sims/RUN_GUIDE.md`](../sims/RUN_GUIDE.md) — mode switching, noise cases, gains, Simulink vs numeric, outputs, troubleshooting.
+
+Outputs land under `sims/outputs/<Name>/`.
 
 ## Prerequisites
 

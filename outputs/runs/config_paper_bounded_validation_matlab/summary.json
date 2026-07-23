@@ -29,20 +29,20 @@
     "inside_bound": true
   },
   "metrics": {
-    "initial_formation_error": 9.9090410962346152,
-    "final_formation_error": 0.25991746213575645,
-    "initial_localization_error": 4.7177266182393867,
-    "final_localization_error": 0.031731124615757694,
-    "formation_error_drop": 9.6491236340988582,
-    "localization_error_drop": 4.6859954936236292,
-    "tail_formation_error_span": 0.18583212955737641,
-    "tail_formation_error_std": 0.034756184516799668,
-    "tail_localization_error_span": 0.032514448695885316,
-    "tail_localization_error_std": 0.0083012262068392715,
-    "formation_threshold": 0.49545205481173077,
-    "formation_entry_time": 0.0285,
+    "initial_formation_error": 10.895835238747157,
+    "final_formation_error": 0.22398578868802996,
+    "initial_localization_error": 5.421151989096864,
+    "final_localization_error": 0.030291727314047636,
+    "formation_error_drop": 10.671849450059128,
+    "localization_error_drop": 5.3908602617828167,
+    "tail_formation_error_span": 0.1890297662077968,
+    "tail_formation_error_std": 0.034212147829633208,
+    "tail_localization_error_span": 0.042302779156487051,
+    "tail_localization_error_std": 0.011236501787307809,
+    "formation_threshold": 0.5447917619373579,
+    "formation_entry_time": 0.025,
     "localization_threshold": 0.1,
-    "localization_entry_time": 40.067,
-    "time_inside_localization_threshold_after_entry": 19.9335
+    "localization_entry_time": 41.5475,
+    "time_inside_localization_threshold_after_entry": 18.453
   }
 }

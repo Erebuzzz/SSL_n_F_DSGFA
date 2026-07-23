@@ -1,0 +1,43 @@
+{
+  "gap": "gap3_global_maximum",
+  "description": "Non-convex multi-peak field; ascent via flipped localization term",
+  "parameters": {
+    "peak_centers": [
+      [
+        8,
+        8
+      ],
+      [
+        3,
+        3
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "peak_amplitudes": [
+      5,
+      2,
+      1.5
+    ],
+    "field_sigma": 2,
+    "seek_mode": "ascent",
+    "seed": 11
+  },
+  "metrics": {
+    "initial_field_at_centroid": 2.0838026647598622,
+    "final_field_at_centroid": 2.0801587028062807,
+    "global_max_field_value": 5,
+    "field_fraction_of_global": 0.41603174056125614,
+    "nearest_peak_index": 2,
+    "nearest_peak_distance": 0.44662119944904222,
+    "final_formation_error": 0.22145331553707279
+  },
+  "validation": {
+    "reached_global_peak": false,
+    "trapped_at_local_peak": true,
+    "gain_ratio": 2000,
+    "note": "Local trap expected when initialized near suboptimal peak; escape mechanisms are future work"
+  }
+}

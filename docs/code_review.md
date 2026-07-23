@@ -156,4 +156,78 @@ Inside theorem bound: 0
 
 The smoke config used `duration = 0.02`, `dt = 0.01`, and disabled plots and animation, so it validates startup, config parsing, simulation, and summary export rather than convergence quality. Noisy Python and MATLAB runs are expected to differ at the sample level because their random-number generators are different. Deterministic parity should be checked with `noise.model = "none"` for deeper numerical comparison.
 
+## Standalone script consolidation (2026-07-20)
+
+Three self-contained scripts were added under `sims/` to simplify distribution and review:
+
+| Script | Source of truth inlined from | Default behavior |
+|---|---|---|
+| `sims/SingleIntegrator.m` | `matlab/` (`sgf_*`, `run_from_config`) | paper bounded validation (`alpha=100`, `dt=5e-4`, exact `sgn`) |
+| `sims/Unicycle.m` | Python Phase 2 + TurtleBot numeric loop | working unicycle (`alpha=10`, `r=2`, `eps_bl=0.2`) |
+| `sims/TurtleBot.m` | `matlab_turtlebot/` numeric + Simulink builder | numeric working preset; `runMode="simulink"` for `.slx` |
+
+Run guide: [`sims/RUN_GUIDE.md`](../sims/RUN_GUIDE.md).
+
+
+Structural refactor only: Eq. 4 control, measurement model, topology, theory bounds, and integrators match the modular packages. Alternative presets (Gaussian SI, pure `sgn`, hardware TurtleBot limits) are kept as commented blocks inside each script.
+
+### Verification
+
+- **SingleIntegrator.m**: final localization `≈ 0.030`, `inside_bound=1` (epsilon `0.1`), matching paper bounded-validation expectations.
+- **Unicycle.m**: final formation `0.00523`, localization `0.00089`, `inside_bound=1` (matches `turtlebot_working` numeric reference).
+- **TurtleBot.m** (numeric): identical metrics to Unicycle under the same defaults.
+- **TurtleBot.m** (Simulink, 5 s smoke): builds `sgf_turtlebot_swarm.slx`, runs `ode4`, writes summary (full 90 s noise-free reference remains available via `runMode="simulink"`).
+- **SingleIntegrator vs `matlab/`**: 2 s noise-free kernel comparison gave `max |pos| diff = 0` (bit-identical).
+
+## Research gap validation harness (2026-07-21)
+
+New files for three open extensions relative to Du et al. (2024):
+
+| Artifact | Purpose |
+|---|---|
+| `docs/RESEARCH_GAPS_THEORY.md` | Mathematical framing, proof-gap analysis, literature anchors |
+| `docs/research/research_gaps.tex` | LaTeX skeleton for formal step-by-step proofs |
+| `docs/WORKFLOW_CONTEXT_RESEARCH_GAPS.md` | Agent handoff for continuing research |
+| `sims/research.m` | Self-contained MATLAB validation for all three gaps |
+
+### Gap summary
+
+| Gap | Model change | What validation checks |
+|---|---|---|
+| 1 Multi-source | Unified cluster start, split at $t_{\mathrm{split}}$, balanced assignment; configs `n8_N2`, `n9_N3`, `n12_N3` | Per-team centroid error vs Du et al. $\varepsilon_k$; phase timeline and deployment map |
+| 2 Moving source | `p_s(t)` linear drift; `single_integrator` or `unicycle` | Tracking error vs ISS predicted offset |
+| 3 Global maximum | Multi-Gaussian peaks; flipped localization sign (ascent) | Local trap vs global peak |
+
+### Run command
+
+```matlab
+cd sims
+research                    % all gaps
+research gap1                 % all Gap 1 configs
+research gap1 n9_N3           % single config
+research gap2 unicycle        % unicycle dynamics
+```
+
+Gap 1 outputs: `sims/outputs/research/gap1/<config>/` with `trajectory.png`, `team_localization.png`, `phase_timeline.png`, `deployment_map.png`, `motion.gif`, `summary.json`, `result.mat`.
+
+Gap 2/3 outputs: `sims/outputs/research/gap2|gap3/` (standard plot set + `motion.gif`).
+
+### Review notes
+
+- Gap 1 decomposes the swarm into independent teams; cross-team edges are removed from the formation graph. This matches the draft decomposition proposition but is **outside** the original theorem until formally proved.
+- Gap 2 uses the baseline Eq. 4 unchanged; tracking is empirical validation of the ISS sketch in the theory doc.
+- Gap 3 intentionally starts near a suboptimal peak to document local trapping. Escape mechanisms (dither, multi-swarm reassignment) are listed as future work, not implemented yet.
+- All three gaps violate at least one proof pillar (P4-P7); runs are labeled as extension experiments, not theorem checks for the original paper.
+
+### Verification status
+
+MATLAB run completed 2026-07-21 (`research gap1`, `gap2`, `gap3`):
+
+| Gap | Key result | Interpretation |
+|---|---|---|
+| 1 | Team errors `[0.0042, 0.0072]` (legacy 6-robot), `[0.0195, 0.0249]` (`n8_N2` unified-split) | Per-team decomposition works; clustered start then split |
+| 2 | Tail mean tracking error `0.381` vs ISS offset `0.461` | Centroid tracks linearly moving source with bounded lag |
+| 3 | Trapped at peak 2, `f(p*)=2.08` vs global max `5.0` | Local trap confirmed; escape not yet implemented |
+
+Static Code Analyzer: no errors (two info/warning items on `find` vs logical indexing and unused argument).
 

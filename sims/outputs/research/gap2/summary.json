@@ -1,0 +1,33 @@
+{
+  "gap": "gap2_moving_source",
+  "description": "Track time-varying source with baseline Eq. 4",
+  "parameters": {
+    "motion_type": "linear",
+    "velocity": [
+      0.03,
+      0.02
+    ],
+    "circ_center": [
+      8,
+      8
+    ],
+    "circ_radius": 2,
+    "circ_omega": 0.05,
+    "v_max": 0.03605551275463989,
+    "alpha": 100,
+    "beta": 0.05,
+    "kappa": 1,
+    "duration": 80
+  },
+  "metrics": {
+    "peak_tracking_error": 5.4276111840577315,
+    "final_tracking_error": 0.37682820406130957,
+    "tail_mean_tracking_error": 0.38125774017372105,
+    "final_formation_error": 0.23243472005435528
+  },
+  "validation": {
+    "iss_predicted_offset": 0.46055512754639893,
+    "tail_mean_below_2x_predicted": true,
+    "gain_ratio": 2000
+  }
+}

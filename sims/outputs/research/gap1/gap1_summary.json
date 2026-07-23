@@ -1,0 +1,70 @@
+{
+  "n8_N2": {
+    "gap": "gap1_multi_source",
+    "description": "Unified swarm start, split into balanced teams at split_time",
+    "parameters": {
+      "config_name": "n8_N2",
+      "n": 8,
+      "N_sources": 2,
+      "sources": [
+        [
+          0,
+          10
+        ],
+        [
+          14,
+          10
+        ]
+      ],
+      "cluster_center": [
+        7,
+        8
+      ],
+      "split_time": 12,
+      "split_step": 24001,
+      "team_sizes": [
+        4,
+        4
+      ],
+      "final_assignment": [
+        2,
+        2,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2
+      ],
+      "robot_model": "single_integrator",
+      "alpha": 100,
+      "beta": 0.05,
+      "duration": 70,
+      "seed": 42
+    },
+    "metrics": {
+      "final_formation_error": 19.737872740977341,
+      "final_team_localization_errors": [
+        0.019533119088864018,
+        0.024918598956199883
+      ],
+      "mean_final_team_error": 0.022225859022531949,
+      "max_final_team_error": 0.024918598956199883,
+      "final_team_separation": 13.955737333612413,
+      "split_time_actual": 12
+    },
+    "validation": {
+      "per_team_epsilon": [
+        0.1,
+        0.1
+      ],
+      "per_team_inside_bound": [
+        true,
+        true
+      ],
+      "all_teams_inside_bound": true,
+      "gain_ratio": 2000,
+      "gain_threshold": 1153.6
+    }
+  }
+}
