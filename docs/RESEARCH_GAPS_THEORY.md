@@ -180,12 +180,72 @@ $$
 | Formation error per team | same as Du et al. on $\mathcal{V}_k$ | monotone decrease |
 | Total cost | $\sum_k e_k(t)^2$ | compare Voronoi vs random assignment |
 
+### Closest prior work and what it does not cover
+
+Two papers occupy the space adjacent to Gap 1. Neither closes it, and the way they miss is what defines our contribution.
+
+**MESA** — Turgeman and Werner, *Multiple Source Seeking using Glowworm Swarm Optimization and Distributed Gradient Estimation*, ACC 2018 (`docs/research/Multiple_Source_Seeking_using_Glowworm_Swarm_Optimization_and_Distributed_Gradient_Estimation.pdf`).
+
+Closest structural match to Gap 1. Unicycle agents form groups of size $\delta$ and each group settles on one extremum of a multi-modal field. Directly reusable:
+
+| MESA element | Relevance to Gap 1 |
+|---|---|
+| Sizing rule $N = \delta \cdot \tilde N_\psi$ (agents = group size $\times$ expected extrema) | Exactly our config structure: `n8_N2` $=4\times 2$, `n9_N3` $=3\times 3$, `n12_N3` $=4\times 3$ |
+| Match-maker rendezvous points $Q$ for grouping from arbitrary start | Alternative to our clustered start; justifies random deployment |
+| Virtual repulsive force when a group nears an already occupied extremum | Prevents two teams collapsing onto one source; needed for dynamic reassignment |
+| Source density $p_{\psi_\alpha} = \frac{1}{N}\sum_{i\in\xi_\alpha} e^{-\|\hat r_\alpha - r_i\|}$ and density error $e_{\psi_\alpha}$ | A fairness metric across teams that we currently lack |
+| LTL / Büchi automaton for task switching | Formal alternative to our hard-coded $t_{\mathrm{split}}$ |
+| Cases $\tilde N_\psi < N_\psi$, $=N_\psi$, $>N_\psi$ | Motivates configs with fewer or more teams than sources |
+
+**What MESA does not do:** it estimates the gradient explicitly by least squares on neighbor measurement differences, $\hat g_i = (R_i^T R_i)^{-1} R_i^T b_i$, requiring $|\mathcal{N}_i| \ge 2$ and full-column-rank $R_i$. Du et al. is deliberately **gradient-free** with ternary $\{-1,0,1\}$ communication, and it carries an explicit steady-state bound $\varepsilon$. MESA has a Lyapunov argument for formation and a density-error bound, but no localization accuracy bound tied to noise. So MESA is a **baseline to compare against**, not a method to adopt wholesale.
+
+**DIAS** — Chen, Kailas, Deolasee, Luo, Sycara, Kim, *Distributed Multi-robot Source Seeking in Unknown Environments with Unknown Number of Sources*, ICRA 2025 ([arXiv:2503.11048](https://arxiv.org/abs/2503.11048)).
+
+Attacks the part Gap 1 currently assumes away: **source locations and source count are unknown**. Directly reusable:
+
+| DIAS element | Relevance to Gap 1 |
+|---|---|
+| Voronoi tessellation $V_i = \{q : \|q-x_i\| \le \|q-x_j\|\ \forall j\}$ for task allocation | Citation and justification for our assignment step |
+| GP regression for the density function $\phi$, posterior $\mu(q), \sigma^2(q)$ | How to locate sources without hard-coding them |
+| LCB test $\mu(q) - \beta\sigma^2(q) > \tau$ to declare a candidate source | Concrete, tunable source-detection rule |
+| Hybrid controller: exploration (ergodic active sensing) vs exploitation (source seeking) | Principled version of our unified-then-split phase switch |
+| Declare found source, broadcast to neighbors to avoid revisits | Same role as MESA's repulsion, via communication instead of force |
+| Metrics: iterations to find all sources, WRMSE of estimated density | Better search-efficiency metrics than final error alone |
+| Baselines DoSS, GMES, GreedyBO | Ready-made comparison set |
+
+**What DIAS does not do:** robots act individually (3 robots, 3 to 7 sources). There is **no formation control**, no circular surround, no analytical error bound, and it needs full scalar measurements plus GP inference rather than sign-only exchange. It solves discovery, not team-based surround-and-localize.
+
+### Positioning of Gap 1
+
+| Capability | Du et al. 2024 | MESA 2018 | DIAS 2025 | Gap 1 target |
+|---|---|---|---|---|
+| Circular formation around target | yes | yes (diamond) | no | yes |
+| Multiple sources / extrema | no | yes | yes | yes |
+| Gradient-free, sign-only comms | yes | no (LS gradient) | no (GP) | yes |
+| Explicit steady-state error bound | yes ($\varepsilon$) | density error only | no | yes (per-team $\varepsilon_k$) |
+| Unknown source count | no | partially ($\tilde N_\psi$ guess) | yes | future |
+
+The unoccupied cell is **sign gradient-free, ternary-communication, multi-team formation seeking with per-team $\varepsilon_k$ bounds**. That is a defensible contribution, and both papers are the right things to cite as the nearest neighbors.
+
+### Concrete items to pull in
+
+1. **Per-team fairness metric** (from MESA): report source density $p_{\psi_k}$ and density error $e_{\psi_k}$ alongside $e_k(t)$, so "all teams did equally well" is measurable, not just "each team converged".
+2. **Occupancy repulsion** (from MESA and DIAS): required before dynamic reassignment is safe, otherwise two teams can lock onto the same source.
+3. **Unequal team counts** (from MESA): add configs with $\tilde N_\psi \ne N_\psi$, since our three configs all assume teams $=$ sources.
+4. **GP + LCB source discovery** (from DIAS): the natural next step that removes the "sources known a priori" assumption. This is a separate sub-gap; keep it after the fixed-source proof lands.
+5. **Search-efficiency metrics** (from DIAS): time to first contact per source, and total iterations to cover all sources.
+
 ### Literature anchors
 
 - Du et al. (2024): baseline Eq. 4 and symmetric cancellation.
+- Turgeman and Werner, *Multiple source seeking using GSO and distributed gradient estimation*, ACC 2018: group-per-extremum with formation, density fairness metric, LTL switching. Gradient-based, so a baseline rather than a component.
+- Chen et al., *Distributed multi-robot source seeking in unknown environments with unknown number of sources* (DIAS), ICRA 2025: Voronoi allocation, GP density estimation, LCB source identification, exploration/exploitation switching. No formation control.
+- Krishnanand and Ghose, *Glowworm swarm optimization for simultaneous capture of multiple local optima*, Swarm Intelligence 2009: the GSO primitive MESA builds on; multi-optima capture by luciferin attraction.
 - Cortés, Martínez, Karatas, Bullo, *Coverage control for mobile sensing networks*, IEEE TAC 2004: Voronoi partitions for multi-target deployment (different control, same assignment geometry).
 - Olfati-Saber, *Flocking for multi-agent dynamic systems*, IEEE TAC 2006: formation + consensus decomposition patterns.
 - Chen, Ren, Cao, *Surrounding control in cooperative agent networks*, IEEE TCNS 2017 (Remark 7 in Du et al.): balanced formations for higher dimensions.
+- Du, Qian, Iqbal, Claudel, Sun, *Multi-robot dynamical source seeking in unknown environments* (DoSS), ICRA 2021: DIAS baseline, distributed multi-source seeking.
+- Ma, Zhang, Wu, Calmon, Li, *Gaussian max-value entropy search for multi-agent Bayesian optimization* (GMES), IROS 2023: DIAS baseline.
 
 ---
 
@@ -383,14 +443,66 @@ Each step should produce:
 
 ---
 
+## Graphical verification of the analytical claims
+
+`sims/verify_theory.m` turns every load-bearing lemma, theorem, and identity into a plot that compares a measured quantity against what the theory predicts. Each check is a falsification attempt, not a demonstration: it is designed so that a wrong claim would produce a visibly wrong curve.
+
+```matlab
+cd sims
+verify_theory              % all 12 checks
+verify_theory baseline     % v1..v6
+verify_theory gap1         % v7, v8
+verify_theory gap2         % v9
+verify_theory gap3         % v10, v11, v12
+verify_theory v10          % a single check
+```
+
+Outputs land in `sims/outputs/verify_theory/`: one PNG per check plus `summary.json` with the verdict and the numbers behind it. Full suite runtime is about two and a half minutes.
+
+| ID | Claim | Outcome |
+|---|---|---|
+| V1 | Polygon identities | Exact for $n\ge4$; third moment is $0.453$ at $n=3$ |
+| V2 | Connectivity bound | 600/600 random graphs respect both inequalities |
+| V3 | Finite-time formation | Settles two decades before the bound; chatter floor is $O(\Delta t^{0.99})$ |
+| V4 | Exact gradient identity | Machine precision for the quadratic field, visibly nonzero for a Gaussian |
+| V5 | All-informed bound | Worst tail error $0.0148$ against a bound of $0.05$ |
+| V6 | $\varepsilon$ and $\lambda_\mathcal{X}$ consistency | Product constant to $1.7\times10^{-16}$ |
+| V7 | Team-size cancellation | $\varepsilon_k$ flat in $n_k$ to $5.6\times10^{-16}$ |
+| V8 | Basin certificate | Sufficiency respected; tight spacing genuinely loses containment |
+| V9 | Moving-source lag | Lag vector matches to $2.3\%$, speed sweep slope to $5\%$ |
+| V10 | Estimator bias | Fitted slopes $1.10$ at $n=3$, $1.99$ at $n\ge4$ |
+| V11 | Local trapping | Suboptimal basins cover $60\%$ of the domain |
+| V12 | Multi-start selection | $100\%$ accuracy inside the guaranteed region |
+
+### The three checks that changed something
+
+**V3 exposed a measurement floor.** The continuous-time claim is convergence to exactly zero, but fixed-step Euler chatters at a level proportional to $\alpha\,\Delta t$. Sweeping the step size confirms the floor is $O(\Delta t)$ with a fitted exponent of $0.99$. Any formation error reported below roughly $\alpha\,\Delta t$ is a discretization artefact. At the default `research.m` settings ($\alpha=100$, $\Delta t=5\times10^{-4}$) that floor is around $0.15$, which is not negligible.
+
+![V3 finite-time formation](../sims/outputs/verify_theory/v3_formation_finite_time.png)
+
+**V8 showed the basin certificate is not a formality.** With sources at $x=\pm4$ the certificate holds and the Voronoi margin never drops below $4.90$. With sources at $x=\pm1.35$, where the ring radius alone nearly exhausts the clearance, the certificate fails and containment is actually lost, $\min_t m_k = -0.05$. Sufficiency is never violated, and the tight case proves the condition discriminates.
+
+![V8 basin certificate](../sims/outputs/verify_theory/v8_basin_certificate.png)
+
+**V10 isolated what the $n\ge4$ hypothesis buys.** On a Gaussian mixture the $n=3$ ring has fitted slope $1.10$ while $n=4,6,8$ all sit at $1.99$. The gain is a full order in $R$, not a constant factor, and it traces directly to the third-moment identity from V1.
+
+![V10 estimator bias](../sims/outputs/verify_theory/v10_estimator_bias.png)
+
+### What the checks do not establish
+
+V6 is pure algebra, so it confirms internal consistency of the imported saturation geometry without providing any independent evidence that the geometry is correct. V5 and V12 both show the bounds are loose: the observed tail error is a third of $\varepsilon_\mathrm{all}$, and multi-start selection is still $98\%$ accurate well outside the guaranteed region. Loose bounds are still correct bounds, but they should not be quoted as predictions of observed behaviour.
+
+None of this closes the conditional status of Gap 1. V8 tests the certificate; it does not prove the controller enforces it.
+
 ## Simulation entry point
 
 ```matlab
 cd sims
 research          % runs all three gap validations
 research gap2     % optional: single gap from command line
+verify_theory     % graphical verification of the analytical claims
 ```
 
-Outputs: `sims/outputs/research/gap1/`, `gap2/`, `gap3/` with plots, `summary.json`, `result.mat`.
+Outputs: `sims/outputs/research/gap1/`, `gap2/`, `gap3/` with plots, `summary.json`, `result.mat`, and `sims/outputs/verify_theory/` for the verification figures.
 
-See `docs/research/research_gaps.tex` for the formal write-up skeleton aligned with this document.
+See `docs/research/research_gaps.tex` for the formal write-up, where each figure is placed beside the claim it verifies.

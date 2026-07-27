@@ -189,6 +189,9 @@ controlPts = zeros(n, 2, steps + 1);
 centroid = zeros(steps + 1, 2);
 centroids = zeros(Nsrc, 2, steps + 1);
 teamLocError = zeros(steps + 1, Nsrc);
+% Positive means every robot is closer to its assigned source than to
+% another source. This directly tests the basin-containment hypothesis.
+teamBasinMargin = nan(steps + 1, Nsrc);
 formationError = zeros(steps + 1, 1);
 teamSeparation = zeros(steps + 1, 1);
 phaseTag = zeros(steps + 1, 1);  % 0 = unified, 1 = split
@@ -239,6 +242,7 @@ for step = 1:(steps + 1)
             members = find(assignment == teamIds(k));
             centroids(k, :, step) = mean(statePos(members, :), 1);
             teamLocError(step, k) = norm(centroids(k, :, step) - sources(k, :));
+            teamBasinMargin(step, k) = assignedBasinMargin(statePos(members, :), sources, k);
         end
         if Nsrc >= 2
             teamSeparation(step) = min(pairwiseDistances(squeeze(centroids(:, :, step))));
@@ -269,6 +273,8 @@ for k = 1:Nsrc
     teamSizes(k) = sum(assignment == k);
 end
 bounds = teamTheoryBounds(cfg, teamSizes, noiseBound, teamLocError(end, :));
+postSplitBasinMargins = teamBasinMargin(splitStepActual:end, :);
+minBasinMargins = min(postSplitBasinMargins, [], 1);
 
 summary = struct();
 summary.gap = "gap1_multi_source";
@@ -285,6 +291,8 @@ summary.metrics = struct( ...
     "mean_final_team_error", mean(teamLocError(end, :)), ...
     "max_final_team_error", max(teamLocError(end, :)), ...
     "final_team_separation", teamSeparation(end), ...
+    "minimum_team_basin_margins", minBasinMargins, ...
+    "basin_containment_passed", all(minBasinMargins > 0), ...
     "split_time_actual", times(splitStepActual));
 summary.validation = struct( ...
     "per_team_epsilon", {bounds.epsilon}, ...
@@ -298,7 +306,7 @@ cfg.split_step = splitStepActual;
 result = struct( ...
     "times", times, "positions", positions, "headings", headings, ...
     "control_points", controlPts, "centroid", centroid, "centroids", centroids, ...
-    "team_loc_error", teamLocError, "team_separation", teamSeparation, ...
+    "team_loc_error", teamLocError, "team_basin_margin", teamBasinMargin, "team_separation", teamSeparation, ...
     "formation_error", formationError, "phase_tag", phaseTag, ...
     "assignment_trace", assignmentTrace, "phi", phi, "cfg", cfg, ...
     "summary", summary);
@@ -668,6 +676,19 @@ for i = 1:n
         d = min(d, norm(points(i, :) - points(j, :)));
     end
 end
+end
+
+function margin = assignedBasinMargin(points, sources, assignedSource)
+% Minimum signed nearest-source margin for one assigned team. Positive
+% values certify that all sampled robot positions remain in its Voronoi cell.
+ownDistance = vecnorm(points - sources(assignedSource, :), 2, 2);
+otherSources = sources;
+otherSources(assignedSource, :) = [];
+otherDistances = zeros(size(points, 1), size(otherSources, 1));
+for j = 1:size(otherSources, 1)
+    otherDistances(:, j) = vecnorm(points - otherSources(j, :), 2, 2);
+end
+margin = min(min(otherDistances, [], 2) - ownDistance);
 end
 
 function [v, omega] = feedbackLinearize(commands, headings, r)

@@ -1,37 +1,201 @@
 % research_gaps.tex
-% Research extension framework for Du et al. (2024) sign gradient-free
-% source localization and formation.
+% Detailed mathematical research note for extensions to Du et al. (2024).
 %
-% Build (from docs/research/):
+% Build from docs/research/:
 %   pdflatex research_gaps.tex
-%   bibtex research_gaps
 %   pdflatex research_gaps.tex
 %
-% Status: skeleton for step-by-step proofs. Claims marked \draft{...} are
-% conjectures pending simulation validation in sims/research.m.
+% This file intentionally separates established results, conditional results,
+% and proposed research. A successful MATLAB run is numerical evidence only.
 
 \documentclass[11pt]{article}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{geometry}
 \usepackage{graphicx}
+\usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{cleveref}
-\usepackage{geometry}
-\geometry{margin=1in}
+
+% The bottom margin is deliberately deep: every page carries a notation key
+% below the text block. Shrink it only if \notationkeyfalse is set.
+\geometry{margin=1in, bottom=1.5in, footskip=0.5in, headheight=14pt}
+
+% Verification figures are produced by sims/verify_theory.m. Regenerate with
+%   cd sims && matlab -batch "verify_theory"
+\graphicspath{{../../sims/outputs/verify_theory/}}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{remark}{Remark}
+\newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
 
-\newcommand{\draft}[1]{\textit{[Draft: #1]}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\V}{\mathcal{V}}
-\newcommand{\sgn}{\mathrm{sgn}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\one}{\mathbf{1}}
+% #1 image file, #2 check id, #3 caption text
+\newcommand{\verifyfig}[3]{%
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{#1}
+    \caption{\textbf{Check #2.} #3}
+    \label{fig:#2}
+  \end{figure}}
 
-\title{Research Extensions: Multi-Source Assignment,\\
-Moving Sources, and Global Extremum Seeking\\
-for Sign Gradient-Free Swarm Localization}
+\newcommand{\established}[1]{\textbf{Established.} #1}
+\newcommand{\conditional}[1]{\textbf{Conditional.} #1}
+\newcommand{\proposed}[1]{\textbf{Proposed research.} #1}
+
+%% ---------------------------------------------------------------------------
+%% Per-page notation key
+%%
+%% Every page carries a legend for the symbols in play on that page, printed
+%% below the text block in footnote style. A real \footnote cannot be made to
+%% repeat on every page without a fragile two-pass scheme, so the key is
+%% carried by TeX's mark mechanism instead: \NotationContext writes a mark,
+%% and the output routine reads \rightmark, which is the mark in force at the
+%% top of the page being shipped. That is page-synchronised by construction,
+%% unlike a plain macro assignment.
+%%
+%% To add a context: \DeclareNotationKey{<id>}{<body>} in the preamble, then
+%% \NotationContext{<id>} at the point in the text where it takes effect.
+%% To switch the whole feature off: \notationkeyfalse.
+%%
+%% Keep each body to at most four lines at \scriptsize across \textwidth, or
+%% the footer will outgrow the bottom margin set in \geometry above.
+%% ---------------------------------------------------------------------------
+
+\newif\ifnotationkey
+\notationkeytrue
+
+\newcommand{\DeclareNotationKey}[2]{%
+  \expandafter\gdef\csname nmkey#1\endcsname{#2}}
+
+\newcommand{\NotationContext}[1]{\markboth{#1}{#1}}
+
+\newcommand{\nmkeyCurrent}{%
+  \edef\nmkeyId{\rightmark}%
+  \ifcsname nmkey\nmkeyId\endcsname
+    \csname nmkey\nmkeyId\endcsname
+  \fi}
+
+\newcommand{\nmkeyFooter}{%
+  \parbox[t]{\textwidth}{%
+    \setlength{\parindent}{0pt}%
+    \ifnotationkey
+      \rule{\textwidth}{0.4pt}\par
+      \vspace{1.5pt}%
+      {\scriptsize\raggedright\textsc{Key}\quad\nmkeyCurrent\par}%
+      \vspace{4pt}%
+    \fi
+    {\centering\thepage\par}}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{\nmkeyFooter}
+% Sectioning commands must not overwrite the notation marks.
+\renewcommand{\sectionmark}[1]{}
+\renewcommand{\subsectionmark}[1]{}
+
+\DeclareNotationKey{status}{%
+  \textbf{Established} follows from the baseline calculation reproduced here.
+  \textbf{Conditional} is correct given a named assumption not proved here.
+  \textbf{Proposed research} is a hypothesis with no proof claimed.
+  Checks V1--V12 come from \texttt{sims/verify\_theory.m}: evidence, never proof.
+  Full symbol table in the Nomenclature above.}
+
+\DeclareNotationKey{core}{%
+  $n$ robots, $i\in\V=\{1,\dots,n\}$; $p_i$ position; $R$ ring radius;
+  $\theta_i,\phi_i$ slot angle and direction; $z_i=p_i-R\phi_i$ shifted coordinate;
+  $p^*$ centroid; $p_s$ source; $f(p)=\kappa\norm{p-p_s}^2$, curvature $\kappa>0$;
+  $\sigma_i$ measurement; $\eta_i$ noise, $|\eta_i|\leq\delta$; $D_{\max}$ sensing radius,
+  $f_{D_{\max}}$ saturated reading; $\alpha,\beta$ formation and localization gains;
+  $\mathcal G=(\V,\E)$ graph, $\N_i$ neighbours.}
+
+\DeclareNotationKey{graph}{%
+  $\bar z$ mean shifted coordinate; $q_i=z_i-\bar z$ disagreement;
+  $V_f=\tfrac12\sum_i\norm{q_i}^2$ formation Lyapunov function;
+  $S(z)$ edge disagreement in the $1$-norm; $Q(z)=\sum_i\norm{q_i}$;
+  $\gamma=\alpha-2\beta nf_{D_{\max}}/R$ effective formation gain; $T_f$ settling time;
+  $\Delta t$ the Euler step, whose product $\alpha\Delta t$ sets the numerical error floor of Check~V3.}
+
+\DeclareNotationKey{loc}{%
+  $e=p^*-p_s$ localization error; $d_\eta$ noise-induced centroid disturbance with
+  $\norm{d_\eta}\leq2\beta\delta/R$; $\lambda=2\beta\kappa$ contraction rate;
+  $\varepsilon_{\mathrm{all}}=\delta/(\kappa R)$ all-informed ultimate radius;
+  $H$ an arbitrary symmetric $2\times2$ matrix; $I_2$ the identity.
+  Baseline symbols $n,R,\phi_i,z_i,\kappa,\delta,\alpha,\beta$ keep their meanings.}
+
+\DeclareNotationKey{informed}{%
+  $\mathcal X(t)$ informed set and $\mathcal Y(t)=\V\setminus\mathcal X(t)$ its complement;
+  $\underline n_{\mathcal X}$ guaranteed lower bound on the informed count;
+  $\varepsilon(\underline n_{\mathcal X})$ ultimate error radius under partial information;
+  $\lambda_{\mathcal X}$ the matching contraction rate, satisfying
+  $\lambda_{\mathcal X}\varepsilon(\underline n_{\mathcal X})=2\beta\delta/R$.
+  Both are imported from \cite{du2024} and are conditional on its saturation geometry.}
+
+\DeclareNotationKey{teams}{%
+  $N$ sources, $p_s^{(k)}$ the $k$th; $\V_k$ team $k$, size $n_k\geq3$;
+  $R_k,\alpha_k,\beta_k$ its radius and gains; $\phi_i^{(k)},z_i^{(k)},p_k^*$ its slots,
+  shifted coordinates, centroid; $\mathcal B_k$ Voronoi basin; $d_k$ seam clearance;
+  $q_k(t)$ formation deviation; $m_k(t)$ Voronoi margin; $\chi_k$ informed fraction;
+  $\varepsilon_k$ error radius; $a_{ik},c_{ik},\rho_k$ allocation variable, cost, penalty;
+  $t_s$ split time.}
+
+\DeclareNotationKey{related}{%
+  Imported symbols, renamed where they would collide.
+  MESA: $N_{\mathrm{ag}}$ agent count, $\hat r_\alpha$ extremum estimate, $\bar r_f$ formation
+  offset, $p_{\psi_\alpha}$ source density, $\hat g_i$ least-squares gradient.
+  Ours: $\varrho_k$ per-team density, $\bar\varrho$ its mean.
+  DIAS: $\mathrm{LCB}$ with posterior mean $\mu$, variance $s^2$, width $\beta_{\mathrm{c}}$,
+  threshold $\tau$; renamed because $\sigma_i$ and $\beta$ are taken.}
+
+\DeclareNotationKey{moving}{%
+  $p_s(t)$ moving source with velocity $\dot p_s$, $\norm{\dot p_s}\leq v_{\max}$;
+  $v$ the constant velocity of the diagnostic corollary;
+  $e(t)=p^*(t)-p_s(t)$ tracking error; $\lambda=2\beta\kappa$.
+  The ultimate bound splits into a sensing term $\delta/(\kappa R)$ and a motion term
+  $v_{\max}/(2\beta\kappa)$; the noiseless steady lag is $e(\infty)=-v/(2\beta\kappa)$.}
+
+\DeclareNotationKey{field}{%
+  $\Omega$ compact search domain; $f\in C^3(\Omega)$ nonconvex field;
+  $A_j,c_j,s_j$ amplitude, centre and width of mixture component $j\in\{1,\dots,M\}$;
+  $p^\star$ and $f^\star$ the true global maximizer and its value;
+  $u_i^{\mathrm{asc}}$ ascent controller; $g_R(p)$ circular gradient estimator with bias $r_R(p)$;
+  $L_H$ Hessian Lipschitz constant; $\ell$ a strict local maximum.}
+
+\DeclareNotationKey{multistart}{%
+  $K$ teams launched from seeds $x_1,\dots,x_K$; $\ell_1,\dots,\ell_J$ the isolated local maxima
+  with $\ell_1=p^\star$ unique global; $\hat\ell_k,\hat F_k$ the centroid and score team $k$ reports;
+  $\epsilon_{\mathrm{loc}}$ terminal localization error; $\delta_F$ score error;
+  $L_f$ Lipschitz constant of $f$; $\Delta=f(\ell_1)-\max_{j\geq2}f(\ell_j)$ the peak gap.
+  Dither uses amplitude $a$, frequency $\omega$ and direction $d$.}
+
+\DeclareNotationKey{valid}{%
+  Checks V1--V12 come from \texttt{sims/verify\_theory.m}; gap runs come from \texttt{sims/research.m}.
+  $\Delta t$ is the Euler step and $\alpha\Delta t$ sets the formation-error floor of Check~V3.
+  Recorded per run: $V_f$, $S(z)$, $n_{\mathcal X}(t)$ and $e(t)$; additionally
+  $d_k$, $q_k(t)$, $m_k(t)$, $e_k(t)$ for Gap 1, and $v_{\max}$ for Gap 2.}
+
+\title{A Reproducible Mathematical Framework for\\
+Multi-Source Assignment, Moving Sources, and Global Extremum Seeking\\
+with Sign Gradient-Free Swarm Localization}
 \author{SSL\_n\_F\_DSGFA Research Notes}
 \date{\today}
 
@@ -39,214 +203,1040 @@ for Sign Gradient-Free Swarm Localization}
 \maketitle
 
 \begin{abstract}
-We extend the simultaneous source localization and circular formation framework of Du et al.\ (2024) along three directions: (i)~partitioning $n$ robots into $N$ teams for $N$ distinct source minima, (ii)~tracking a non-stationary source $p_s(t)$, and (iii)~escaping local extrema to reach the global maximum of a non-convex scalar field. Each section states the baseline model, identifies which proof pillars fail, proposes a mathematical formulation, and sketches a target theorem. Simulation validation is implemented in \texttt{sims/research.m}.
+This note turns three research gaps around the sign gradient-free formation and source-localization controller of Du et al.\ \cite{du2024} into a pen-and-paper and simulation workflow. It first rederives the parts of the baseline result needed by every extension: shifted-coordinate formation, circular sampling identities, and the exact all-informed centroid equation for a quadratic field. It then develops (i) a conditional $N$-source decomposition theorem with an explicit basin-containment certificate, (ii) a moving-source input-to-state tracking bound, and (iii) a rigorous negative result showing why one local ascent swarm cannot guarantee a global maximum in a multimodal field. Every claim is labelled by status: established from the baseline calculation, conditional on named assumptions, or proposed for future proof. The final sections give parameter calculations, falsifiable acceptance criteria, and a direct mapping to \texttt{sims/research.m}.
 \end{abstract}
 
-\section{Introduction}
+\tableofcontents
 
-\subsection{Baseline model (Du et al., 2024)}
+\newpage
+\section*{Nomenclature}\label{sec:nomenclature}
+\addcontentsline{toc}{section}{Nomenclature}
 
-Consider $n$ single-integrator robots
-\begin{equation}
-    \dot p_i = u_i, \qquad p_i \in \R^2,\ i \in \V = \{1,\ldots,n\},
-\end{equation}
-with fixed circular slots $\theta_i = 2\pi i/n$, $\phi(\theta_i) = [\cos\theta_i,\sin\theta_i]^T$, and shifted coordinates $z_i = p_i - R\phi(\theta_i)$. The control law is
-\begin{equation}\label{eq:du4}
-    u_i = \alpha \sum_{j \in \mathcal{N}_i} \sgn(z_j - z_i) - \frac{2\beta}{R}\,\sigma(p_i)\,\phi(\theta_i),
-\end{equation}
-where $\sigma$ is a saturated noisy measurement of the scalar field
-\begin{equation}
-    f(z) = \kappa \|z - p_s\|^2
-\end{equation}
-for a \emph{static} source $p_s \in \R^2$. Let $p^*(t) = \frac{1}{n}\sum_i p_i(t)$ denote the formation centroid.
+This is the complete symbol table. A shorter key for the symbols in play appears at the foot of every page, so a reader who opens the document in the middle does not have to come back here.
 
-Du et al.\ prove, under undirected connectivity, bounded noise, and a gain-ratio condition, that all robots achieve circular formation and
-\begin{equation}
-    \limsup_{t \to \infty} \|p^*(t) - p_s\| \le \varepsilon,
-\end{equation}
-with $\varepsilon$ given explicitly in their Theorem~1.
+\begin{longtable}{@{}p{0.17\linewidth}p{0.79\linewidth}@{}}
+\hline
+\textbf{Symbol} & \textbf{Meaning} \\
+\hline
+\endfirsthead
+\hline
+\textbf{Symbol} & \textbf{Meaning (continued)} \\
+\hline
+\endhead
+\hline
+\endfoot
 
-\subsection{Three open gaps}
+\multicolumn{2}{@{}l}{\textbf{Baseline model and controller} (\cref{sec:baseline})}\\
+$n$ & Number of robots, $n\geq3$ \\
+$\V,\E,\mathcal G$ & Robot index set, edge set, undirected connected communication graph \\
+$\N_i$ & Neighbour set of robot $i$ \\
+$p_i,u_i$ & Position and control input of robot $i$, both in $\R^2$ \\
+$p^*$ & Team centroid, $p^*=\frac1n\sum_ip_i$ \\
+$p_s$ & Source position \\
+$f$ & Scalar field; baseline $f(p)=\kappa\norm{p-p_s}^2$ \\
+$\kappa$ & Field curvature coefficient, $\kappa>0$ \\
+$R$ & Formation ring radius \\
+$\theta_i,\phi_i$ & Slot angle $2\pi(i-1)/n$ and unit slot direction \\
+$z_i$ & Shifted coordinate, $z_i=p_i-R\phi_i$ \\
+$\bar z$ & Mean shifted coordinate; equals $p^*$ \\
+$\sigma_i$ & Scalar measurement taken by robot $i$ \\
+$\eta_i,\delta$ & Measurement noise and its hard bound, $|\eta_i|\leq\delta$ \\
+$D_{\max}$ & Sensing radius, $D_{\max}\geq R$ \\
+$f_{D_{\max}}$ & Saturated reading returned outside the sensing radius \\
+$\alpha,\beta$ & Formation gain and localization gain \\
+$\sgn$ & Componentwise sign map with $\sgn(0)=0$; not $x/\norm x$ \\
 
+\multicolumn{2}{@{}l}{\textbf{Formation analysis} (\cref{sec:formation-proof})}\\
+$q_i$ & Shifted-coordinate disagreement, $q_i=z_i-\bar z$ \\
+$V_f$ & Formation Lyapunov function, $\frac12\sum_i\norm{q_i}^2$ \\
+$S(z)$ & Edge disagreement measure, $\sum_{\{i,j\}\in\E}\norm{z_i-z_j}_1$ \\
+$Q(z)$ & Aggregate disagreement norm, $\sum_i\norm{q_i}$ \\
+$\gamma$ & Effective formation gain, $\alpha-2\beta nf_{D_{\max}}/R$ \\
+$T_f$ & Formation settling time \\
+$\Delta t$ & Euler integration step; $\alpha\Delta t$ sets the numerical error floor (Check~V1 to V3) \\
+
+\multicolumn{2}{@{}l}{\textbf{Localization and partial information} (\cref{sec:localization-proof})}\\
+$e$ & Localization error, $e=p^*-p_s$ \\
+$d_\eta$ & Noise-induced centroid disturbance, $\norm{d_\eta}\leq2\beta\delta/R$ \\
+$\lambda$ & All-informed contraction rate, $\lambda=2\beta\kappa$ \\
+$\varepsilon_{\mathrm{all}}$ & All-informed ultimate error radius, $\delta/(\kappa R)$ \\
+$g_R$ & Circular gradient estimator, $\frac{2}{nR}\sum_if(p+R\phi_i)\phi_i$ \\
+$\mathcal X(t),\mathcal Y(t)$ & Informed and blind robot sets at time $t$ \\
+$\underline n_{\mathcal X}$ & Guaranteed lower bound on the informed count \\
+$\varepsilon(\underline n_{\mathcal X})$ & Ultimate error radius under partial information \\
+$\lambda_{\mathcal X}$ & Contraction rate under partial information \\
+$H,I_2$ & Arbitrary symmetric $2\times2$ matrix; the $2\times2$ identity \\
+
+\multicolumn{2}{@{}l}{\textbf{Gap 1: multiple sources and teams} (\cref{sec:gap1})}\\
+$N$ & Number of sources \\
+$p_s^{(k)},f_k$ & Position of source $k$ and its local quadratic bowl \\
+$\mathcal B_k$ & Closed Voronoi basin of source $k$ \\
+$\V_k,n_k$ & Robot team assigned to source $k$ and its size, $n_k\geq3$ \\
+$R_k,\alpha_k,\beta_k$ & Ring radius and gains of team $k$ \\
+$\phi_i^{(k)},z_i^{(k)}$ & Local slot direction and shifted coordinate within team $k$ \\
+$p_k^*$ & Centroid of team $k$ \\
+$t_s$ & Split time at which the unified group divides into teams \\
+$d_k$ & Source-to-seam clearance, $\frac12\min_{j\neq k}\norm{p_s^{(k)}-p_s^{(j)}}$ \\
+$q_k(t)$ & Worst-case formation deviation within team $k$ \\
+$m_k(t)$ & Sampled Voronoi margin; positive means no seam crossing \\
+$\chi_k$ & Informed fraction of team $k$, so $n_{\mathcal X,k}=\chi_kn_k$ \\
+$\varepsilon_k$ & Ultimate error radius of team $k$ \\
+$a_{ik},c_{ik},\rho_k$ & Assignment variable, assignment cost, robustness or priority penalty \\
+$\varrho_k,\bar\varrho$ & Per-team source density and its cross-team mean \\
+
+\multicolumn{2}{@{}l}{\textbf{Imported symbols from prior work} (\cref{sec:gap1-related})}\\
+$N_{\mathrm{ag}}$ & Total agent count in MESA \cite{turgeman2018} \\
+$\hat r_\alpha,\bar r_f$ & MESA extremum estimate and formation offset \\
+$p_{\psi_\alpha},\hat g_i$ & MESA source density and its least-squares gradient estimate \\
+$\mathrm{LCB},\tau$ & DIAS lower-confidence-bound criterion and detection threshold \cite{chen2025dias} \\
+$\mu,s^2,\beta_{\mathrm{c}}$ & Gaussian process posterior mean, posterior variance, confidence width. Renamed from the source papers because $\sigma_i$ and $\beta$ are already in use \\
+
+\multicolumn{2}{@{}l}{\textbf{Gap 2: moving source} (\cref{sec:gap2})}\\
+$p_s(t),\dot p_s$ & Source trajectory and its velocity \\
+$v_{\max}$ & Bound on source speed \\
+$v$ & Constant source velocity in the diagnostic corollary \\
+$e(t)$ & Tracking error, $p^*(t)-p_s(t)$ \\
+$e(\infty)$ & Noiseless steady lag, $-v/(2\beta\kappa)$ \\
+
+\multicolumn{2}{@{}l}{\textbf{Gap 3: global maximum} (\cref{sec:gap3})}\\
+$\Omega$ & Compact search domain \\
+$M,A_j,c_j,s_j$ & Gaussian mixture component count, amplitude, centre and width \\
+$p^\star,f^\star$ & True global maximizer over $\Omega$ and its value \\
+$u_i^{\mathrm{asc}}$ & Ascent controller, sample term sign flipped \\
+$r_R(p),L_H$ & Circular estimator bias and the Hessian Lipschitz constant \\
+$\ell,\ell_j$ & A strict local maximum; the enumerated local maxima, $\ell_1=p^\star$ \\
+$K,x_k$ & Number of multi-start teams and their seed positions \\
+$\hat\ell_k,\hat F_k$ & Centroid and score reported by team $k$ \\
+$\epsilon_{\mathrm{loc}},\delta_F$ & Terminal localization error and score error \\
+$L_f,\Delta$ & Lipschitz constant of $f$ and the peak gap $f(\ell_1)-\max_{j\geq2}f(\ell_j)$ \\
+$a,\omega,d$ & Dither amplitude, frequency and direction \\
+\end{longtable}
+
+\section{How to read and use this note}
+\NotationContext{status}
+
+The document has two purposes.
 \begin{enumerate}
-    \item \textbf{Multi-source assignment:} $N$ sources $\{p_s^{(k)}\}_{k=1}^N$, each a local minimum; robots partition into teams minimizing centroid--source distance.
-    \item \textbf{Moving source:} $p_s = p_s(t)$ with bounded velocity; quantify tracking error.
-    \item \textbf{Global maximum:} non-convex $f$ with multiple extrema; avoid traps and reach $\arg\max f$.
+    \item It is a mathematical notebook. A reader should be able to reproduce every displayed inequality using a pencil, the stated assumptions, and the identities in \cref{sec:baseline}.
+    \item It is a validation contract. A numerical experiment can support a conditional theorem only when it reports the variables that appear in that theorem. Numerical agreement never proves a statement for all initial conditions, all bounded noise sequences, or all continuous-time trajectories.
 \end{enumerate}
 
-\section{Gap 1: $N$ Teams for $N$ Source Minima}
+The notation uses metres for position and formation radius, seconds for time, and the corresponding units for gains. The scalar field has arbitrary field units. The controller is continuous time; the MATLAB implementation is a fixed-step Euler approximation and must therefore be checked for step-size sensitivity.
 
-\subsection{Unified start and timed split}
+\paragraph{Status convention.}
+``Established'' means that the result is directly derived here or is a stated result of the cited baseline paper. ``Conditional'' means that the conclusion follows if the explicitly numbered assumptions hold. ``Proposed research'' denotes a controller, estimator, or theorem that is not yet proved for this particular sign-based closed loop.
 
-Robots start \emph{clustered} at a common launch point (not pre-partitioned in space). During the \textbf{unified phase} $t < t_{\mathrm{split}}$:
-\begin{itemize}
-    \item all $n$ robots share one ring communication graph and global slots $\theta_i = 2\pi i/n$;
-    \item measurements use a virtual source at the geometric mean $\bar p_s = \frac{1}{N}\sum_k p_s^{(k)}$ so the swarm forms one circle first;
-    \item formation term uses the full graph (no team isolation yet).
-\end{itemize}
-At $t = t_{\mathrm{split}}$, robots are assigned to teams by a \textbf{balanced minimum-distance rule}: each team receives exactly $n/N$ robots (equal split), minimizing total assignment cost. The controller then switches to per-team graphs, per-team slots, and per-team source measurements.
+\paragraph{Notation aids.}
+Two are provided. The Nomenclature above is the complete symbol table, grouped by the section that introduces each symbol. Below the text on every page is a short key covering the symbols in play there, so a reader who opens the document in the middle of a proof does not have to page back. The key is selected by the notation context in force at the top of the page, which means a page straddling a section boundary shows the key of the section it begins in. Where a later section reuses a baseline symbol unchanged, the key says so rather than repeating the definition.
 
-\subsection{Field and assignment}
+\section{Baseline controller and complete derivation}\label{sec:baseline}
+\NotationContext{core}
 
-Let $p_s^{(1)},\ldots,p_s^{(N)} \in \R^2$ be distinct source locations. A piecewise-smooth multi-basin field is
-\begin{equation}\label{eq:min-of-quad}
-    f(z) = \min_{k=1,\ldots,N} \kappa_k \|z - p_s^{(k)}\|^2.
+\subsection{Robot, graph, field, and sensing model}
+
+Let $n\geq 3$ point robots have single-integrator dynamics
+\begin{equation}\label{eq:single-integrator}
+    \dot p_i(t)=u_i(t),\qquad p_i,u_i\in\R^2,\qquad i\in\V\coloneqq\{1,\ldots,n\}.
 \end{equation}
-Within the Voronoi cell $\mathcal{V}_k = \{z : k = \arg\min_j \|z - p_s^{(j)}\|\}$, \eqref{eq:min-of-quad} reduces to a single quadratic well with minimum at $p_s^{(k)}$.
+Their communication graph is an undirected connected graph $\mathcal{G}=(\V,\E)$, with neighbor set $\N_i$. For every undirected edge $\{i,j\}\in\E$, the two endpoints use the same relative shifted state with opposite sign.
 
-After split, partition robots into teams $\V_1 \sqcup \cdots \sqcup \V_N$ with $|\V_k| = n_k = n/N$. The capacitated assignment at split time is
-\begin{equation}\label{eq:assignment}
-    \min_{\{\V_k\}} \sum_{k=1}^N \sum_{i \in \V_k} \|p_i(t_{\mathrm{split}}) - p_s^{(k)}\|^2,
-    \quad |\V_k| = n/N.
+The source is a fixed point $p_s\in\R^2$ and the baseline field is the strictly convex quadratic bowl
+\begin{equation}\label{eq:quadratic-field}
+    f(p)=\kappa\norm{p-p_s}^2,\qquad \kappa>0.
 \end{equation}
+The objective is \emph{minimum seeking}: the team centroid should approach $p_s$ while the robot positions form a circle of radius $R>0$ around that centroid.
 
-\subsection{Per-team extension of \eqref{eq:du4}}
-
-For $i \in \V_k$ after split, re-index local slots $\theta_i^{(k)} = 2\pi r/n_k$ and apply \eqref{eq:du4} with:
-\begin{itemize}
-    \item neighbors restricted to $\mathcal{N}_i \cap \V_k$ in the formation term;
-    \item measurement $\sigma_k(p_i)$ computed relative to $p_s^{(k)}$.
-\end{itemize}
-
-\subsection{Unicycle extension}
-
-For differential-drive robots, the control law is evaluated at shifted points $s_i = p_i + r[\cos\theta_i,\sin\theta_i]^T$ and inverted to $(v_i,\omega_i)$ via feedback linearization (Section~V of Du et al.). Gap~1 validation supports \texttt{robot\_model = unicycle} in \texttt{sims/research.m}.
-
-\subsection{Proof strategy}
-
-\draft{Decompose the global system into $N$ independent subsystems after $t_{\mathrm{split}}$. Each subsystem satisfies Du et al.\ Assumptions~1--2 on its induced subgraph if: (a)~$n_k > 2$, (b)~the gain ratio holds with $n_k$ and team-specific $f_{D_{\max}}^{(k)}$, and (c)~$p_k^*(t_{\mathrm{split}})$ lies in the basin of $p_s^{(k)}$.}
-
-\begin{proposition}[Informal decomposition after split]
-Under the conditions above, for each team $k$ and $t \ge t_{\mathrm{split}}$,
-\begin{equation}
-    \limsup_{t \to \infty} \|p_k^*(t) - p_s^{(k)}\| \le \varepsilon_k,
+\begin{assumption}[Bounded sensing and saturation]\label{ass:sensing}
+For a sensing radius $D_{\max}\geq R$, robot $i$ receives
+\begin{equation}\label{eq:measurement}
+\sigma_i=\sigma(p_i)=
+\begin{cases}
+f(p_i)+\eta_i, & \norm{p_i-p_s}<D_{\max},\\
+f_{D_{\max}}, & \norm{p_i-p_s}\geq D_{\max},
+\end{cases}
+\quad
+f_{D_{\max}}\coloneqq\kappa D_{\max}^2+\delta,
 \end{equation}
-where $\varepsilon_k$ is Theorem~1 applied with $n \leftarrow n_k$ and source $p_s^{(k)}$.
+where $|\eta_i|\leq\delta$. Let
+\begin{equation}\label{eq:informed-sets}
+    \mathcal{X}(t)=\{i:\norm{p_i(t)-p_s}<D_{\max}\},\qquad
+    \mathcal{Y}(t)=\V\setminus\mathcal{X}(t).
+\end{equation}
+At least one robot must remain informed in the part of the baseline theorem that handles saturation.
+\end{assumption}
+
+The hard bound in \cref{ass:sensing} is essential for a theorem. A Gaussian simulation noise model is useful for paper similarity, but it is not a bounded random variable and therefore does not literally satisfy $|\eta_i|\leq\delta$.
+
+\subsection{Circular slots, shifted coordinates, and the controller}
+
+Assign the equally spaced circular slots
+\begin{equation}\label{eq:slots}
+    \theta_i=\frac{2\pi(i-1)}{n},\qquad
+    \phi_i=\phi(\theta_i)=
+    \begin{bmatrix}\cos\theta_i\\\sin\theta_i\end{bmatrix},\qquad
+    z_i=p_i-R\phi_i.
+\end{equation}
+The componentwise sign map is
+\begin{equation}\label{eq:component-sign}
+    \sgn([x_1,x_2]^T)=[\sgn(x_1),\sgn(x_2)]^T,
+    \qquad \sgn(0)=0.
+\end{equation}
+It is not the normalized vector $x/\norm{x}$. The baseline controller is
+\begin{equation}\label{eq:controller}
+    u_i=\alpha\sum_{j\in\N_i}\sgn(z_j-z_i)
+       -\frac{2\beta}{R}\sigma_i\phi_i,
+    \qquad \alpha>0,\ \beta>0.
+\end{equation}
+The first term aligns the shifted coordinates. The second term turns scalar samples around a symmetric formation into a descent direction without directly measuring $\nabla f$.
+
+Because \eqref{eq:controller} is discontinuous, the continuous-time proof is understood in the Filippov sense. The calculations below hold almost everywhere along an absolutely continuous solution. A boundary-layer sign implementation is a different, continuous controller and should be evaluated as an approximation.
+
+\subsection{Circular identities needed in every proof}\label{sec:circle-identities}
+
+\begin{lemma}[Regular-polygon identities]\label{lem:circle-identities}
+For the slots in \eqref{eq:slots},
+\begin{align}
+    \sum_{i=1}^n\phi_i&=0,\label{eq:sum-phi-zero}\\
+    \sum_{i=1}^n\phi_i\phi_i^T&=\frac{n}{2}I_2.\label{eq:sum-outer-product}
+\end{align}
+If $n\geq4$, the third-order tensor also vanishes:
+\begin{equation}\label{eq:third-moment}
+    \sum_{i=1}^n (\phi_i^T H\phi_i)\phi_i=0
+    \qquad \text{for every symmetric }H\in\R^{2\times2}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $\phi_i=[\cos\theta_i,\sin\theta_i]^T$ and identify it with the $n$th roots of unity $e^{\mathrm{i}\theta_i}$. The sum of all roots is zero, which gives \eqref{eq:sum-phi-zero}. Expanding the entries of $\phi_i\phi_i^T$ and using
+\begin{equation*}
+    \cos^2\theta=\tfrac12(1+\cos2\theta),\quad
+    \sin^2\theta=\tfrac12(1-\cos2\theta),\quad
+    \sin\theta\cos\theta=\tfrac12\sin2\theta
+\end{equation*}
+gives \eqref{eq:sum-outer-product}, because the sums of $\sin2\theta_i$ and $\cos2\theta_i$ vanish. Equation \eqref{eq:third-moment} follows by expanding the cubic trigonometric monomials. It fails for a three-slot formation in general, which matters when a nonquadratic field is studied later.
+\end{proof}
+
+\verifyfig{v1_polygon_identities.png}{V1}{%
+Numerical evaluation of \cref{lem:circle-identities} for $n=3,\ldots,20$. The first two identities hold at machine precision for every $n$. The third-moment residual is at machine precision for $n\geq4$ but equals $0.453$ at $n=3$, confirming that the $n\geq4$ hypothesis is necessary and not merely convenient. This single fact is what forces $n_k\geq4$ in the nonquadratic analysis of \cref{sec:gradient-estimator}.}
+
+The shifted-coordinate mean is
+\begin{equation}\label{eq:zbar-centroid}
+    \bar z=\frac1n\sum_{i=1}^n z_i
+    =\frac1n\sum_{i=1}^n p_i-\frac{R}{n}\sum_{i=1}^n\phi_i
+    =p^*,
+    \qquad p^*\coloneqq\frac1n\sum_{i=1}^n p_i.
+\end{equation}
+Thus consensus of the $z_i$ is exactly the desired circular formation around $p^*$.
+
+\subsection{Stage I: formation proof with all intermediate bounds}\label{sec:formation-proof}
+\NotationContext{graph}
+
+Define the shifted-coordinate disagreement and its Lyapunov function
+\begin{equation}\label{eq:formation-energy}
+    q_i=z_i-\bar z,\qquad
+    V_f=\frac12\sum_{i=1}^n\norm{q_i}^2.
+\end{equation}
+Also define the nonnegative graph disagreement measure
+\begin{equation}\label{eq:edge-disagreement}
+    S(z)=\sum_{\{i,j\}\in\E}\norm{z_i-z_j}_1.
+\end{equation}
+For a connected graph, $S(z)=0$ if and only if $z_1=\cdots=z_n$.
+
+\begin{lemma}[Sign-term dissipation]\label{lem:sign-dissipation}
+For the formation term in \eqref{eq:controller},
+\begin{equation}\label{eq:sign-dissipation}
+    \sum_{i=1}^n q_i^T\sum_{j\in\N_i}\sgn(z_j-z_i)=-S(z).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Since $\sum_iq_i=0$, replacing $q_i$ by $z_i$ in the left side changes nothing. Group the directed terms by undirected edges. For each $\{i,j\}\in\E$,
+\begin{align*}
+    &z_i^T\sgn(z_j-z_i)+z_j^T\sgn(z_i-z_j)\\
+    &\qquad=(z_i-z_j)^T\sgn(z_j-z_i)
+    =-\norm{z_i-z_j}_1.
+\end{align*}
+Summing over all undirected edges proves \eqref{eq:sign-dissipation}.
+\end{proof}
+
+\begin{lemma}[A reproducible connectivity bound]\label{lem:connectivity-bound}
+For every connected undirected graph,
+\begin{equation}\label{eq:q-s-bound}
+    Q(z)\coloneqq\sum_{i=1}^n\norm{q_i}\leq nS(z),
+    \qquad
+    S(z)\geq\frac{\sqrt{2V_f}}{n}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For every $i$,
+\begin{equation*}
+    q_i=\frac1n\sum_{j=1}^n(z_i-z_j).
+\end{equation*}
+For each pair $(i,j)$, choose any path in the connected graph. The triangle inequality along that path gives $\norm{z_i-z_j}\leq S(z)$. Hence
+\begin{equation*}
+    Q(z)\leq\frac1n\sum_{i=1}^n\sum_{j=1}^n\norm{z_i-z_j}
+    \leq nS(z).
+\end{equation*}
+Moreover $Q(z)\geq(\sum_i\norm{q_i}^2)^{1/2}=\sqrt{2V_f}$. Combining the two inequalities gives the second part of \eqref{eq:q-s-bound}.
+\end{proof}
+
+\verifyfig{v2_connectivity_bound.png}{V2}{%
+Falsification attempt for \cref{lem:connectivity-bound} over $600$ random connected graphs with $n=3,\ldots,12$ and random shifted-coordinate configurations. Each marker is one trial, coloured by $n$. Both inequalities are respected in every trial. The visible distance from the diagonal shows how conservative the path-based argument is, which in turn explains the conservatism of the settling-time bound in \cref{prop:formation}.}
+
+\begin{proposition}[Finite-time formation certificate]\label{prop:formation}
+Assume \cref{ass:sensing} and the baseline gain condition
+\begin{equation}\label{eq:baseline-gain}
+    \frac{\alpha}{\beta}>\frac{4nf_{D_{\max}}}{R}.
+\end{equation}
+Then the simple certificate derived below gives finite-time convergence of $z_i$ to a common value. A conservative settling-time upper bound is
+\begin{equation}\label{eq:formation-time-bound}
+    T_f\leq \frac{\sqrt{2}\,n\sqrt{V_f(0)}}{\gamma},
+    \qquad
+    \gamma\coloneqq\alpha-\frac{2\beta n f_{D_{\max}}}{R}>0.
+\end{equation}
 \end{proposition}
 
-\begin{remark}
-The unified phase is outside the original theorem. Dynamic reassignment and inter-team collision avoidance are not covered.
-\end{remark}
+\begin{proof}
+Differentiate \eqref{eq:formation-energy} almost everywhere. Since the slot vectors are constant,
+\begin{align}
+    \dot V_f
+    &=\sum_iq_i^T\dot z_i\notag\\
+    &=\alpha\sum_iq_i^T\sum_{j\in\N_i}\sgn(z_j-z_i)
+      -\frac{2\beta}{R}\sum_iq_i^T\sigma_i\phi_i.\label{eq:vf-derivative-start}
+\end{align}
+By \cref{lem:sign-dissipation}, the first term is $-\alpha S(z)$. From \cref{ass:sensing}, $|\sigma_i|\leq f_{D_{\max}}$; because $\norm{\phi_i}=1$,
+\begin{equation*}
+    \left|\frac{2\beta}{R}\sum_iq_i^T\sigma_i\phi_i\right|
+    \leq\frac{2\beta f_{D_{\max}}}{R}Q(z)
+    \leq\frac{2\beta nf_{D_{\max}}}{R}S(z),
+\end{equation*}
+where \cref{lem:connectivity-bound} was used in the last step. Therefore
+\begin{equation}\label{eq:vf-dissipation}
+    \dot V_f\leq-\gamma S(z)
+    \leq-\frac{\sqrt{2}\gamma}{n}\sqrt{V_f}.
+\end{equation}
+The gain condition \eqref{eq:baseline-gain} implies $\gamma>\alpha/2>0$. Integrating $\dot V_f/\sqrt{V_f}\leq-\sqrt{2}\gamma/n$ until $V_f=0$ yields \eqref{eq:formation-time-bound}. The finite-time comparison step is a standard nonsmooth Lyapunov argument \cite{bhat2000}.
+\end{proof}
 
-\subsection{Validation configurations}
+\paragraph{What this proof does and does not show.}
+It explains why the formation gain must dominate the worst bounded localization input. It is deliberately conservative: the exact baseline paper uses a sharper graph argument, while \eqref{eq:baseline-gain} is retained as the implementation-side sufficient condition. The proof also explains the numerical requirement that the Euler step be small relative to $\alpha$: a large step creates discrete chatter around the discontinuous consensus surface.
 
+\verifyfig{v3_formation_finite_time.png}{V3}{%
+\cref{prop:formation} in a fixed-step implementation. Left: $\sqrt{V_f}$ stays under the predicted envelope and reaches its floor roughly two decades before the bound $T_f=0.211$\,s, which quantifies how conservative \eqref{eq:formation-time-bound} is. Centre and right: the continuous-time claim is convergence to exactly zero, but Euler integration cannot deliver that. The sign term chatters at a floor that the sweep shows to be $O(\Delta t)$, with fitted exponent $0.99$. This is the numerical caveat of the previous paragraph made quantitative: reported formation errors below roughly $\alpha\Delta t$ are discretization artefacts, not physics.}
+
+\subsection{Stage II: exact gradient recovery after formation}\label{sec:localization-proof}
+\NotationContext{loc}
+
+Once $V_f=0$, $z_i=p^*$ and hence
+\begin{equation}\label{eq:formed-positions}
+    p_i=p^*+R\phi_i.
+\end{equation}
+Summing \eqref{eq:controller} over all robots cancels the formation term edge by edge, giving the exact centroid identity
+\begin{equation}\label{eq:centroid-sum}
+    \dot p^*=-\frac{2\beta}{nR}\sum_{i=1}^n\sigma_i\phi_i.
+\end{equation}
+
+The all-informed case is the cleanest pen-and-paper benchmark. Let
+\begin{equation}\label{eq:centroid-error}
+    e=p^*-p_s.
+\end{equation}
+Using \eqref{eq:formed-positions} in \eqref{eq:quadratic-field},
+\begin{equation}\label{eq:quadratic-expansion}
+    f(p_i)=\kappa\bigl(\norm e^2+2R e^T\phi_i+R^2\bigr).
+\end{equation}
+Multiplying by $\phi_i$ and summing produces
+\begin{align}
+    \sum_{i=1}^nf(p_i)\phi_i
+    &=\kappa\norm e^2\sum_i\phi_i
+      +2\kappa R\sum_i\phi_i\phi_i^Te
+      +\kappa R^2\sum_i\phi_i\notag\\
+    &=\kappa nR e,\label{eq:exact-gradient-identity}
+\end{align}
+where \cref{lem:circle-identities} was used twice. Equation \eqref{eq:exact-gradient-identity} is not an approximation for the quadratic field.
+
+\verifyfig{v4_gradient_identity.png}{V4}{%
+Left: the residual $\norm{\sum f(p_i)\phi_i-\kappa nRe}$ for the quadratic field stays at machine precision across three decades of $\norm e$, confirming that \eqref{eq:exact-gradient-identity} is an identity rather than a small-$\norm e$ approximation. Right: the same estimator on a Gaussian field, where the residual is visible and grows with $\norm e$. The contrast is the reason \cref{sec:gradient-estimator} needs a separate bias analysis once the field is no longer quadratic.}
+
+\begin{theorem}[All-informed ultimate localization bound]\label{thm:all-informed}
+Assume the formation is exact, every robot is informed, and \cref{ass:sensing} holds. Then
+\begin{equation}\label{eq:all-informed-error-dynamics}
+    \dot e=-2\beta\kappa e+d_\eta(t),\qquad
+    d_\eta(t)=-\frac{2\beta}{nR}\sum_{i=1}^n\eta_i(t)\phi_i,
+\end{equation}
+with $\norm{d_\eta(t)}\leq2\beta\delta/R$. Consequently,
+\begin{equation}\label{eq:all-informed-transient-bound}
+    \norm{e(t)}\leq e^{-\lambda(t-T_f)}\norm{e(T_f)}
+      +\frac{\delta}{\kappa R}\bigl(1-e^{-\lambda(t-T_f)}\bigr),
+    \qquad \lambda=2\beta\kappa,
+\end{equation}
+and
+\begin{equation}\label{eq:all-informed-epsilon}
+    \limsup_{t\to\infty}\norm{p^*(t)-p_s}
+    \leq\varepsilon_{\mathrm{all}}
+    \coloneqq\frac{\delta}{\kappa R}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Set $\sigma_i=f(p_i)+\eta_i$ in \eqref{eq:centroid-sum}. Equation \eqref{eq:exact-gradient-identity} gives \eqref{eq:all-informed-error-dynamics}. The noise bound follows from the triangle inequality:
+\begin{equation*}
+    \norm{d_\eta}\leq\frac{2\beta}{nR}\sum_i|\eta_i|\norm{\phi_i}
+    \leq\frac{2\beta\delta}{R}.
+\end{equation*}
+For $r=\norm e>0$, the Lyapunov function $V_e=\tfrac12\norm e^2$ satisfies
+\begin{equation*}
+    \dot V_e\leq-\lambda r^2+\frac{2\beta\delta}{R}r,
+    \quad\text{so}\quad
+    \dot r\leq-\lambda r+\frac{2\beta\delta}{R}.
+\end{equation*}
+Solving this scalar comparison equation gives \eqref{eq:all-informed-transient-bound}; taking $t\to\infty$ gives \eqref{eq:all-informed-epsilon}.
+\end{proof}
+
+\verifyfig{v5_all_informed_bound.png}{V5}{%
+\cref{thm:all-informed} with $n=6$, $R=1$, $\kappa=1$, $\delta=0.05$, $\beta=0.05$, and bounded uniform noise, over four seeds. Left: every trajectory stays under the predicted transient envelope \eqref{eq:all-informed-transient-bound} and settles inside $\varepsilon_{\mathrm{all}}=\delta/(\kappa R)=0.05$. Right: tail detail. The worst tail error is $0.0148$, about a third of the bound, because independent bounded noise on six robots partially cancels in the circular sum. The bound is correct but not tight for zero-mean noise, so it should be read as a worst-case guarantee rather than a prediction of the observed error.}
+
+\subsection{How the original saturation bound fits the calculation}
+\NotationContext{informed}
+
+When some robots are blind, the saturated values cannot simply be inserted into \eqref{eq:exact-gradient-identity}. Du et al.\ bound their geometric contribution and obtain the following baseline ultimate bound, stated here with a lower informed-count guarantee $\underline n_{\mathcal X}$:
+\begin{equation}\label{eq:du-epsilon}
+    \varepsilon(\underline n_{\mathcal X})=
+    \frac{2\pi n\delta}
+    {\kappa R\left(2\pi\underline n_{\mathcal X}
+    -n\left|\sin\left(\frac{2\pi\underline n_{\mathcal X}}{n}\right)\right|\right)}.
+\end{equation}
+The denominator must be positive. Substitution of $\underline n_{\mathcal X}=n$ immediately recovers \eqref{eq:all-informed-epsilon}. This is the correct regression calculation for the bounded-noise MATLAB runs.
+
+For later use define the corresponding contraction coefficient
+\begin{equation}\label{eq:lambda-informed}
+    \lambda_{\mathcal X}
+    =\frac{\beta\kappa}{n\pi}
+    \left(2\pi\underline n_{\mathcal X}
+    -n\left|\sin\left(\frac{2\pi\underline n_{\mathcal X}}{n}\right)\right|\right).
+\end{equation}
+It satisfies $\lambda_{\mathcal X}\varepsilon(\underline n_{\mathcal X})=2\beta\delta/R$. The full saturation proof in \cite{du2024} supplies the geometry needed to obtain this coefficient. In the three extensions below, any claim that uses \eqref{eq:lambda-informed} is conditional on the same saturation geometry remaining valid.
+
+\verifyfig{v6_epsilon_lambda_consistency.png}{V6}{%
+Algebraic consistency of \eqref{eq:du-epsilon} and \eqref{eq:lambda-informed} for $n=12$. Left: the error radius diverges as the informed count falls and the denominator approaches zero, while the contraction rate collapses in the same limit. Right: their product is constant at $2\beta\delta/R$ to a relative error of $1.7\times10^{-16}$, and both expressions reduce exactly to the all-informed values at $\underline n_{\mathcal X}=n$. This is a self-consistency check on the imported saturation geometry, not independent evidence that the geometry itself is right.}
+
+\subsection{Baseline calculation checklist}\label{sec:baseline-checklist}
+
+Before studying a gap, calculate the following values on paper and store them in a run summary.
 \begin{center}
-\begin{tabular}{lccc}
+\begin{tabular}{p{0.27\linewidth}p{0.66\linewidth}}
 \hline
-Config & $n$ & $N$ & team sizes \\
+Quantity & Calculation and use \\
 \hline
-\texttt{n8\_N2}  & 8  & 2 & $4{+}4$ \\
-\texttt{n9\_N3}  & 9  & 3 & $3{+}3{+}3$ \\
-\texttt{n12\_N3} & 12 & 3 & $4{+}4{+}4$ \\
+$f_{D_{\max}}$ & $\kappa D_{\max}^2+\delta$. It bounds every scalar measurement in the formation proof. \\
+Gain ratio & Verify $\alpha/\beta>4nf_{D_{\max}}/R$ before claiming the baseline sufficient condition. \\
+Formation energy & Compute $V_f(0)=\frac12\sum_i\norm{z_i(0)-p^*(0)}^2$ and the conservative bound \eqref{eq:formation-time-bound}. \\
+All-informed radius & $\varepsilon_{\mathrm{all}}=\delta/(\kappa R)$. This is the simplest exact test. \\
+Partial-information radius & Use \eqref{eq:du-epsilon} with a verified lower bound on $n_{\mathcal X}(t)$. \\
+Discretization & Repeat each bounded-noise run with $\Delta t$ and $\Delta t/2$. Tail metrics should agree to a predeclared tolerance. \\
 \hline
 \end{tabular}
 \end{center}
 
-All configs: clustered start, $t_{\mathrm{split}} \in \{12, 15\}$~s, bounded noise. Metrics: per-team localization error $e_k(t) = \|p_k^*(t)-p_s^{(k)}\|$, team separation, and comparison to $\varepsilon_k$.
+\section{Gap 1: $N$ sources and $N$ robot teams}\label{sec:gap1}
+\NotationContext{teams}
 
-\section{Gap 2: Moving Source $p_s(t)$}
+\subsection{Precise problem statement}
 
-\subsection{Tracking error dynamics}
+Given $N\geq2$ distinct source minima $\{p_s^{(k)}\}_{k=1}^N$, partition $n$ robots into nonempty teams $\V_1,\ldots,\V_N$ such that each team forms a local circle and localizes its assigned source. The new difficulty is not the local controller by itself. It is showing that every robot assigned to source $k$ stays in the region where the physical field behaves like the $k$th quadratic bowl.
 
-Define $e(t) = p^*(t) - p_s(t)$. After formation time $T_c$, Du et al.\ approximate $\dot p^* \approx -\beta \nabla f(p^*) + d_f(t)$. For $f(z) = \kappa\|z - p_s(t)\|^2$,
-\begin{equation}
-    \nabla f(p^*) = 2\kappa\bigl(p^* - p_s(t)\bigr),
+\subsection{Field model and why a quadratic sum is invalid}
+
+The sum $\sum_k\kappa_k\norm{p-p_s^{(k)}}^2$ is strictly convex and has only one minimizer. It does not model $N$ local source minima. The first mathematically tractable physical model is the equal-curvature lower envelope
+\begin{equation}\label{eq:multisource-field}
+    f(p)=\min_{k\in\{1,\ldots,N\}}f_k(p),
+    \qquad f_k(p)=\kappa\norm{p-p_s^{(k)}}^2.
 \end{equation}
-so
-\begin{equation}\label{eq:tracking}
-    \dot e = -2\beta\kappa\, e - \dot p_s(t) + d_f(t).
+Its closed Voronoi basins are
+\begin{equation}\label{eq:voronoi-basins}
+    \mathcal{B}_k=\left\{p:\norm{p-p_s^{(k)}}\leq\norm{p-p_s^{(j)}}\ \forall j\right\}.
 \end{equation}
+The field is smooth inside $\operatorname{int}\mathcal{B}_k$ and nonsmooth on a basin seam. Unequal curvatures create multiplicatively weighted cells, for which the convexity and clearance argument below must be redone. They are therefore outside the first theorem.
 
-\subsection{ISS bound sketch}
+\subsection{Team model, allocation variables, and controller}
 
-\begin{assumption}
-$\|\dot p_s(t)\| \le v_{\max}$ and $\|d_f(t)\| \le \bar d_f$ for $t \ge T_c$.
-\end{assumption}
-
-\begin{proposition}[ISS tracking, draft]
-For \eqref{eq:tracking} with $\lambda = 2\beta\kappa > 0$,
-\begin{equation}
-    \limsup_{t \to \infty} \|e(t)\| \le \frac{v_{\max} + \bar d_f}{\lambda} + \varepsilon_{\mathrm{static}},
+Let $\V=\bigsqcup_{k=1}^N\V_k$, $n_k=|\V_k|$, $\sum_kn_k=n$, and $n_k\geq3$. Each induced graph $\mathcal{G}[\V_k]$ must be connected. Use local slots $\phi_{i}^{(k)}$ that form a regular $n_k$-gon and a local centroid
+\begin{equation}\label{eq:team-centroid}
+    p_k^*=\frac1{n_k}\sum_{i\in\V_k}p_i,\qquad
+    z_i^{(k)}=p_i-R_k\phi_i^{(k)}.
 \end{equation}
-where $\varepsilon_{\mathrm{static}}$ is the Du et al.\ bound for a fixed source.
+After a split time $t_s$, robot $i\in\V_k$ applies
+\begin{equation}\label{eq:team-controller}
+    u_i=\alpha_k\sum_{j\in\N_i\cap\V_k}\sgn\left(z_j^{(k)}-z_i^{(k)}\right)
+        -\frac{2\beta_k}{R_k}\sigma(p_i)\phi_i^{(k)}.
+\end{equation}
+There are no cross-team formation edges. Inside $\mathcal{B}_k$, $f(p_i)=f_k(p_i)$, so \eqref{eq:team-controller} becomes exactly the baseline controller for team $k$.
+
+\paragraph{Allocation problem.}
+If source hypotheses are known, choose binary variables $a_{ik}\in\{0,1\}$ by
+\begin{align}\label{eq:capacitated-assignment}
+    \min_{a_{ik},\,n_k}\quad &
+    \sum_{i=1}^n\sum_{k=1}^Na_{ik}c_{ik}+\sum_{k=1}^N\rho_k(n_k),\\
+    \text{subject to}\quad &\sum_{k=1}^Na_{ik}=1,\quad
+    \sum_{i=1}^na_{ik}=n_k,\quad n_k\geq3,\quad\sum_kn_k=n.\notag
+\end{align}
+Here $c_{ik}$ is squared travel distance, predicted travel time, or energy to team $k$, and $\rho_k$ is an explicit robustness or priority cost. Equal allocation $n_k=n/N$ is only one feasible policy. With known capacities and no connectivity constraint, \eqref{eq:capacitated-assignment} is a transportation problem. Requiring a connected induced graph and basin safety turns it into a constrained graph-partitioning problem. Voronoi allocation is relevant geometry, not a proof for this controller \cite{cortes2004}.
+
+\subsection{Why more robots do not improve the ideal asymptotic bound}\label{sec:gap1-scale}
+
+For team $k$, let $\chi_k\in(0,1]$ be the informed fraction, so that $n_{\mathcal{X},k}=\chi_kn_k$. The symbol $\chi$ is used here rather than $\rho$, which already denotes the allocation cost in \eqref{eq:capacitated-assignment}. Substitution into \eqref{eq:du-epsilon} gives
+\begin{equation}\label{eq:team-epsilon-scale}
+    \varepsilon_k=
+    \frac{2\pi\delta}
+    {\kappa R_k\left(2\pi\chi_k-\left|\sin(2\pi\chi_k)\right|\right)}.
+\end{equation}
+The raw count $n_k$ cancels. If every robot in the final ring is informed, then $\chi_k=1$ and
+\begin{equation}\label{eq:team-all-informed}
+    \varepsilon_{k,\mathrm{all}}=\frac{\delta}{\kappa R_k}.
+\end{equation}
+Thus extra robots do not improve the idealized asymptotic error radius. They may still be valuable for failure tolerance, search coverage, faster transients, or safety, but those advantages require separate models and metrics. If $n<3N$, a simultaneous circular formation for every source is impossible under this construction.
+
+\verifyfig{v7_team_size_cancellation.png}{V7}{%
+Left: $\varepsilon_k$ evaluated for $n_k=3,\ldots,31$ at four fixed informed fractions. The curves are horizontal to a relative spread of $5.6\times10^{-16}$, so the cancellation of $n_k$ in \eqref{eq:team-epsilon-scale} is exact rather than approximate. Right: the same quantity against $\chi_k$, showing that the informed fraction, not the head count, is the design variable. The practical consequence for the validation configurations is that \texttt{n12\_N3} cannot beat \texttt{n9\_N3} on asymptotic accuracy; any measured advantage must come from transients or robustness.}
+
+\subsection{Basin containment: the missing condition made explicit}\label{sec:gap1-basin}
+
+Define the source-to-seam clearance and the local formation deviation
+\begin{align}
+    d_k&\coloneqq\dist\left(p_s^{(k)},\partial\mathcal{B}_k\right)
+       =\frac12\min_{j\ne k}\norm{p_s^{(k)}-p_s^{(j)}},\label{eq:source-clearance}\\
+    q_k(t)&\coloneqq\max_{i\in\V_k}
+    \norm{p_i(t)-p_k^*(t)-R_k\phi_i^{(k)}}.\label{eq:team-formation-deviation}
+\end{align}
+The quantity $q_k$ is zero only after team-$k$ formation has converged. Centroid membership alone is not sufficient because a ring can cross a seam even when its centroid does not.
+
+\begin{lemma}[Direct basin-containment certificate]\label{lem:basin-certificate}
+Assume the equal-curvature field \eqref{eq:multisource-field}. If, for all $t\geq t_s$,
+\begin{equation}\label{eq:basin-certificate}
+    \norm{p_k^*(t)-p_s^{(k)}}+R_k+q_k(t)<d_k,
+\end{equation}
+then every position $p_i(t)$ for $i\in\V_k$ belongs to $\operatorname{int}\mathcal{B}_k$.
+\end{lemma}
+
+\begin{proof}
+For $i\in\V_k$, the triangle inequality and \eqref{eq:team-formation-deviation} give
+\begin{equation*}
+    \norm{p_i-p_s^{(k)}}
+    \leq\norm{p_i-p_k^*-R_k\phi_i^{(k)}}+R_k+\norm{p_k^*-p_s^{(k)}}
+    <d_k.
+\end{equation*}
+For every $j\ne k$, $\norm{p_s^{(j)}-p_s^{(k)}}\geq2d_k$. Hence
+\begin{equation*}
+    \norm{p_i-p_s^{(j)}}\geq
+    \norm{p_s^{(j)}-p_s^{(k)}}-\norm{p_i-p_s^{(k)}}
+    >d_k>\norm{p_i-p_s^{(k)}}.
+\end{equation*}
+Thus $p_i$ is strictly closer to $p_s^{(k)}$ than to every other source, so it is in $\operatorname{int}\mathcal{B}_k$.
+\end{proof}
+
+\begin{proposition}[Conditional multi-source reduction]\label{prop:multisource-reduction}
+Assume, for each $k$: (a) $n_k\geq3$ and $\mathcal{G}[\V_k]$ is connected, (b) the team gain condition
+\begin{equation}\label{eq:team-gain}
+    \frac{\alpha_k}{\beta_k}>\frac{4n_kf_{D_{\max},k}}{R_k}
+\end{equation}
+holds, (c) the bounded-sensing assumptions hold for team $k$, and (d) \eqref{eq:basin-certificate} holds. Then every team is an independent baseline subsystem and
+\begin{equation}\label{eq:team-ultimate-bound}
+    \limsup_{t\to\infty}\norm{p_k^*(t)-p_s^{(k)}}\leq\varepsilon_k.
+\end{equation}
 \end{proposition}
 
+\begin{proof}
+Condition (d) implies $f(p_i)=f_k(p_i)$ for each $i\in\V_k$ by \cref{lem:basin-certificate}. Condition (a) gives the graph and slot assumptions of the baseline proof, and cross-team formation terms are absent. Therefore all steps in \cref{sec:formation-proof,sec:localization-proof} apply separately after replacing $(n,R,\alpha,\beta,p_s)$ by $(n_k,R_k,\alpha_k,\beta_k,p_s^{(k)})$.
+\end{proof}
+
+\verifyfig{v8_basin_certificate.png}{V8}{%
+\cref{lem:basin-certificate} is sufficient, not necessary, so testing it requires two scenarios. Top row, sources at $x=\pm4$ so $d_k=4$: the certificate holds throughout and the direct Voronoi margin never falls below $4.90$. Bottom row, sources at $x=\pm1.35$ so $d_k=1.35$ and the ring radius $R=1$ alone nearly exhausts the clearance: the certificate fails, and containment is in fact lost early in the transient, with $\min_tm_k=-0.05$. The lemma is never violated in the direction it claims, and the tight case shows it is not vacuous. It also shows that seam crossing is a real failure mode rather than a theoretical worry, which is why \eqref{eq:basin-certificate} has to be reported per run.}
+
+\paragraph{Important limitation.}
+\cref{prop:multisource-reduction} is conditional, because the baseline controller does not itself prove \eqref{eq:basin-certificate} during arbitrary post-split formation transients. The existing MATLAB Gap 1 simulation uses a virtual source before the split and source-labelled measurements after the split. It is therefore an \emph{oracle deployment experiment}, not a decentralized unknown-source discovery algorithm.
+
+\subsection{Relation to prior multi-source seeking work}\label{sec:gap1-related}
+\NotationContext{related}
+
+Two works sit closest to this gap, and the way each falls short is what defines the contribution.
+
+MESA~\cite{turgeman2018} assembles groups of $\delta$ unicycle agents, one group per extremum of a multi-modal field, combining glowworm-swarm attraction~\cite{krishnanand2009}, formation control, and a linear temporal logic specification for task switching. Its sizing rule $N=\delta\cdot\tilde N_\psi$ coincides with our configuration structure, and its source-density measure
+\begin{equation}\label{eq:density}
+    p_{\psi_\alpha}=\frac{1}{N_{\mathrm{ag}}}\sum_{i\in\xi_\alpha}e^{-\norm{\hat r_\alpha-r_i}},
+    \qquad
+    \xi_\alpha=\left\{i:\norm{\hat r_\alpha-r_i}\leq\bar r_f\right\},
+\end{equation}
+in which $N_{\mathrm{ag}}$ is MESA's total agent count, $\hat r_\alpha$ its extremum location, and $\bar r_f$ its formation offset. This
+gives a fairness criterion across groups that complements our per-team error $e_k$. Translated into the notation of this note, and normalised per team rather than by the global robot count so that values stay comparable across configurations with different $n$,
+\begin{equation}\label{eq:density-ours}
+    \varrho_k=\frac{1}{n_k}\sum_{i\in\xi_k}e^{-\norm{p_i-p_s^{(k)}}},
+    \qquad
+    \xi_k=\left\{i\in\V_k:\norm{p_i-p_s^{(k)}}\leq R_k\right\},
+\end{equation}
+with $\varrho_k\in[0,1]$ and $\varrho_k\to e^{-R_k}$ for a team seated exactly on its ring. The cross-team fairness residual is then $\frac{1}{N}\sum_{k}(\varrho_k-\bar\varrho)^2$ with $\bar\varrho=\frac1N\sum_k\varrho_k$. Note that MESA normalises by the total agent count, which makes its density shrink as robots are added; \eqref{eq:density-ours} avoids that artefact. MESA also generates a virtual repulsive force when a group approaches an already occupied extremum, which is exactly the mechanism our fixed-assignment protocol currently avoids needing. However, MESA obtains its motion direction from an explicit least-squares gradient estimate $\hat g_i=(R_i^{\!\top}R_i)^{-1}R_i^{\!\top}b_i$, which requires $\lvert\N_i\rvert\geq2$ and full column rank of $R_i$, and it proves a density-error bound rather than a noise-dependent localization bound. Our setting is gradient-free with ternary $\{-1,0,1\}$ exchange and retains an explicit $\varepsilon_k$, so MESA is a baseline to compare against rather than a component to adopt.
+
+DIAS~\cite{chen2025dias} removes the assumption that source positions and source count are known. It partitions the workspace into Voronoi cells, fits a Gaussian process to the density function, and declares a candidate source where the lower confidence bound clears a threshold,
+\begin{equation}\label{eq:lcb}
+    \mathrm{LCB}(q)=\mu(q)-\beta_{\mathrm{c}}s^2(q)>\tau ,
+\end{equation}
+where $\mu$ and $s^2$ are the Gaussian process posterior mean and variance, $\beta_{\mathrm{c}}$ is a confidence width, and $\tau$ a detection threshold. The subscripted $\beta_{\mathrm{c}}$ and the symbol $s^2$ are used here because $\beta$ is already the localization gain in \eqref{eq:controller} and $\sigma_i$ is already a measurement in \eqref{eq:measurement}.
+A hybrid controller then alternates between ergodic active sensing for exploration and navigation to the candidate for exploitation, and a robot broadcasts each confirmed source so neighbours do not revisit it. Its reported baselines, in particular the distributed source seeking method of~\cite{du2021doss}, are the natural comparison set once our multi-team protocol is benchmarked for search efficiency rather than only for terminal accuracy. DIAS uses no formation control, treats robots individually, requires full scalar measurements plus Gaussian process inference, and derives no steady-state error bound. It therefore solves discovery, not team-based surround-and-localize.
+
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+Capability & Du et al.~\cite{du2024} & MESA~\cite{turgeman2018} & DIAS~\cite{chen2025dias} & This work \\
+\hline
+Circular formation around target & yes & yes & no & yes \\
+Multiple sources & no & yes & yes & yes \\
+Gradient-free, ternary messages & yes & no & no & yes \\
+Steady-state error bound & yes & density only & no & per-team $\varepsilon_k$ \\
+Unknown source count & no & partial & yes & future \\
+\hline
+\end{tabular}
+\end{center}
+
 \begin{remark}
-Du et al.\ list time-varying sources as future work. Pillars P6--P7 (blind-robot geometry and steady-state $\varepsilon$) require re-derivation when $\dot p_s \neq 0$.
+The unoccupied cell is sign gradient-free, ternary-communication, multi-team formation seeking with per-team steady-state bounds. Equations \eqref{eq:density-ours} and \eqref{eq:lcb} are the two concrete borrowings: \eqref{eq:density-ours} can be reported now as a cross-team fairness metric, and \eqref{eq:lcb} is the route that would eventually retire the oracle assumption noted after \cref{prop:multisource-reduction}. Neither is claimed as a theorem of this note.
 \end{remark}
 
-\section{Gap 3: Global Maximum on Non-Convex Fields}
+\subsection{Gap 1 numerical and pen-and-paper verification}\label{sec:gap1-validation}
+\NotationContext{teams}
 
-\subsection{Multi-peak field}
-
-Consider
-\begin{equation}\label{eq:gaussian-mix}
-    f(z) = \sum_{k=1}^M A_k \exp\!\left(-\frac{\|z - c_k\|^2}{2\sigma_f^2}\right),
-    \quad A_1 > A_2 \ge \cdots \ge A_M > 0.
-\end{equation}
-The global maximum is at $c_1$. For maximum seeking with Eq.~4, flip the sign of the localization term:
-\begin{equation}
-    u_i^{\mathrm{asc}} = \alpha \sum_{j \in \mathcal{N}_i} \sgn(z_j - z_i) + \frac{2\beta}{R}\,\sigma(p_i)\,\phi(\theta_i).
-\end{equation}
-
-\subsection{Trap mechanisms}
-
+For every configuration, use the following sequence.
 \begin{enumerate}
-    \item Basin of attraction: $p^*(0)$ near $c_j$, $j > 1$, converges to a suboptimal peak.
-    \item Flat regions: small $\|\nabla f\|$ slows centroid motion.
-    \item Saturation: outside $D_{\max}$ of all peaks, measurements carry no gradient information.
+    \item List $p_s^{(k)}$, calculate each $d_k$ from \eqref{eq:source-clearance}, choose $R_k$, and reject the configuration if $R_k\geq d_k$.
+    \item Check $n_k\geq3$, team-graph connectivity, and \eqref{eq:team-gain}.
+    \item Calculate $\varepsilon_k$ from \eqref{eq:team-epsilon-scale} or \eqref{eq:team-all-informed} only after recording the minimum informed count.
+    \item From the simulation, compute $q_k(t)$ and the left side of \eqref{eq:basin-certificate} at every saved time. Also compute the direct signed Voronoi margin
+    \begin{equation}\label{eq:direct-basin-margin}
+        m_k(t)=\min_{i\in\V_k}\min_{j\ne k}
+        \left(\norm{p_i(t)-p_s^{(j)}}-\norm{p_i(t)-p_s^{(k)}}\right).
+    \end{equation}
+    A positive $m_k$ verifies sampled containment, while \eqref{eq:basin-certificate} is the stronger analytical certificate.
+    \item Report $\max_tq_k(t)$, $\min_tm_k(t)$, final and tail localization errors, and the fraction of post-split samples satisfying \eqref{eq:basin-certificate}. A seam crossing is a falsification of the conditional hypothesis, not a successful theorem check.
 \end{enumerate}
 
-\subsection{Escape mechanisms (to validate)}
+\section{Gap 2: moving or non-stationary source}\label{sec:gap2}
+\NotationContext{moving}
 
-\draft{Periodic dither on $\beta$; multi-swarm assignment (Gap~1) with amplitude-based peak ranking; stagnation-triggered exploration gain.}
+\subsection{Time-varying model and feasibility assumptions}
+
+Replace the fixed source by an absolutely continuous trajectory $p_s(t)$ and use
+\begin{equation}\label{eq:moving-field}
+    f(p,t)=\kappa\norm{p-p_s(t)}^2.
+\end{equation}
+\begin{assumption}[Bounded source speed]\label{ass:source-speed}
+The source velocity exists almost everywhere and satisfies
+\begin{equation}\label{eq:source-speed}
+    \norm{\dot p_s(t)}\leq v_{\max}<\infty.
+\end{equation}
+The formation stays sufficiently close to the source that the required lower bound on informed robots remains valid.
+\end{assumption}
+
+The speed assumption is necessary for a fixed tracking radius. A source with constant nonzero acceleration has unbounded speed, violates \eqref{eq:source-speed}, and cannot be expected to have a bounded lag under this first-order centroid loop.
+
+\subsection{Why formation is unaffected by source velocity}
+
+The formation derivation in \cref{sec:formation-proof} used only the uniform measurement bound $|\sigma_i|\leq f_{D_{\max}}$, not $\dot p_s$. If the saturating measurement model preserves that bound, \cref{prop:formation} and its gain condition transfer unchanged to the moving-source case. This does \emph{not} mean that tracking is unaffected. It means only that relative shifted coordinates still have enough sign-consensus authority to reach and maintain their formation manifold.
+
+\subsection{Exact all-informed tracking derivation}\label{sec:moving-exact}
+
+After exact formation, the identity \eqref{eq:exact-gradient-identity} holds at every frozen time $t$, with $e(t)=p^*(t)-p_s(t)$. Define the tracking error
+\begin{equation}\label{eq:moving-error}
+    e(t)=p^*(t)-p_s(t).
+\end{equation}
+Differentiation and \eqref{eq:all-informed-error-dynamics} give
+\begin{equation}\label{eq:moving-error-dynamics}
+    \dot e=-\lambda e+d_\eta(t)-\dot p_s(t),
+    \qquad \lambda=2\beta\kappa.
+\end{equation}
+
+\begin{theorem}[Moving-source all-informed ISS bound]\label{thm:moving-iss}
+Under exact formation, all-informed sensing, \cref{ass:sensing}, and \cref{ass:source-speed},
+\begin{align}
+    \norm{e(t)}\leq{}&e^{-\lambda(t-T_f)}\norm{e(T_f)}\notag\\
+    &+\left(\frac{\delta}{\kappa R}+\frac{v_{\max}}{2\beta\kappa}\right)
+    \left(1-e^{-\lambda(t-T_f)}\right),\label{eq:moving-transient-bound}\\
+    \limsup_{t\to\infty}\norm{e(t)}\leq{}&
+    \underbrace{\frac{\delta}{\kappa R}}_{\text{sensing term}}
+    +\underbrace{\frac{v_{\max}}{2\beta\kappa}}_{\text{motion term}}.\label{eq:moving-ultimate-bound}
+\end{align}
+\end{theorem}
+
+\begin{proof}
+For $r=\norm e>0$, use \eqref{eq:moving-error-dynamics}, $\norm{d_\eta}\leq2\beta\delta/R$, and \eqref{eq:source-speed}:
+\begin{equation*}
+    \dot r\leq-\lambda r+\frac{2\beta\delta}{R}+v_{\max}.
+\end{equation*}
+The scalar comparison equation has the explicit solution shown in \eqref{eq:moving-transient-bound}. Its limiting value is \eqref{eq:moving-ultimate-bound}.
+\end{proof}
+
+\begin{corollary}[Constant-velocity, noiseless diagnostic]\label{cor:constant-velocity}
+If $\eta_i\equiv0$ and $p_s(t)=p_s(0)+vt$, then
+\begin{equation}\label{eq:constant-velocity-lag}
+    e(t)=e^{-\lambda(t-T_f)}e(T_f)-\frac{1-e^{-\lambda(t-T_f)}}{\lambda}v,
+    \qquad e(\infty)=-\frac{v}{2\beta\kappa}.
+\end{equation}
+\end{corollary}
+
+Equation \eqref{eq:constant-velocity-lag} is the strongest basic numerical test: in a deterministic run, both the lag magnitude and the lag direction are known before simulation.
+
+\verifyfig{v9_moving_source_lag.png}{V9}{%
+\cref{cor:constant-velocity} with $v=(0.08,0.04)$\,m/s and no measurement noise. Left and centre: both components of the lag converge to the predicted vector $-v/(2\beta\kappa)$, with a $2.3\%$ relative error on the vector, so the direction and not just the magnitude is confirmed. Right: sweeping the speed reproduces the predicted slope $1/(2\beta\kappa)$ to within $5\%$. The speeds are deliberately chosen so the predicted lag is well above the Euler chatter floor measured in Check~V3; at the smaller speeds first tried, the lag and the numerical floor were the same size and the test could not resolve the prediction.}
+
+\subsection{Partial-information extension and feedforward}\label{sec:moving-partial}
+
+\conditional{If the static saturation geometry in \cite{du2024} remains valid for a lower informed count $\underline n_{\mathcal X}$, then the scalar comparison becomes}
+\begin{equation}\label{eq:moving-partial-bound}
+    \limsup_{t\to\infty}\norm{e(t)}
+    \leq\varepsilon(\underline n_{\mathcal X})+
+    \frac{v_{\max}}{\lambda_{\mathcal X}},
+\end{equation}
+with \eqref{eq:du-epsilon} and \eqref{eq:lambda-informed}. The word conditional matters: source motion can change which robots are informed and hence invalidate the required lower count.
+
+If an estimate $\hat v(t)$ of source velocity is available, add the same common vector to every robot:
+\begin{equation}\label{eq:feedforward-controller}
+    u_i^{\mathrm{ff}}=u_i+\hat v(t).
+\end{equation}
+For any pair $i,j$, the added term cancels from $\dot z_i-\dot z_j$. Thus it does not change the formation disagreement dynamics. The centroid error becomes
+\begin{equation}\label{eq:feedforward-error}
+    \dot e=-\lambda e+d_\eta+\tilde v,
+    \qquad\tilde v=\hat v-\dot p_s.
+\end{equation}
+If $\norm{\tilde v}\leq\bar v$, replace $v_{\max}$ by $\bar v$ in \eqref{eq:moving-ultimate-bound}. Perfect feedforward recovers the static all-informed radius. Designing a distributed estimator that supplies this feedforward is a separate research problem; it is not supplied by the baseline controller. Time-varying gradient-free cooperative seeking is studied under different assumptions and control structures in \cite{michael2023}.
+
+\subsection{Gap 2 validation protocol}\label{sec:gap2-validation}
+
+\begin{enumerate}
+    \item Run a noiseless constant-velocity source first. Verify the vector lag in \eqref{eq:constant-velocity-lag}, not only its norm.
+    \item Add bounded noise and compare the tail maximum and tail mean against \eqref{eq:moving-ultimate-bound}. The theorem bounds a limsup, so a tail mean below the bound is supportive but weaker evidence.
+    \item Sweep $v_{\max}$, $\beta$, and $\kappa$ one at a time. The predicted offset is affine in $v_{\max}$ and inverse in $\beta\kappa$.
+    \item Log the informed count, formation error, and $\norm{p^*-p_s}+R$. The run cannot validate the all-informed theorem if robots become blind.
+    \item Repeat with half the step size and with at least several bounded-noise seeds. Report the maximum tail error, not only a representative plot.
+\end{enumerate}
+
+\section{Gap 3: avoiding local extrema and identifying the global maximum}\label{sec:gap3}
+\NotationContext{field}
+
+\subsection{Objective and field model}
+
+For maximum seeking, let $\Omega\subset\R^2$ be a compact search domain and let $f\in C^3(\Omega)$ be a nonconvex field. A useful test field is a Gaussian mixture
+\begin{equation}\label{eq:gaussian-mixture}
+    f(p)=\sum_{j=1}^M A_j\exp\left(-\frac{\norm{p-c_j}^2}{2s_j^2}\right),
+    \qquad A_j>0.
+\end{equation}
+The true reference is
+\begin{equation}\label{eq:true-global-max}
+    p^\star\in\argmax_{p\in\Omega} f(p),\qquad f^\star=f(p^\star).
+\end{equation}
+For a smooth mixture, $p^\star$ is generally \emph{not exactly} the center with the largest amplitude: the other Gaussian terms contribute nonzero gradients at that center. A validation code must therefore calculate or tightly approximate \eqref{eq:true-global-max}; using $\max_jA_j$ as the ``global maximum'' is only a separated-peaks approximation.
+
+To ascend rather than descend, flip the sign of the sample term:
+\begin{equation}\label{eq:ascent-controller}
+    u_i^{\mathrm{asc}}=
+    \alpha\sum_{j\in\N_i}\sgn(z_j-z_i)
+    +\frac{2\beta}{R}\sigma_i\phi_i.
+\end{equation}
+
+\subsection{Gradient estimator accuracy for a general smooth field}\label{sec:gradient-estimator}
+
+After exact formation, define the circular finite-difference estimator
+\begin{equation}\label{eq:gradient-estimator}
+    g_R(p)=\frac{2}{nR}\sum_{i=1}^nf(p+R\phi_i)\phi_i.
+\end{equation}
+For the quadratic field, \cref{eq:exact-gradient-identity} states $g_R(p)=\nabla f(p)$ exactly. For a general field it is an approximation.
+
+\begin{lemma}[Circular estimator bias]\label{lem:estimator-bias}
+Suppose $n\geq4$ and the Hessian is Lipschitz on the radius-$R$ neighborhood of $p$ with constant $L_H$:
+\begin{equation*}
+    \norm{\nabla^2f(x)-\nabla^2f(y)}\leq L_H\norm{x-y}.
+\end{equation*}
+Then
+\begin{equation}\label{eq:estimator-bias}
+    g_R(p)=\nabla f(p)+r_R(p),
+    \qquad \norm{r_R(p)}\leq\frac{L_HR^2}{3}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Use third-order Taylor expansion with integral remainder at each $p+R\phi_i$:
+\begin{equation*}
+    f(p+R\phi_i)=f(p)+R\nabla f(p)^T\phi_i+
+    \frac{R^2}{2}\phi_i^T\nabla^2f(p)\phi_i+\rho_i,
+    \quad |\rho_i|\leq\frac{L_HR^3}{6}.
+\end{equation*}
+The constant term vanishes by \eqref{eq:sum-phi-zero}; the linear term becomes $\nabla f(p)$ by \eqref{eq:sum-outer-product}; and the quadratic term vanishes by \eqref{eq:third-moment}. Finally,
+\begin{equation*}
+    \norm{\frac{2}{nR}\sum_i\rho_i\phi_i}
+    \leq\frac{2}{nR}\sum_i\frac{L_HR^3}{6}
+    =\frac{L_HR^2}{3}.
+\end{equation*}
+\end{proof}
+
+\verifyfig{v10_estimator_bias.png}{V10}{%
+\cref{lem:estimator-bias} on a three-component Gaussian mixture, sampling the ring radius over two decades. Left: the $n=3$ curve sits an order of magnitude above the rest and has a different slope, while $n=4,6,8$ collapse onto a single line. Right: fitted log-log slopes are $1.10$ for $n=3$ and $1.99$ for every $n\geq4$, against the predicted $1$ and $2$. This is the cleanest available confirmation that the third-moment identity, and not merely a constant factor, is what the $n\geq4$ hypothesis buys.}
+
+This is why a nonquadratic global-search extension should use at least four robots per local ring, or else explicitly retain the second-order estimator bias.
+
+\subsection{Negative result: a single local ascent swarm cannot guarantee a global maximum}\label{sec:negative-global}
+
+In the ideal noiseless, exact-formation, exact-gradient limit, \eqref{eq:ascent-controller} gives
+\begin{equation}\label{eq:ideal-ascent}
+    \dot p^*=\beta\nabla f(p^*).
+\end{equation}
+Therefore
+\begin{equation}\label{eq:ascent-monotonicity}
+    \frac{d}{dt}f(p^*(t))=\beta\norm{\nabla f(p^*(t))}^2\geq0.
+\end{equation}
+
+\begin{proposition}[No global guarantee for local ascent]\label{prop:no-global-guarantee}
+Suppose $f$ has a strict suboptimal local maximum $\ell$ with $f(\ell)<f^\star$ and $\nabla^2f(\ell)\prec0$. Then the ideal ascent dynamics \eqref{eq:ideal-ascent} have a nonempty local basin of attraction for $\ell$. In particular, no controller that reduces to \eqref{eq:ideal-ascent} without an exploration or restart mechanism can guarantee convergence to $p^\star$ from every initial condition.
+\end{proposition}
+
+\begin{proof}
+The equilibrium condition is $\nabla f(\ell)=0$. Linearization of \eqref{eq:ideal-ascent} about $\ell$ is $\dot\xi=\beta\nabla^2f(\ell)\xi$. Since the Hessian is negative definite, all eigenvalues are negative, so $\ell$ is locally exponentially stable. Initial conditions in its local basin converge to $\ell$, not to $p^\star$.
+\end{proof}
+
+\verifyfig{v11_local_trapping.png}{V11}{%
+\cref{prop:no-global-guarantee} made concrete. Left: a three-peak Gaussian mixture with a unique global maximum. Right: the basin of attraction of each peak under the ideal ascent flow \eqref{eq:ideal-ascent}, computed from $48\,400$ initial centroids. The suboptimal basins are not merely nonempty, they cover $60\%$ of the sampled domain. Any claim of global convergence for a single local-ascent swarm is therefore falsified for this field, and the multi-start construction of \cref{sec:multi-start} is not an optional refinement.}
+
+This is a mathematical explanation for the current Gap 3 simulation: starting near a suboptimal peak should demonstrate trapping, not global convergence. The extremum-seeking literature likewise separates local practical convergence from mechanisms needed for global exploration \cite{khong2014,krsticwang2000}.
+
+\subsection{A provable global-identification route: multi-start teams}\label{sec:multi-start}
+\NotationContext{multistart}
+
+The most defensible first extension is not a claim that dither magically removes all local minima. It is a hybrid multi-start procedure.
+\begin{enumerate}
+    \item Deploy $K$ teams at predetermined seeds $x_1,\ldots,x_K$ that cover the search domain or are obtained by a documented exploration phase.
+    \item Each team uses \eqref{eq:ascent-controller} only for local ascent and returns a centroid $\hat\ell_k$ and score $\hat F_k$.
+    \item Select $\hat k\in\argmax_k\hat F_k$. Reassign the remaining robots to the winning team only after the selection margin is verified.
+\end{enumerate}
+
+\begin{assumption}[Finite-peak and score-separation model]\label{ass:peak-separation}
+The field has isolated local maxima $\ell_1,\ldots,\ell_J$, where $\ell_1=p^\star$ is uniquely global. Let
+\begin{equation}\label{eq:peak-gap}
+    \Delta=f(\ell_1)-\max_{j\geq2}f(\ell_j)>0.
+\end{equation}
+Every local maximum is reached by at least one seed, each local team returns $\norm{\hat\ell_k-\ell_{j(k)}}\leq\epsilon_{\mathrm{loc}}$, and the reported score obeys $|\hat F_k-f(\hat\ell_k)|\leq\delta_F$. Finally, $f$ is $L_f$-Lipschitz on the relevant terminal neighborhoods.
+\end{assumption}
+
+\begin{theorem}[Conditional global identification by multi-start]\label{thm:multistart}
+Under \cref{ass:peak-separation}, if
+\begin{equation}\label{eq:selection-condition}
+    2\left(L_f\epsilon_{\mathrm{loc}}+\delta_F\right)<\Delta,
+\end{equation}
+then the team with the largest reported score is assigned to the unique global maximum $\ell_1$.
+\end{theorem}
+
+\begin{proof}
+For the team that reaches $\ell_1$,
+\begin{equation*}
+    \hat F_1\geq f(\ell_1)-L_f\epsilon_{\mathrm{loc}}-\delta_F.
+\end{equation*}
+For every team reaching a suboptimal maximum,
+\begin{equation*}
+    \hat F_k\leq f(\ell_{j(k)})+L_f\epsilon_{\mathrm{loc}}+\delta_F
+    \leq f(\ell_1)-\Delta+L_f\epsilon_{\mathrm{loc}}+\delta_F.
+\end{equation*}
+Condition \eqref{eq:selection-condition} makes the lower bound for the global team strictly larger than the upper bound for every other team. Therefore the largest score is the global team.
+\end{proof}
+
+\verifyfig{v12_multistart_selection.png}{V12}{%
+\cref{thm:multistart} on the field of Check~V11, where the peak gap is $\Delta=0.21$. Left: true peak scores with the worst-case reporting error bars. Right: empirical selection accuracy over $4000$ trials per point as the score uncertainty grows. Accuracy is exactly $100\%$ at every sampled point satisfying \eqref{eq:selection-condition}, and degrades only to the right of the line. The theorem is not tight: accuracy is still $98\%$ at the widest uncertainty tested, well outside the guaranteed region, because worst-case errors rarely align adversarially. The condition is a guarantee, not a prediction of the failure threshold.}
+
+\paragraph{What this theorem guarantees.}
+It guarantees correct selection \emph{after} exploration has placed at least one team in every relevant basin. It does not prove that the seed set covers unknown attraction basins. Coverage construction, exploration cost, collision avoidance, and unknown peak number are separate research questions.
+
+\subsection{Dither as a research hypothesis, not a completed proof}
+
+One may add a common exploratory input
+\begin{equation}\label{eq:common-dither}
+    u_i^{\mathrm{dither}}=u_i^{\mathrm{asc}}+a\sin(\omega t)d,
+    \qquad \norm d=1.
+\end{equation}
+The added input cancels from every difference $\dot z_i-\dot z_j$, so it does not directly disturb the relative formation equation. It does force the centroid, however:
+\begin{equation}\label{eq:forced-ascent}
+    \dot p^*=\beta\nabla f(p^*)+a\sin(\omega t)d+d_R+d_\eta.
+\end{equation}
+Equation \eqref{eq:forced-ascent} alone does not imply barrier crossing or global convergence. A dither theorem for this controller would need an averaging argument, an explicit frequency and amplitude regime, a field-barrier condition, and a proof that the perturbed trajectory visits a better basin. Classical extremum-seeking stability uses averaging and singular perturbations under its own assumptions \cite{krsticwang2000}; those assumptions have not yet been verified for the discontinuous sign-formation dynamics. Therefore dither remains proposed research, not a theorem claimed by this repository.
+
+\subsection{Gap 3 validation protocol}\label{sec:gap3-validation}
+
+\begin{enumerate}
+    \item Define the compact domain $\Omega$. Find a high-accuracy numerical reference $p^\star$ using a dense grid followed by local optimization from every detected grid maximum. Record grid resolution, local solver tolerance, and the upper or lower certification available. Do not use only $\max_jA_j$ for \eqref{eq:gaussian-mixture}.
+    \item Verify the estimator model. For a selected set of centroids, compare $g_R(p)$ from \eqref{eq:gradient-estimator} with an analytical or finite-difference gradient. Sweep $R$ and check whether the error behaves as $O(R^2)$ when $n\geq4$.
+    \item Run no-noise local-ascent trials initialized near every detected local maximum. The expected result is local trapping, which validates \cref{prop:no-global-guarantee}.
+    \item For multi-start, record which seed reached which local peak, each terminal score, the empirically estimated gap $\Delta$, and the score uncertainty. Report whether \eqref{eq:selection-condition} passed before claiming correct global identification.
+    \item For any dither experiment, report $(a,\omega,d)$, the number of basin transitions, success rate over seeds, time to first better basin, and a no-dither ablation. Such results are empirical until a separate averaging proof is written.
+\end{enumerate}
+
+\section{End-to-end numerical validation plan}\label{sec:validation}
+\NotationContext{valid}
+
+\subsection{Graphical verification suite}\label{sec:verification-suite}
+
+Checks V1 to V12, referenced throughout the preceding sections, are produced by \texttt{sims/verify\_theory.m}. Each is a falsification attempt: it plots a measured quantity against the quantity the theory predicts and records a verdict in \texttt{sims/outputs/verify\_theory/summary.json}. Regenerate everything with
+\begin{verbatim}
+cd sims && matlab -batch "verify_theory"
+\end{verbatim}
+or run one group with \texttt{verify\_theory('baseline')}, \texttt{('gap1')}, \texttt{('gap2')}, \texttt{('gap3')}, or a single check with \texttt{verify\_theory('v10')}.
+
+\begin{center}
+\begin{tabular}{p{0.05\linewidth}p{0.26\linewidth}p{0.28\linewidth}p{0.29\linewidth}}
+\hline
+ID & Claim & What is plotted & Outcome \\
+\hline
+V1 & \cref{lem:circle-identities} & Residuals of the three moment identities against $n$ & Exact for $n\geq4$; third moment $0.453$ at $n=3$ \\
+V2 & \cref{lem:connectivity-bound} & $Q$ against $nS$ over random graphs & $600/600$ trials respect both inequalities \\
+V3 & \cref{prop:formation} & $\sqrt{V_f}$ against the envelope, and floor against $\Delta t$ & Settles two decades early; floor is $O(\Delta t^{0.99})$ \\
+V4 & \eqref{eq:exact-gradient-identity} & Residual against $\norm e$, quadratic and Gaussian & Machine precision for the quadratic field \\
+V5 & \cref{thm:all-informed} & $\norm{e(t)}$ against envelope and $\varepsilon_{\mathrm{all}}$ & Worst tail $0.0148$ against a bound of $0.05$ \\
+V6 & \eqref{eq:du-epsilon}, \eqref{eq:lambda-informed} & The product $\lambda_{\mathcal X}\varepsilon$ against $\underline n_{\mathcal X}$ & Constant to $1.7\times10^{-16}$ \\
+V7 & \eqref{eq:team-epsilon-scale} & $\varepsilon_k$ against $n_k$ at fixed $\chi_k$ & Flat to $5.6\times10^{-16}$ \\
+V8 & \cref{lem:basin-certificate} & Certificate and margin, two source spacings & Sufficiency respected; tight case loses containment \\
+V9 & \cref{cor:constant-velocity} & Lag vector and a speed sweep & Vector matches to $2.3\%$, slope to $5\%$ \\
+V10 & \cref{lem:estimator-bias} & Bias against $R$, log-log, several $n$ & Slopes $1.10$ at $n=3$ and $1.99$ at $n\geq4$ \\
+V11 & \cref{prop:no-global-guarantee} & Basins of the ideal ascent flow & Suboptimal basins cover $60\%$ of the domain \\
+V12 & \cref{thm:multistart} & Selection accuracy against the condition & $100\%$ inside the guaranteed region \\
+\hline
+\end{tabular}
+\end{center}
 
 \begin{remark}
-Linking Gap~1 and Gap~3: if each peak hosts one team and teams are assigned by estimated amplitude $\hat A_k$, global optimality reduces to correct peak identification plus per-team convergence.
+Three of these checks are worth more than a pass mark. V3 shows that the fixed-step implementation has a formation-error floor proportional to $\alpha\Delta t$, so any reported formation error below that floor is an artefact. V8 shows that seam crossing genuinely occurs when the clearance condition fails, so \eqref{eq:basin-certificate} is not a formality. V10 isolates the $n\geq4$ hypothesis as the source of the $O(R^2)$ rate rather than a convenience. Conversely, V5, V6 and V12 confirm consistency but are weak evidence: V6 is purely algebraic, and V5 and V12 show the bounds are loose for zero-mean noise.
 \end{remark}
 
-\section{Simulation Validation Plan}
+\subsection{Experiment classes and acceptance criteria}
 
-Experiments in \texttt{sims/research.m} (robot model: \texttt{single\_integrator} or \texttt{unicycle}):
+\begin{center}
+\begin{tabular}{p{0.16\linewidth}p{0.31\linewidth}p{0.43\linewidth}}
+\hline
+Experiment & Required recorded quantities & Minimum acceptance criterion \\
+\hline
+Baseline formation & $V_f$, $S(z)$, gain ratio, $\Delta t$, final formation error & Gain condition passes; $V_f$ reaches a small numerical neighborhood and is stable under halving $\Delta t$. \\
+Baseline all-informed localization & $n_{\mathcal X}(t)$, $e(t)$, $\delta$, $\kappa$, $R$ & All robots stay informed; tail maximum is compared with $\delta/(\kappa R)$. \\
+Gap 1 & $d_k$, $q_k(t)$, $m_k(t)$, team graph, $e_k(t)$ & Every team has positive sampled margin and the analytical certificate is checked or explicitly reported as failed. \\
+Gap 2 & $p_s(t)$, $v_{\max}$, $e(t)$, formation error, informed count & Noiseless constant-velocity lag matches \eqref{eq:constant-velocity-lag}; bounded-noise run is compared with \eqref{eq:moving-ultimate-bound}. \\
+Gap 3 local trap & numerical $p^\star$, $f(p^*)$, final peak label & A suboptimal initialization converges to a suboptimal local maximum, confirming the negative result. \\
+Gap 3 multi-start & seeds, terminal maxima, scores, $\Delta$, score uncertainty & Correct winner and documented pass or failure of \eqref{eq:selection-condition}. \\
+\hline
+\end{tabular}
+\end{center}
 
-\begin{itemize}
-    \item \textbf{Gap 1:} configs \texttt{n8\_N2}, \texttt{n9\_N3}, \texttt{n12\_N3}; unified cluster start, split at $t_{\mathrm{split}}$; plots: trajectory (pre/post split coloring), team localization, phase timeline, deployment map.
-    \item \textbf{Gap 2:} $p_s(t) = p_{s0} + v t$; metric $\|p^* - p_s(t)\|$ vs ISS offset.
-    \item \textbf{Gap 3:} field \eqref{eq:gaussian-mix} with $M=3$; ascent control; metric $f(p^*)$ vs $f(c_1)$.
-\end{itemize}
+\subsection{Simulation evidence versus theorem evidence}
 
-Example commands:
+The following claims are intentionally different.
+\begin{enumerate}
+    \item ``The formula is internally consistent'' means substitution and units in the displayed equations agree.
+    \item ``The theorem applies to this run'' means every theorem assumption was logged and passed during the entire run.
+    \item ``The simulation agrees with the theorem'' means the specified bound held over the measured tail, with a documented solver step and random seed.
+    \item ``The theorem is proved'' requires the analytical argument for all admissible trajectories. It cannot be concluded from plots or a finite seed sweep.
+\end{enumerate}
+
+\subsection{Current MATLAB harness mapping}\label{sec:code-mapping}
+
+The current file \texttt{sims/research.m} is an extension-validation harness, not a theorem prover.
+\begin{center}
+\begin{tabular}{p{0.18\linewidth}p{0.35\linewidth}p{0.36\linewidth}}
+\hline
+Mode & Existing measurement & Required interpretation \\
+\hline
+\texttt{research gap1} & Team centroid error, formation error, separation, and sampled team basin margin & The source-labelled post-split measurement is oracle information. Positive sampled margin supports, but does not prove, continuous-time basin containment. \\
+\texttt{research gap2} & Tracking error and the predicted all-informed ISS offset & Add a deterministic constant-velocity check before interpreting noisy tail statistics. The current linear trajectory is suitable for this. \\
+\texttt{research gap3} & Field at centroid and nearest listed peak center & It demonstrates a local trap. Its listed peak amplitude is only an approximate global reference for a Gaussian mixture and should be replaced by a numerical maximizer before a global-performance claim. \\
+\hline
+\end{tabular}
+\end{center}
+
+Recommended commands are
 \begin{verbatim}
 cd sims
-research gap1              % all Gap 1 configs
-research gap1 n9_N3        % single config
-research gap2 unicycle     % moving source on unicycle
+research gap1
+research gap1 n9_N3
+research gap2
+research gap2 unicycle
+research gap3
 \end{verbatim}
+For every command, archive the JSON summary, the full-resolution \texttt{result.mat}, the parameters, MATLAB version, and commit hash. Re-running only a rendered animation is not sufficient for review.
+
+\section{Research sequence and remaining proof obligations}\label{sec:sequence}
+\NotationContext{valid}
+
+The recommended order is deliberate.
+\begin{enumerate}
+    \item Complete Gap 1 first. Prove or enforce a uniform bound on $q_k$ after the split so that \eqref{eq:basin-certificate} becomes forward invariant. This turns \cref{prop:multisource-reduction} into a theorem rather than a conditional reduction.
+    \item Extend the same certificate to moving Voronoi basins. A moving source changes both the tracking error and, in a multi-source field, the basin boundaries.
+    \item Establish the moving-source result first for all-informed rings and constant velocity. Only then carry the blind-robot saturation geometry into the time-varying setting.
+    \item Treat Gap 3 as two distinct targets: local ascent with bounded estimator error, and global identification through exploration plus score separation. Do not conflate them.
+\end{enumerate}
 
 \section{Conclusion}
 
-This document provides a research-grade skeleton for three extensions of Du et al.\ (2024). Full proofs, citation of extremum-seeking and multi-agent deployment literature, and numerical validation tables will be added as \texttt{research.m} experiments confirm or refute each draft claim.
+The baseline controller admits a transparent two-stage analysis: sign consensus creates a regular sampling ring in finite time, and the ring converts scalar samples into an exact quadratic-field gradient. Gap 1 adds a basin-safety obligation, Gap 2 adds source velocity as a disturbance, and Gap 3 invalidates any global claim for one local ascent swarm. The detailed equations above identify the smallest defensible next theorem in each case and provide the measurements required to test it honestly.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
+
 \bibitem{du2024}
-Y.~Du, X.~Chen, L.~Xiang, K.~Guo, and J.~Chen,
+Y.~Du, F.~Chen, L.~Xiang, G.~Guo, and G.~Chen,
 ``Simultaneous source localization and formation via a distributed sign gradient-free algorithm,''
-\emph{IEEE Trans.\ Control Netw.\ Syst.}, vol.~11, no.~1, pp.~--, Mar.~2024.
+\emph{IEEE Transactions on Control of Network Systems}, vol.~11, no.~1, pp.~319--327, 2024.
+doi: \href{https://doi.org/10.1109/TCNS.2023.3281369}{10.1109/TCNS.2023.3281369}.
+
+\bibitem{bhat2000}
+S.~P.~Bhat and D.~S.~Bernstein,
+``Finite-time stability of continuous autonomous systems,''
+\emph{SIAM Journal on Control and Optimization}, vol.~38, no.~3, pp.~751--766, 2000.
+doi: \href{https://doi.org/10.1137/S0363012997321358}{10.1137/S0363012997321358}.
 
 \bibitem{cortes2004}
 J.~Cort{\'e}s, S.~Mart{\'i}nez, T.~Karatas, and F.~Bullo,
 ``Coverage control for mobile sensing networks,''
-\emph{IEEE Trans.\ Autom.\ Control}, vol.~49, no.~5, pp.~685--694, 2004.
+\emph{IEEE Transactions on Robotics and Automation}, vol.~20, no.~2, pp.~243--255, 2004.
+doi: \href{https://doi.org/10.1109/TRA.2004.824698}{10.1109/TRA.2004.824698}.
 
-\bibitem{tan2014}
-Y.~Tan, W.~H.~Moase, C.~Manzie, D.~Ne{\v{s}}i{\'c}, and I.~M.~Y.~Mareels,
-``Extremum seeking from 1922 to 2010,''
-\emph{IEEE Control Syst.\ Mag.}, vol.~34, no.~3, pp.~41--53, 2014.
+\bibitem{michael2023}
+E.~Michael, C.~Manzie, T.~A.~Wood, D.~Zelazo, and I.~Shames,
+``Gradient free cooperative seeking of a moving source,''
+\emph{Automatica}, vol.~152, art.~110948, 2023.
+doi: \href{https://doi.org/10.1016/j.automatica.2023.110948}{10.1016/j.automatica.2023.110948}.
 
-\bibitem{khalil2002}
-H.~K.~Khalil,
-\emph{Nonlinear Systems}, 3rd~ed.
-Prentice Hall, 2002.
+\bibitem{khong2014}
+S.~Z.~Khong, Y.~Tan, C.~Manzie, and D.~Ne\v{s}i{\'c},
+``Multi-agent source seeking via discrete-time extremum seeking control,''
+\emph{Automatica}, vol.~50, no.~9, pp.~2312--2320, 2014.
+doi: \href{https://doi.org/10.1016/j.automatica.2014.06.009}{10.1016/j.automatica.2014.06.009}.
+
+\bibitem{krsticwang2000}
+M.~Krsti{\'c} and H.-H.~Wang,
+``Stability of extremum seeking feedback for general nonlinear dynamic systems,''
+\emph{Automatica}, vol.~36, no.~4, pp.~595--601, 2000.
+doi: \href{https://doi.org/10.1016/S0005-1098(99)00183-1}{10.1016/S0005-1098(99)00183-1}.
+
+\bibitem{turgeman2018}
+A.~Turgeman and H.~Werner,
+``Multiple source seeking using glowworm swarm optimization and distributed gradient estimation,''
+in \emph{Proc. American Control Conference (ACC)}, Milwaukee, WI, USA, 2018, pp.~3558--3563.
+doi: \href{https://doi.org/10.23919/ACC.2018.8431479}{10.23919/ACC.2018.8431479}.
+
+\bibitem{chen2025dias}
+L.~Chen, S.~Kailas, S.~Deolasee, W.~Luo, K.~Sycara, and W.~Kim,
+``Distributed multi-robot source seeking in unknown environments with unknown number of sources,''
+in \emph{Proc. IEEE International Conference on Robotics and Automation (ICRA)}, Atlanta, GA, USA, 2025, pp.~7335--7341.
+arXiv: \href{https://arxiv.org/abs/2503.11048}{2503.11048}.
+
+\bibitem{krishnanand2009}
+K.~N.~Krishnanand and D.~Ghose,
+``Glowworm swarm optimization for simultaneous capture of multiple local optima of multimodal functions,''
+\emph{Swarm Intelligence}, vol.~3, no.~2, pp.~87--124, 2009.
+doi: \href{https://doi.org/10.1007/s11721-008-0021-5}{10.1007/s11721-008-0021-5}.
+
+\bibitem{du2021doss}
+B.~Du, K.~Qian, H.~Iqbal, C.~Claudel, and D.~Sun,
+``Multi-robot dynamical source seeking in unknown environments,''
+in \emph{Proc. IEEE International Conference on Robotics and Automation (ICRA)}, 2021, pp.~9036--9042.
+doi: \href{https://doi.org/10.1109/ICRA48506.2021.9561014}{10.1109/ICRA48506.2021.9561014}.
+
 \end{thebibliography}
 
 \end{document}

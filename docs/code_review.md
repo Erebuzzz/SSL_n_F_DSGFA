@@ -227,7 +227,194 @@ MATLAB run completed 2026-07-21 (`research gap1`, `gap2`, `gap3`):
 |---|---|---|
 | 1 | Team errors `[0.0042, 0.0072]` (legacy 6-robot), `[0.0195, 0.0249]` (`n8_N2` unified-split) | Per-team decomposition works; clustered start then split |
 | 2 | Tail mean tracking error `0.381` vs ISS offset `0.461` | Centroid tracks linearly moving source with bounded lag |
-| 3 | Trapped at peak 2, `f(p*)=2.08` vs global max `5.0` | Local trap confirmed; escape not yet implemented |
+| 3 | Trapped at peak 2, `f(p*)=2.08` vs largest peak-amplitude proxy `5.0` | Local trap confirmed; the smooth Gaussian mixture's true global maximizer still needs numerical computation before a global-performance claim |
 
 Static Code Analyzer: no errors (two info/warning items on `find` vs logical indexing and unused argument).
 
+## Gap 1 theory hardening (2026-07-23)
+
+`docs/research/research_gaps.tex` now separates a conditional multi-source reduction from the unsolved safety problem that makes the reduction valid.
+
+- The selected first field model is the equal-curvature lower envelope of quadratic wells. A quadratic sum would have one minimizer and therefore cannot represent the stated multi-minimum problem.
+- The document derives the Voronoi clearance $d_k=\frac12\min_{j\ne k}\|p_s^{(k)}-p_s^{(j)}\|$ and gives a checkable sufficient condition: centroid error plus formation radius and transient formation deviation must remain below $d_k$.
+- It records the exact cancellation of raw team size in the all-informed error bound. Equal splitting is a deployment policy, not an accuracy optimum under Du et al.'s ideal model.
+- It labels the current timed split and source-labelled measurements as an oracle deployment experiment. Unknown-source identification, post-split formation transients, and inter-team safety remain open research tasks.
+
+`sims/research.m` now records the minimum robot-to-assigned-source Voronoi margin for every team after the split. A positive margin certifies sampled basin containment for the simulation trajectory; it is evidence, not a continuous-time proof.
+
+### Verification
+
+- `checkcode('sims/research.m','-id')` completed successfully. It reported only advisory warnings, including existing unused-variable, unused-helper, scalar-check, and growth warnings.
+- A full `research gap1 n8_N2` run was started but exceeded the one-minute execution limit while rendering its normal figures and animation. Its process tree was stopped and its generated artifacts were restored. The next required check is a full `research gap1` run and confirmation that `basin_containment_passed` is true for each configuration.
+
+## Detailed research manuscript (2026-07-23)
+
+`docs/research/research_gaps.tex` was expanded from a short skeleton into a self-contained technical note.
+
+- The baseline now derives shifted-coordinate formation dissipation, a connected-graph finite-time certificate, the regular-polygon identities, and the exact all-informed quadratic-field centroid dynamics.
+- Gap 1 now includes the allocation optimization, team-size scale cancellation, Voronoi basin certificate, conditional decomposition theorem, and sampled versus continuous-time validation criteria.
+- Gap 2 now derives the moving-source error equation, explicit transient and ISS bounds, the constant-velocity lag vector, and a common-mode feedforward extension.
+- Gap 3 now proves why a local ascent swarm cannot ensure a global maximum, bounds the nonquadratic circular-gradient estimator bias, and gives a conditional multi-start peak-identification theorem with a measurable score-separation condition.
+- The manuscript distinguishes established calculations, conditional results, and proposed mechanisms. It also corrects the Gaussian-mixture caveat: a largest-amplitude center is not generally the exact global maximizer of a smooth mixture.
+
+### Manuscript verification
+
+- Static checks confirm balanced LaTeX environments, six resolved bibliography keys, 53 resolved cross-references, and a clean `git diff --check`.
+- The bundled Tectonic compiler could not complete within the one-minute execution limit because its local runtime stalled. No PDF or build artifacts were retained. A full PDF compile remains required when a usable TeX runtime is available.
+
+---
+
+## Gap 1 related-work positioning (2026-07-27)
+
+Two papers were added to `docs/research/` and assessed against Gap 1 ($N$ sources, $N$ robot teams). Both are useful, for different reasons, and neither closes the gap.
+
+- **MESA** (Turgeman and Werner, ACC 2018) is the closest structural match: groups of $\delta$ unicycle agents, one group per extremum, with formation control and LTL task switching. Its sizing rule $N=\delta\cdot\tilde N_\psi$ matches our `n8_N2`, `n9_N3`, `n12_N3` configs exactly. It uses an explicit least-squares gradient estimate, so it is a **baseline to beat**, not a component to adopt. Reusable pieces: the source-density fairness metric, occupancy repulsion, and the $\tilde N_\psi \ne N_\psi$ case analysis.
+- **DIAS** (Chen et al., ICRA 2025) attacks what Gap 1 currently assumes away, namely unknown source positions and unknown source count, via Voronoi cells plus Gaussian process regression and an LCB detection test. It has no formation control and no error bound, so it is **complementary**: it supplies the discovery front end that would retire the oracle assumption flagged after Proposition `prop:multisource-reduction`.
+
+The positioning table added to both documents identifies the unoccupied cell as sign gradient-free, ternary-communication, multi-team formation seeking with per-team $\varepsilon_k$ bounds.
+
+### Files changed
+
+- `docs/RESEARCH_GAPS_THEORY.md`: new "Closest prior work", "Positioning of Gap 1", and "Concrete items to pull in" subsections; literature anchors extended with MESA, DIAS, GSO, DoSS, GMES.
+- `docs/research/research_gaps.tex`: new `sec:gap1-related` subsection with the density metric \eqref{eq:density} and LCB test \eqref{eq:lcb}, a capability comparison table, and four new bibliography entries (`turgeman2018`, `chen2025dias`, `krishnanand2009`, `du2021doss`).
+
+### Verification
+
+- Static LaTeX check: 0 cited-but-undefined keys, 0 defined-but-uncited keys, 0 unresolved cross-references, 0 unbalanced environments.
+- **Correction.** The check above was first run with a broken regex (over-escaped backslashes), so it matched nothing and reported success vacuously. It has been replaced by `docs/research/_texcheck.py`, which also checks `\left`/`\right` balance per display equation. The rerun found two genuine defects, both since fixed. See the manuscript audit entry below.
+- No PDF compile. A PATH sweep for `pdflatex`, `xelatex`, `lualatex`, `latexmk`, `tectonic`, `miktex`, and `tex` found none of them, so the machine has no usable TeX runtime at all. The PDF build stays outstanding, same as the 2026-07-23 entry. Anyone picking this up should install MiKTeX or TeX Live first, then run `pdflatex research_gaps.tex` twice from `docs/research/` to resolve the cross-references.
+- No simulation code was touched, so no `research.m` re-run was needed.
+
+### Follow-ups this suggests
+
+1. Report MESA-style per-team source density and density error in the Gap 1 summary JSON, so cross-team fairness is measurable rather than inferred from per-team error alone.
+2. Add occupancy repulsion before enabling dynamic reassignment; without it two teams can lock onto the same source.
+3. Add configs with teams $\ne$ sources, since all three current configs assume equality.
+4. Treat GP plus LCB source discovery as a separate sub-gap, sequenced after the fixed-source decomposition proof lands.
+
+---
+
+## Manuscript math audit (2026-07-27)
+
+Line-by-line recheck of every derivation in `docs/research/research_gaps.tex`, prompted by the question of whether the mathematics is sound or needs adaptation from the two new papers.
+
+### Derivations that check out
+
+Rederived independently and confirmed correct:
+
+- **Regular-polygon identities.** $\sum\phi_i=0$, $\sum\phi_i\phi_i^\top=\tfrac n2 I$, and the third-moment identity $\sum(\phi_i^\top H\phi_i)\phi_i=0$. The last reduces to $\sum e^{\mathrm{i}3\theta_i}=0$, which holds exactly when $n\nmid 3$, so the stated $n\geq4$ requirement and the noted $n=3$ failure are both right.
+- **Connectivity bound.** $Q(z)\leq nS(z)$ and $S(z)\geq\sqrt{2V_f}/n$ follow correctly; the path/triangle-inequality step is valid because path edges are a subset of $\mathcal{E}$ and all terms are nonnegative.
+- **Finite-time formation.** $\dot V_f\leq-\gamma S\leq-\tfrac{\sqrt2\gamma}{n}\sqrt{V_f}$ integrates to the stated $T_f$ bound. The factor $4n$ in the gain condition (rather than the bare feasibility factor $2n$) is what delivers $\gamma>\alpha/2$, consistent with the text.
+- **Exact gradient recovery.** $\sum f(p_i)\phi_i=\kappa nRe$ is exact for the quadratic field, and $\varepsilon_{\mathrm{all}}=\delta/(\kappa R)$ follows.
+- **Consistency of $\varepsilon$ and $\lambda_{\mathcal X}$.** The claim $\lambda_{\mathcal X}\varepsilon(\underline n_{\mathcal X})=2\beta\delta/R$ verifies algebraically, and both expressions collapse to the all-informed values at $\underline n_{\mathcal X}=n$.
+- **Team-size cancellation.** Substituting $n\to n_k$, $n_{\mathcal X}\to\chi_kn_k$ into the saturation bound does cancel $n_k$ exactly, so "extra robots do not shrink the asymptotic radius" is a real algebraic consequence, not a hand-wave.
+- **Basin certificate.** The two triangle inequalities are correct, including the strictness, and $d_k=\tfrac12\min_j\lVert p_s^{(k)}-p_s^{(j)}\rVert$ is the right source-to-seam clearance for the equal-curvature envelope.
+- **Moving source.** $\dot e=-\lambda e+d_\eta-\dot p_s$ and the split bound $\delta/(\kappa R)+v_{\max}/(2\beta\kappa)$ are correct, as is the constant-velocity lag $e(\infty)=-v/(2\beta\kappa)$.
+- **Estimator bias.** The $L_HR^2/3$ bound follows correctly from the third-order Taylor remainder.
+- **Negative result and multi-start selection.** Both are correct and, notably, are the two cleanest unconditional results in the document.
+
+### Defects found and fixed
+
+| Location | Defect | Severity |
+|---|---|---|
+| `eq:lambda-informed` | Missing `\right|`, leaving `\left(` unclosed | Would have failed to compile |
+| `eq:team-centroid` | `,qquad` missing its backslash | Renders as literal text |
+| `eq:team-epsilon-scale` | $\rho_k$ denoted both the allocation cost and the informed fraction in adjacent subsections | Ambiguous; informed fraction renamed to $\chi_k$ |
+| `eq:density` (added earlier today) | Imported MESA's normalisation $1/N$, but $N$ is the source count in this note and the agent count in MESA | Wrong by a factor of $n$ |
+| `eq:lcb` (added earlier today) | Imported DIAS's $\beta$ and $\sigma^2$, which already denote the localization gain and the measurement here | Symbol collision |
+
+The last two were introduced by me in the earlier related-work edit. `eq:density` now states MESA's form with its own symbols explicitly labelled, followed by `eq:density-ours`, a per-team normalised version in this note's notation with $\varrho_k\in[0,1]$ and $\varrho_k=e^{-R_k}$ for a team seated exactly on its ring.
+
+### Assessment
+
+The mathematics does not need adaptation from the two papers. It is internally consistent and the status labelling (established, conditional, proposed) is honest. What it needs is closure on the gap between what is proved and what is simulated:
+
+1. **Gap 1's proposition is conditional on a certificate the controller does not establish.** `eq:basin-certificate` is assumed, not proved, and the simulation supplies source labels as an oracle. This is the single largest open item and it is correctly flagged in the manuscript.
+2. **The saturation geometry is imported, not rederived.** Everything resting on `eq:du-epsilon` and `eq:lambda-informed` inherits that dependency, which is stated but easy to lose track of.
+3. **Gaussian simulation noise does not satisfy the hard bound $|\eta_i|\leq\delta$** used by every theorem. Already noted after Assumption 1; the runs should either truncate the noise or report the bound as empirical.
+
+### Verification
+
+- `docs/research/_texcheck.py` (new): checks `\left`/`\right` balance per display equation, citation and label resolution, environment balance, and bare-macro typos. Current status: 10 cite keys, 10 bibitems, 105 labels, 62 refs, no problems.
+- Still no PDF compile, no TeX runtime available. The delimiter bug above is exactly the class of defect a compile would have caught immediately, which is why the checker was added.
+
+---
+
+## Graphical verification suite (2026-07-27)
+
+`sims/verify_theory.m` (new, about 950 lines) turns every load-bearing claim in `research_gaps.tex` into a figure that compares a measured quantity against the predicted one. Each check is written as a falsification attempt rather than a demonstration, and records a verdict plus supporting numbers in `sims/outputs/verify_theory/summary.json`.
+
+### Coverage
+
+| ID | Claim verified | Result |
+|---|---|---|
+| V1 | `lem:circle-identities` | Exact for $n\ge4$; third moment $0.453$ at $n=3$ |
+| V2 | `lem:connectivity-bound` | 600/600 random connected graphs respect both inequalities |
+| V3 | `prop:formation` | Settles two decades before the bound; chatter floor $O(\Delta t^{0.99})$ |
+| V4 | `eq:exact-gradient-identity` | Machine precision for quadratic, $0.199$ residual for Gaussian |
+| V5 | `thm:all-informed` | Worst tail error $0.0148$ against bound $0.05$, four seeds |
+| V6 | `eq:du-epsilon`, `eq:lambda-informed` | Product constant to $1.7\times10^{-16}$ |
+| V7 | `eq:team-epsilon-scale` | $\varepsilon_k$ flat in $n_k$ to $5.6\times10^{-16}$ |
+| V8 | `lem:basin-certificate` | Sufficiency respected; tight spacing loses containment |
+| V9 | `cor:constant-velocity` | Lag vector to $2.3\%$, speed sweep slope to $5\%$ |
+| V10 | `lem:estimator-bias` | Slopes $1.10$ at $n=3$, $1.99$ at $n\ge4$ |
+| V11 | `prop:no-global-guarantee` | Suboptimal basins cover $60\%$ of the domain |
+| V12 | `thm:multistart` | $100\%$ accuracy at every point inside the condition |
+
+### Findings that changed the documentation
+
+1. **V3 initially failed, and the failure was real.** The check asked for $\sqrt{V_f}<10^{-6}$, which fixed-step Euler cannot reach: the sign term chatters at a floor proportional to $\alpha\,\Delta t$. Rather than relax the threshold silently, the check was rewritten to sweep $\Delta t$ and measure the floor, which comes out as $O(\Delta t^{0.99})$. At the `research.m` defaults ($\alpha=100$, $\Delta t=5\times10^{-4}$) that floor is about $0.15$, so formation errors reported below that value in existing runs are discretization artefacts. This is now stated in the manuscript and in `sims/README.md`.
+2. **V8 was initially a weak test.** With well-separated sources the teams never approached the seam, so the certificate passed without discriminating. A second tight-spacing scenario was added, in which the certificate fails and containment is genuinely lost ($\min_t m_k=-0.05$). The check now verifies sufficiency in the direction the lemma claims and demonstrates the condition is not vacuous.
+3. **V9 had to be redesigned around V3's floor.** The first speeds gave a predicted lag of about $0.045$, comparable to the centroid chatter, so the test could not resolve the prediction. Speeds were raised so the lag is well clear of the floor. This dependency between checks is now noted in the caption.
+
+### Review notes
+
+- Figures are embedded in `research_gaps.tex` next to the claim each one verifies, via a `\verifyfig` macro and `\graphicspath` pointing at `sims/outputs/verify_theory/`. All 12 referenced filenames were confirmed to exist on disk.
+- The suite deliberately reports where evidence is weak. V6 is pure algebra and gives no independent support for the imported saturation geometry. V5 and V12 show the bounds are loose for zero-mean noise, so they confirm correctness without confirming tightness.
+- V8 tests the certificate; it does not prove the controller enforces it. Gap 1 remains conditional.
+
+---
+
+## Nomenclature and per-page notation key (2026-07-27)
+
+Two notation aids were added to `research_gaps.tex`.
+
+1. **Nomenclature section** after the table of contents: a `longtable` symbol table with 70 entries grouped by the section that introduces each symbol, including the imported MESA and DIAS symbols and the renames applied to avoid collisions.
+2. **Per-page key**: every page carries a short legend below the text block, styled like a footnote, listing the symbols in play on that page.
+
+### Why the per-page key is a footer and not a `\footnote`
+
+A real footnote cannot be made to repeat on every page where a symbol appears without a two-pass scheme that reads page numbers from the `.aux` file and then emits footnotes, which changes pagination and can oscillate between runs. The `fixfoot` package does implement repeating footnotes, but it stamps a visible superscript marker at every call site, which would mean a marker after essentially every equation.
+
+The footer instead uses TeX's mark mechanism. `\NotationContext{<id>}` writes a mark; the output routine reads `\rightmark`, which is by construction the mark in force at the top of the page being shipped. That is page-synchronised without a second pass and without affecting pagination. Twelve `\NotationContext` switches are placed at section and subsection boundaries, mapping onto eleven declared keys.
+
+Known behaviour, documented in the paper itself: a page that straddles a section boundary shows the key of the section it begins in, not the one it ends in. `\sectionmark` and `\subsectionmark` are neutralised so the sectioning commands do not overwrite the notation marks.
+
+To disable the whole feature, set `\notationkeyfalse` and reduce the bottom margin in `\geometry`.
+
+### Risk and how it was contained
+
+No TeX runtime is installed, confirmed again by a sweep for `pdflatex`, `xelatex`, `lualatex`, `latexmk`, `tectonic`, and `miktex-pdflatex`. The document is therefore **uncompiled**. Since the footer is the one part that can fail silently or overflow the page, `_texcheck.py` was extended with checks that a compile would otherwise be needed to catch:
+
+- every `\NotationContext` has a matching `\DeclareNotationKey`, and every declared key is activated. A missing declaration prints an empty key rather than raising an error, so a compile would not catch it either.
+- a footer height estimate per key, capped at 3.5 lines against a 4-line budget. The margin exists because the estimate strips macros and therefore undercounts math-heavy keys. Worst current key is `teams` at 3.3 lines.
+- `longtable` column counts per row, since a row with the wrong number of `&` is a hard error.
+- `%` comments are now stripped before parsing. Without that, the checker was reading the commented-out `\DeclareNotationKey{<id>}` usage example in the preamble and counting it as a real key.
+
+`_selftest.py` was added to confirm the checker actually fires. It mutates a temporary copy of the document with seven faults, one per check, and asserts each is reported: 8/8 pass, including that the unmutated document is clean. This matters because two of the new checks initially passed for the wrong reason.
+
+### Verification
+
+- `_texcheck.py`: clean. 10 cite keys, 10 bibitems, 106 labels, 66 refs, 11 notation keys.
+- `_texcheck.py --budget`: all keys within the footer budget.
+- `_selftest.py`: 8/8.
+- Still unverified until someone compiles: actual footer height in points, `longtable` page breaking interacting with the deeper bottom margin, and whether `\rightmark` selection reads well at section transitions. First compile should check the bottom of a page in each of \cref{sec:gap1}, \cref{sec:gap2}, and \cref{sec:gap3}.
+
+---
+
+## Graphical verification suite verification
+
+- MATLAB Code Analyzer on `verify_theory.m`: no issues.
+- Full suite: 12/12 checks pass, 150 s wall clock. Re-run with `cd sims && matlab -batch "verify_theory"`.
+- The sign consensus was vectorized into a single sparse product per step after the first run took 221 s for six checks; the full twelve now run in 150 s.
+- `_texcheck.py` clean after the figure insertions: 105 labels, 62 refs, no unresolved keys or unbalanced delimiters.

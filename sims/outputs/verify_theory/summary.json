@@ -1,0 +1,178 @@
+{
+  "v1": {
+    "pass": true,
+    "verdict": "first/second moments at machine precision for n=3..20; third moment 0.453 at n=3, below 1e-10 for n>=4",
+    "max_residual_first": 2.0947646133377081E-15,
+    "max_residual_second": 1.8036917794045729E-15,
+    "residual_third_n3": 0.45300102064901343,
+    "max_residual_third_n_ge_4": 1.7136679897814678E-15,
+    "figure": "v1_polygon_identities.png",
+    "claim": "lem:circle-identities",
+    "title": "Regular-polygon identities"
+  },
+  "v2": {
+    "pass": true,
+    "verdict": "600/600 trials satisfy both inequalities; tightest slack 3.84 and 1.43",
+    "trials": 600,
+    "min_slack_Q_le_nS": 3.8406329142227165,
+    "min_slack_S_ge_sqrt2Vf_over_n": 1.4349608808034295,
+    "figure": "v2_connectivity_bound.png",
+    "claim": "lem:connectivity-bound",
+    "title": "Connectivity bound Q <= n S"
+  },
+  "v3": {
+    "pass": true,
+    "verdict": "settling times 0.002/0.006/0.008/0.009/0.010 s all under the 0.211 s bound; envelope never exceeded above the floor; floor scales as dt^0.99",
+    "gamma": 84.97,
+    "dt_list": [
+      0.002,
+      0.001,
+      0.0005,
+      0.00025,
+      0.000125
+    ],
+    "chatter_floors": [
+      0.59921212791302769,
+      0.30314471794603481,
+      0.16008206005700329,
+      0.070527717013063457,
+      0.039755665471309737
+    ],
+    "floor_slope_vs_dt": 0.99314133378290648,
+    "settle_times": [
+      0.002,
+      0.006,
+      0.008,
+      0.0095,
+      0.009875
+    ],
+    "t_bound": 0.21088126663955969,
+    "max_envelope_excess_above_floor": 0,
+    "figure": "v3_formation_finite_time.png",
+    "claim": "prop:formation / eq:formation-time-bound",
+    "title": "Finite-time formation envelope"
+  },
+  "v4": {
+    "pass": true,
+    "verdict": "quadratic residual stays below 1.0e-14 over three decades of |e|; Gaussian residual reaches 0.199",
+    "max_residual_quadratic": 1.0048591735576161E-14,
+    "max_residual_gaussian": 0.19908301973844186,
+    "figure": "v4_gradient_identity.png",
+    "claim": "eq:exact-gradient-identity",
+    "title": "Exact circular gradient identity"
+  },
+  "v5": {
+    "pass": true,
+    "verdict": "worst tail error 0.0148 against bound 0.0500 over 4 seeds; all robots informed throughout",
+    "epsilon_all": 0.05,
+    "worst_tail_error": 0.014750969170359004,
+    "seeds": 4,
+    "all_robots_informed": true,
+    "figure": "v5_all_informed_bound.png",
+    "claim": "thm:all-informed / eq:all-informed-epsilon",
+    "title": "All-informed localization bound"
+  },
+  "v6": {
+    "pass": true,
+    "verdict": "product constant to 1.7e-16 relative error; collapse to all-informed values exact to 0.0e+00",
+    "target_product": 0.005000000000000001,
+    "max_relative_error": 1.7347234759768068E-16,
+    "collapse_error": 0,
+    "figure": "v6_epsilon_lambda_consistency.png",
+    "claim": "eq:du-epsilon / eq:lambda-informed",
+    "title": "Consistency of epsilon and lambda"
+  },
+  "v7": {
+    "pass": true,
+    "verdict": "epsilon_k varies by at most 5.6e-16 relative across n_k = 3..31 at fixed chi_k",
+    "max_relative_spread_over_nk": 5.5958784246713505E-16,
+    "epsilon_at_chi_1": 0.05,
+    "figure": "v7_team_size_cancellation.png",
+    "claim": "eq:team-epsilon-scale",
+    "title": "Team-size cancellation in epsilon_k"
+  },
+  "v8": {
+    "pass": true,
+    "verdict": "separated case: certificate holds and containment holds (min margin 4.90). tight case: certificate fails (max left side 2.97 vs d_k 1.35) and containment is lost. Sufficiency never violated.",
+    "separated_min_margin": 4.9002089312359089,
+    "separated_certificate_holds": true,
+    "tight_min_margin": -0.049145020356270441,
+    "tight_certificate_holds": false,
+    "tight_contained": false,
+    "sufficiency_respected": true,
+    "figure": "v8_basin_certificate.png",
+    "claim": "lem:basin-certificate",
+    "title": "Basin-containment certificate"
+  },
+  "v9": {
+    "pass": true,
+    "verdict": "lag vector matches prediction to 2.31%; speed sweep matches slope 1/(2 beta kappa) to 4.97%",
+    "predicted_lag": [
+      -0.79999999999999993,
+      -0.39999999999999997
+    ],
+    "measured_lag": [
+      -0.81803132620929553,
+      -0.41014372726440573
+    ],
+    "vector_relative_error": 0.023130713555808192,
+    "sweep_max_relative_error": 0.049723988365634054,
+    "figure": "v9_moving_source_lag.png",
+    "claim": "cor:constant-velocity / eq:moving-ultimate-bound",
+    "title": "Moving-source steady lag"
+  },
+  "v10": {
+    "pass": true,
+    "verdict": "fitted slopes: n=3 gives 1.10 (expected 1), n>=4 gives 1.99, 1.99, 1.99 (expected 2)",
+    "n_values": [
+      3,
+      4,
+      6,
+      8
+    ],
+    "fitted_slopes": [
+      1.0954248839834848,
+      1.989284592916464,
+      1.9894867425863698,
+      1.9896731675619881
+    ],
+    "figure": "v10_estimator_bias.png",
+    "claim": "lem:estimator-bias",
+    "title": "Circular estimator bias O(R^2)"
+  },
+  "v11": {
+    "pass": true,
+    "verdict": "60.0% of the 48400 sampled initial centroids converge to a suboptimal peak, so the suboptimal basins are nonempty",
+    "peak_count": 3,
+    "peak_values": [
+      1.0008694427026152,
+      0.78518061397512,
+      0.60921010323425273
+    ],
+    "basin_fractions": [
+      0.39973140495867771,
+      0.31004132231404957,
+      0.29022727272727272
+    ],
+    "suboptimal_share": 0.60026859504132224,
+    "figure": "v11_local_trapping.png",
+    "claim": "prop:no-global-guarantee",
+    "title": "Local trapping of ideal ascent"
+  },
+  "v12": {
+    "pass": true,
+    "verdict": "selection accuracy is 100% at every sampled point satisfying the condition (15 of 25 points), and falls to 98% at the widest uncertainty",
+    "peak_gap": 0.21568882872749529,
+    "trials_per_point": 4000,
+    "min_accuracy_inside_condition": 1,
+    "accuracy_at_widest_uncertainty": 0.977,
+    "figure": "v12_multistart_selection.png",
+    "claim": "thm:multistart / eq:selection-condition",
+    "title": "Multi-start selection condition"
+  },
+  "meta": {
+    "checks_run": 12,
+    "checks_passed": 12,
+    "timestamp": "2026-07-27 12:30:01"
+  }
+}
