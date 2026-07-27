@@ -79,7 +79,10 @@ for env, net in sorted(counts.items()):
 # Only macros that are not also ordinary English words, and only after
 # stripping label/ref/newcommand arguments where the bare name is legitimate.
 macros = ["qquad", "cdot", "frac", "sgn", "leq", "geq", "phi", "kappa", "beta"]
-strip = re.compile(r"\\(?:label|[cC]?ref|eqref|cite|newcommand|operatorname)\{[^}]*\}")
+strip = re.compile(
+    r"\\Declare(?:MathOperator|PairedDelimiter)\*?\{[^}]*\}\{[^}]*\}"
+    r"|\\(?:label|[cC]?ref|eqref|cite|newcommand|operatorname)\{[^}]*\}"
+)
 for num, line in enumerate(lines, 1):
     if line.lstrip().startswith("%"):
         continue
@@ -174,7 +177,14 @@ for match in re.finditer(r"\\begin\{longtable\}", code):
         row = raw.strip()
         if not row or row.startswith("%"):
             continue
-        row = re.sub(r"\\(?:hline|endfirsthead|endhead|endfoot|endlastfoot)\b", "", row).strip()
+        # Rule and header markers are legitimate rows with no & separators.
+        row = re.sub(
+            r"\\(?:hline|top|mid|bottom|cmid)rule(?:\([lr]{1,2}\))?(?:\{[^}]*\})?"
+            r"|\\addlinespace(?:\[[^]]*\])?"
+            r"|\\(?:endfirsthead|endhead|endfoot|endlastfoot)\b",
+            "",
+            row,
+        ).strip()
         if not row:
             continue
         spans = sum(int(m.group(1)) - 1 for m in re.finditer(r"\\multicolumn\{(\d+)\}", row))

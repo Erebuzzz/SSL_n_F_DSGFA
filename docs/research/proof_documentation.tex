@@ -1,0 +1,1437 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[margin=1in,bottom=1.5in,footskip=0.5in,headheight=14pt]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[nameinlink,capitalise]{cleveref}
+
+\theoremstyle{plain}
+\newtheorem{fact}{Fact}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\crefname{fact}{Fact}{Facts}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\G}{\mathcal{G}}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+
+% ---------------------------------------------------------------------------
+% Per-page notation key. Each section declares the active context; the footer
+% prints only the symbols that appear on the current page range.
+% ---------------------------------------------------------------------------
+\newif\ifnotationkey
+\notationkeytrue
+
+\makeatletter
+\newcommand{\DeclareNotationKey}[2]{%
+  \expandafter\gdef\csname nmkey@#1\endcsname{#2}%
+}
+\newcommand{\NotationContext}[1]{\markboth{#1}{#1}}
+\newcommand{\nmkeyCurrent}{%
+  \edef\nmkey@id{\firstmark}%
+  \ifx\nmkey@id\@empty
+    \edef\nmkey@id{\rightmark}%
+  \fi
+  \ifx\nmkey@id\@empty\else
+    \@ifundefined{nmkey@\nmkey@id}{}{%
+      \csname nmkey@\nmkey@id\endcsname
+    }%
+  \fi
+}
+\newcommand{\nmkeyFooter}{%
+  \ifnotationkey
+    \footnotesize
+    \begin{minipage}{\textwidth}
+      \rule{\textwidth}{0.4pt}\\[2pt]
+      \textsc{key}\quad\nmkeyCurrent
+    \end{minipage}%
+  \fi
+}
+\makeatother
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyfoot[C]{\nmkeyFooter}
+\renewcommand{\sectionmark}[1]{}
+\renewcommand{\subsectionmark}[1]{}
+
+\DeclareNotationKey{facts}{%
+$n$ robots, ring radius $R$, centroid $p^*$, source $p_s$, error $e=p^*-p_s$.
+$\phi_i$ unit slot direction, $z_i=p_i-R\phi_i$ shifted state, $q_i=z_i-\bar z$ disagreement.
+$\alpha$ sign gain, $\beta$ measurement gain, $\kappa$ field curvature, $\delta$ noise bound,
+$\lambda=2\beta\kappa$, $\varepsilon$ ultimate error radius.}
+
+\DeclareNotationKey{teams}{%
+$N$ sources, $p_s^{(k)}$ source $k$, $\mathcal{B}_k$ its Voronoi basin, $d_k$ source-to-seam clearance.
+Team $k$: index set $\V_k$, size $n_k$, radius $R_k$, centroid $p_k^*$, informed fraction $\chi_k$,
+formation deviation $q_k$, error radius $\varepsilon_k$, split time $t_s$.}
+
+\DeclareNotationKey{moving}{%
+$p_s(t)$ moving source, $v_{\max}$ speed bound, $v$ constant velocity,
+$e=p^*-p_s$, $\lambda=2\beta\kappa$, $d_\eta$ noise-induced drift, $T_f$ formation time,
+$\hat v$ velocity feedforward, $\tilde v=\hat v-\dot p_s$.}
+
+\DeclareNotationKey{field}{%
+$\Omega$ search domain, $f$ nonconvex field, $\ell_j$ local maximisers ordered by value,
+$f^\star=f(\ell_1)$ global value, $\Delta$ value gap, $L_f$ Lipschitz constant of $f$,
+$L_H$ Lipschitz constant of $\nabla^2f$, $g_R$ circular gradient estimate, $r_R$ its bias.}
+
+\DeclareNotationKey{multistart}{%
+$M$ teams, $\hat\ell_k$ terminal centroid of team $k$, $\hat F_k$ its reported score,
+$\varepsilon_{\mathrm{loc}}$ terminal localisation error, $\delta_F$ score error,
+$\Delta$ value gap, $L_f$ Lipschitz constant of $f$.}
+
+\allowdisplaybreaks
+
+\begin{document}
+
+\section{Standing results used without proof}\label{sec:facts}
+\NotationContext{facts}
+
+The three gap sections below are self-contained except for five properties of the
+single-source baseline of \cite{du2024}. They are collected here as facts and are not
+re-derived; every other statement in this document is proved step by step.
+
+Throughout, $n$ robots with positions $p_i\in\R^2$ communicate over an undirected graph
+$\G=(\V,\E)$, are assigned distinct slot directions
+$\phi_i=(\cos\theta_i,\sin\theta_i)$ with $\theta_i=2\pi(i-1)/n$, and run
+\begin{equation}\label{eq:baseline-controller}
+    u_i=\alpha\sum_{j\in\mathcal{N}_i}\sgn\!\left(z_j-z_i\right)
+       -\frac{2\beta}{R}\,\sigma_i\phi_i,
+    \qquad z_i\coloneqq p_i-R\phi_i,
+\end{equation}
+where $\sigma_i$ is robot $i$'s scalar measurement, $\sgn$ acts componentwise, and
+$\mathcal{N}_i$ is the neighbour set. The centroid is $p^*\coloneqq n^{-1}\sum_ip_i$.
+
+\begin{fact}[Slot-direction moment identities]\label{fact:moments}
+For $\theta_i=2\pi(i-1)/n$ and $n\geq3$,
+\begin{equation}\label{eq:moments}
+    \sum_{i=1}^n\phi_i=0,
+    \qquad
+    \sum_{i=1}^n\phi_i\phi_i^{\top}=\frac n2 I_2,
+\end{equation}
+and if in addition $n\geq4$ then for every symmetric $H\in\R^{2\times2}$
+\begin{equation}\label{eq:third-moment}
+    \sum_{i=1}^n\left(\phi_i^{\top}H\phi_i\right)\phi_i=0.
+\end{equation}
+The restriction $n\geq4$ in \eqref{eq:third-moment} is essential and is the source of the
+$n=3$ anomaly analysed in \cref{sec:gap3-bias}.
+\end{fact}
+
+\begin{fact}[Sign-dissipation and disagreement comparison]\label{fact:sign}
+Let $q_i\coloneqq z_i-n^{-1}\sum_jz_j$, $V_f\coloneqq\frac12\sum_i\norm{q_i}^2$,
+$S(z)\coloneqq\sum_{(i,j)\in\E}\norm{z_i-z_j}_1$ and $Q(z)\coloneqq\sum_i\norm{q_i}$.
+If $\G$ is connected then
+\begin{equation}\label{eq:sign-dissipation}
+    \sum_i q_i^{\top}\sum_{j\in\mathcal{N}_i}\sgn\!\left(z_j-z_i\right)=-S(z),
+    \qquad
+    Q(z)\leq n\,S(z),
+    \qquad
+    S(z)\geq\frac{\sqrt{2V_f}}{n}.
+\end{equation}
+\end{fact}
+
+\begin{fact}[Finite-time formation]\label{fact:formation}
+Assume $\G$ connected, $n\geq3$, and $\abs{\sigma_i}\leq f_{D_{\max}}$ for all $i$ and all $t$.
+If the gain condition
+\begin{equation}\label{eq:gain-condition}
+    \gamma\coloneqq\alpha-\frac{2\beta n f_{D_{\max}}}{R}>0
+\end{equation}
+holds, then $V_f(t)=0$ for all $t\geq T_f$ with
+\begin{equation}\label{eq:formation-time}
+    T_f\leq\frac{\sqrt2\,n\sqrt{V_f(0)}}{\gamma}.
+\end{equation}
+\end{fact}
+
+\begin{fact}[All-informed localisation]\label{fact:localisation}
+Assume the quadratic bowl $f(p)=\kappa\norm{p-p_s}^2$ with $\kappa>0$, every robot informed
+with $\sigma_i=f(p_i)+\eta_i$ and $\abs{\eta_i}\leq\delta$, and exact formation. Then with
+$e\coloneqq p^*-p_s$ and $\lambda\coloneqq2\beta\kappa$,
+\begin{equation}\label{eq:baseline-error-dynamics}
+    \dot e=-\lambda e+d_\eta,
+    \qquad
+    d_\eta=-\frac{2\beta}{nR}\sum_i\eta_i\phi_i,
+    \qquad
+    \norm{d_\eta}\leq\frac{2\beta\delta}{R},
+\end{equation}
+and consequently $\limsup_{t\to\infty}\norm{e(t)}\leq\delta/(\kappa R)$.
+\end{fact}
+
+\begin{fact}[Partial-information error radius]\label{fact:epsilon}
+Under the saturation geometry of \cite{du2024}, if at least $n_{\mathcal X}$ of the $n$ robots
+are informed at every time, the ultimate centroid error obeys
+$\limsup_{t\to\infty}\norm{e(t)}\leq\varepsilon(n_{\mathcal X})$ with
+\begin{equation}\label{eq:du-epsilon}
+    \varepsilon(n_{\mathcal X})
+    =\frac{2\pi n\delta}
+    {\kappa R\left(2\pi n_{\mathcal X}-n\abs{\sin\!\left(2\pi n_{\mathcal X}/n\right)}\right)}.
+\end{equation}
+\end{fact}
+
+\begin{lemma}[The error radius is always well posed]\label{lem:denominator}
+For every $n\geq3$ and every $1\leq n_{\mathcal X}\leq n$ the denominator in
+\eqref{eq:du-epsilon} is strictly positive, so $\varepsilon(n_{\mathcal X})$ is finite and positive.
+\end{lemma}
+
+\begin{proof}
+Write $x\coloneqq2\pi n_{\mathcal X}/n$, so that $n_{\mathcal X}=nx/(2\pi)$ and $x\in(0,2\pi]$.
+The denominator factor becomes
+\begin{equation*}
+    2\pi n_{\mathcal X}-n\abs{\sin x}
+    =2\pi\cdot\frac{nx}{2\pi}-n\abs{\sin x}
+    =n\left(x-\abs{\sin x}\right).
+\end{equation*}
+For $x\geq0$ the mean value theorem applied to $s\mapsto\sin s$ on $[0,x]$ gives
+$\abs{\sin x}=\abs{\sin x-\sin0}\leq x\sup_{s}\abs{\cos s}\leq x$, with equality only at $x=0$
+because $\abs{\cos s}<1$ on any interval of positive length not reducing to $\{0\}$ modulo the
+isolated points where $\abs{\cos s}=1$. Since $x>0$ here, $x-\abs{\sin x}>0$ and the factor is
+$n(x-\abs{\sin x})>0$.
+\end{proof}
+
+\begin{remark}\label{rem:denominator-caveat}
+\cref{lem:denominator} removes a caveat that is usually attached to \eqref{eq:du-epsilon}.
+The denominator looks as though it could change sign for small informed counts, and it is often
+guarded by an explicit positivity assumption. The change of variable above shows the guard is
+vacuous: positivity is automatic for every admissible pair $(n,n_{\mathcal X})$. A direct sweep
+over $3\leq n\leq60$ and $1\leq n_{\mathcal X}\leq n$ finds the minimum of the denominator factor
+to be $1.15\times10^{-2}$, attained at $(n,n_{\mathcal X})=(60,1)$, consistent with the bound.
+What does degrade for small $n_{\mathcal X}$ is the \emph{size} of $\varepsilon$, not its
+existence.
+\end{remark}
+
+\section{Gap 1: $N$ sources served by $N$ teams}\label{sec:gap1}
+\NotationContext{teams}
+
+\subsection{Setting}\label{sec:gap1-setting}
+
+Let $p_s^{(1)},\ldots,p_s^{(N)}\in\R^2$ be distinct sources of equal curvature $\kappa>0$ and let
+the sensed field be the lower envelope of the individual bowls,
+\begin{equation}\label{eq:multisource-field}
+    f(p)=\min_{1\leq k\leq N}f_k(p),
+    \qquad f_k(p)=\kappa\norm{p-p_s^{(k)}}^2.
+\end{equation}
+The basins of \eqref{eq:multisource-field} are the Voronoi cells of the source set
+\cite{cortes2004},
+\begin{equation}\label{eq:voronoi}
+    \mathcal{B}_k=\left\{p\in\R^2:\norm{p-p_s^{(k)}}\leq\norm{p-p_s^{(j)}}\ \forall j\neq k\right\}.
+\end{equation}
+The $n$ robots are partitioned after a split time $t_s$ into teams $\V_1,\ldots,\V_N$ with
+$n_k=\abs{\V_k}$, $\sum_kn_k=n$. Team $k$ has its own ring radius $R_k$, gains
+$(\alpha_k,\beta_k)$, slot directions $\phi_i^{(k)}$ indexed within the team, and centroid
+$p_k^*=n_k^{-1}\sum_{i\in\V_k}p_i$. Each robot runs \eqref{eq:baseline-controller} with the sum
+restricted to $\mathcal{N}_i\cap\V_k$.
+
+Define the source-to-seam clearance and the team formation deviation
+\begin{align}
+    d_k&\coloneqq\dist\!\left(p_s^{(k)},\partial\mathcal{B}_k\right),\label{eq:clearance-def}\\
+    q_k(t)&\coloneqq\max_{i\in\V_k}\norm{p_i(t)-p_k^*(t)-R_k\phi_i^{(k)}}.\label{eq:team-deviation}
+\end{align}
+
+\subsection{Step-by-step: the clearance has a closed form}\label{sec:gap1-clearance}
+
+The certificate in \cref{sec:gap1-basin} is stated in terms of $d_k$, which is defined as a
+distance to a polygonal boundary. The following lemma reduces it to pairwise source distances.
+It is used silently in most treatments; the proof is short but the second half is not immediate,
+because a point on the nearest bisector need not lie on $\partial\mathcal{B}_k$ in general.
+
+\begin{lemma}[Clearance equals half the nearest-neighbour distance]\label{lem:clearance}
+For the equal-curvature field \eqref{eq:multisource-field},
+\begin{equation}\label{eq:clearance-closed-form}
+    d_k=\frac12\min_{j\neq k}\norm{p_s^{(k)}-p_s^{(j)}}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $\rho\coloneqq\frac12\min_{j\neq k}\norm{p_s^{(k)}-p_s^{(j)}}$ and let $j^\star$ attain the
+minimum.
+
+\emph{Step 1 ($d_k\geq\rho$).} Let $y\in\partial\mathcal{B}_k$. By \eqref{eq:voronoi} the
+boundary consists of points for which at least one competing constraint is active, so there is
+$j\neq k$ with $\norm{y-p_s^{(k)}}=\norm{y-p_s^{(j)}}$. The triangle inequality then gives
+\begin{equation*}
+    \norm{p_s^{(k)}-p_s^{(j)}}
+    \leq\norm{p_s^{(k)}-y}+\norm{y-p_s^{(j)}}
+    =2\norm{y-p_s^{(k)}},
+\end{equation*}
+hence $\norm{y-p_s^{(k)}}\geq\frac12\norm{p_s^{(k)}-p_s^{(j)}}\geq\rho$. Taking the infimum over
+$y\in\partial\mathcal{B}_k$ yields $d_k\geq\rho$.
+
+\emph{Step 2 (a boundary point at distance exactly $\rho$).} Let
+$m\coloneqq\frac12\left(p_s^{(k)}+p_s^{(j^\star)}\right)$ be the midpoint, so
+$\norm{m-p_s^{(k)}}=\norm{m-p_s^{(j^\star)}}=\rho$. For any $l\neq k$,
+\begin{equation*}
+    \norm{m-p_s^{(l)}}
+    \geq\norm{p_s^{(k)}-p_s^{(l)}}-\norm{m-p_s^{(k)}}
+    \geq2\rho-\rho=\rho=\norm{m-p_s^{(k)}},
+\end{equation*}
+where the second inequality uses the definition of $\rho$ as a minimum over all $j\neq k$.
+Therefore $m$ satisfies every constraint in \eqref{eq:voronoi} and so $m\in\mathcal{B}_k$; since
+the constraint for $j^\star$ holds with equality, $m\in\partial\mathcal{B}_k$. Hence
+$d_k\leq\norm{m-p_s^{(k)}}=\rho$.
+
+Combining the two steps gives $d_k=\rho$.
+\end{proof}
+
+\subsection{Step-by-step: team size cancels from the error radius}\label{sec:gap1-scaling}
+
+The design question for Gap 1 is how to split $n$ robots into $N$ teams. The following
+computation shows that, at the level of the asymptotic error radius, the head count $n_k$ is
+\emph{not} the relevant variable.
+
+\begin{lemma}[Team-size cancellation]\label{lem:team-scaling}
+Suppose team $k$ satisfies the hypotheses of \cref{fact:epsilon} with $n\to n_k$,
+$R\to R_k$, and a guaranteed informed count $n_{\mathcal X,k}=\chi_kn_k$ for some
+$\chi_k\in(0,1]$. Then
+\begin{equation}\label{eq:team-epsilon-scale}
+    \varepsilon_k
+    =\frac{2\pi\delta}{\kappa R_k\left(2\pi\chi_k-\abs{\sin\!\left(2\pi\chi_k\right)}\right)},
+\end{equation}
+which depends on $n_k$ only through the informed \emph{fraction} $\chi_k$. In particular
+$\varepsilon_k=\delta/(\kappa R_k)$ when $\chi_k=1$.
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1 (substitute).} Replacing $n\to n_k$, $R\to R_k$ and
+$n_{\mathcal X}\to\chi_kn_k$ in \eqref{eq:du-epsilon},
+\begin{equation*}
+    \varepsilon_k
+    =\frac{2\pi n_k\delta}
+    {\kappa R_k\left(2\pi\chi_kn_k-n_k\abs{\sin\!\left(2\pi\chi_kn_k/n_k\right)}\right)}.
+\end{equation*}
+
+\emph{Step 2 (simplify the sine argument).} The argument of the sine is
+$2\pi\chi_kn_k/n_k=2\pi\chi_k$, which no longer involves $n_k$:
+\begin{equation*}
+    \varepsilon_k
+    =\frac{2\pi n_k\delta}
+    {\kappa R_k\left(2\pi\chi_kn_k-n_k\abs{\sin\!\left(2\pi\chi_k\right)}\right)}.
+\end{equation*}
+
+\emph{Step 3 (factor).} Both terms in the bracket carry a factor $n_k$:
+\begin{equation*}
+    \varepsilon_k
+    =\frac{2\pi n_k\delta}
+    {\kappa R_k\,n_k\left(2\pi\chi_k-\abs{\sin\!\left(2\pi\chi_k\right)}\right)}.
+\end{equation*}
+
+\emph{Step 4 (cancel).} By \cref{lem:denominator} with $x=2\pi\chi_k>0$ the bracket is strictly
+positive, so cancelling the common factor $n_k\neq0$ is legitimate and yields
+\eqref{eq:team-epsilon-scale}.
+
+\emph{Step 5 (all-informed case).} Setting $\chi_k=1$ gives
+$\abs{\sin2\pi}=0$, hence
+$\varepsilon_k=2\pi\delta/(\kappa R_k\cdot2\pi)=\delta/(\kappa R_k)$, which agrees with
+\cref{fact:localisation} as it must.
+\end{proof}
+
+\begin{remark}[Consequence for team sizing]\label{rem:team-sizing}
+\eqref{eq:team-epsilon-scale} says that adding robots to a team improves its asymptotic accuracy
+only insofar as it raises the informed fraction or permits a larger ring radius $R_k$. Two
+allocations with the same $(\chi_k,R_k)$ but different $n_k$ have identical predicted error
+radii. Integrality is the only caveat: $\chi_kn_k$ must be an integer count, so for small $n_k$
+the achievable fractions form a coarse grid, and $\chi_k$ should be read as the guaranteed lower
+fraction rather than an instantaneous one.
+\end{remark}
+
+\subsection{Step-by-step: basin containment}\label{sec:gap1-basin}
+
+The reduction of the $N$-source problem to $N$ single-source problems is only valid while each
+team stays inside its own basin. Centroid membership is not enough: a ring of radius $R_k$ can
+straddle a seam even when $p_k^*\in\mathcal{B}_k$. The following certificate is stated on the
+robots, not the centroid.
+
+\begin{lemma}[Direct basin-containment certificate]\label{lem:basin-certificate}
+Assume \eqref{eq:multisource-field}. If for all $t\geq t_s$
+\begin{equation}\label{eq:basin-certificate}
+    \norm{p_k^*(t)-p_s^{(k)}}+R_k+q_k(t)<d_k,
+\end{equation}
+then $p_i(t)\in\operatorname{int}\mathcal{B}_k$ for every $i\in\V_k$ and every $t\geq t_s$.
+\end{lemma}
+
+\begin{proof}
+Fix $t\geq t_s$ and $i\in\V_k$.
+
+\emph{Step 1 (decompose the offset).} Insert and cancel the nominal slot position:
+\begin{equation*}
+    p_i-p_s^{(k)}
+    =\underbrace{\left(p_i-p_k^*-R_k\phi_i^{(k)}\right)}_{\text{formation error}}
+    +\underbrace{R_k\phi_i^{(k)}}_{\text{slot offset}}
+    +\underbrace{\left(p_k^*-p_s^{(k)}\right)}_{\text{centroid error}}.
+\end{equation*}
+
+\emph{Step 2 (triangle inequality).} Applying it twice,
+\begin{equation*}
+    \norm{p_i-p_s^{(k)}}
+    \leq\norm{p_i-p_k^*-R_k\phi_i^{(k)}}
+    +R_k\norm{\phi_i^{(k)}}
+    +\norm{p_k^*-p_s^{(k)}}.
+\end{equation*}
+
+\emph{Step 3 (evaluate the two known terms).} The slot directions are unit vectors, so
+$\norm{\phi_i^{(k)}}=1$. By \eqref{eq:team-deviation} the first term is at most $q_k(t)$, since
+$q_k$ is the maximum over $i\in\V_k$ of exactly that quantity. Hence
+\begin{equation}\label{eq:basin-step3}
+    \norm{p_i-p_s^{(k)}}\leq q_k(t)+R_k+\norm{p_k^*(t)-p_s^{(k)}}.
+\end{equation}
+
+\emph{Step 4 (apply the hypothesis).} The right-hand side of \eqref{eq:basin-step3} is the
+left-hand side of \eqref{eq:basin-certificate}, so
+\begin{equation}\label{eq:basin-step4}
+    \norm{p_i-p_s^{(k)}}<d_k.
+\end{equation}
+
+\emph{Step 5 (translate into a Voronoi statement).} Let $j\neq k$. By \cref{lem:clearance},
+$\norm{p_s^{(k)}-p_s^{(j)}}\geq2d_k$. The reverse triangle inequality and
+\eqref{eq:basin-step4} give
+\begin{equation*}
+    \norm{p_i-p_s^{(j)}}
+    \geq\norm{p_s^{(k)}-p_s^{(j)}}-\norm{p_i-p_s^{(k)}}
+    >2d_k-d_k
+    =d_k
+    >\norm{p_i-p_s^{(k)}},
+\end{equation*}
+where the last inequality is \eqref{eq:basin-step4} again.
+
+\emph{Step 6 (conclude).} The chain holds for every $j\neq k$, so $p_i$ is \emph{strictly}
+closer to $p_s^{(k)}$ than to any other source. Every constraint in \eqref{eq:voronoi} is
+therefore strict at $p_i$, which is the definition of
+$p_i\in\operatorname{int}\mathcal{B}_k$.
+\end{proof}
+
+\begin{remark}[Sufficient, not necessary]\label{rem:basin-sufficiency}
+\eqref{eq:basin-certificate} charges the full ring radius against the clearance, so it is
+conservative: a team can be entirely inside its basin while the certificate fails, for instance
+when the ring is elongated away from the seam. What \cref{lem:basin-certificate} rules out is the
+converse direction only. This matters for interpretation, because a run in which
+\eqref{eq:basin-certificate} fails is not thereby proved unsafe; it is merely uncertified. The
+numerical study in \cref{sec:gap1-numerics} exhibits both a certified run and an uncertified run
+in which containment genuinely fails, which shows the condition is neither vacuous nor
+necessary.
+\end{remark}
+
+\subsection{Step-by-step: reduction to $N$ baseline problems}\label{sec:gap1-reduction}
+
+\begin{proposition}[Conditional multi-source reduction]\label{prop:multisource-reduction}
+Fix $k$ and assume
+\begin{enumerate}[label=(\alph*),nosep]
+    \item $n_k\geq3$ and the induced subgraph $\G[\V_k]$ is connected;
+    \item the team gain condition
+    $\gamma_k\coloneqq\alpha_k-2\beta_kn_kf_{D_{\max},k}/R_k>0$;
+    \item team-$k$ measurements are of the form $\sigma_i=f(p_i)+\eta_i$ with
+    $\abs{\eta_i}\leq\delta$ and $\abs{\sigma_i}\leq f_{D_{\max},k}$;
+    \item the certificate \eqref{eq:basin-certificate} holds for all $t\geq t_s$.
+\end{enumerate}
+Then team $k$ is an autonomous copy of the baseline system with parameters
+$(n_k,R_k,\alpha_k,\beta_k,p_s^{(k)})$, and
+\begin{equation}\label{eq:team-ultimate-bound}
+    \limsup_{t\to\infty}\norm{p_k^*(t)-p_s^{(k)}}\leq\frac{\delta}{\kappa R_k},
+\end{equation}
+or $\varepsilon_k$ of \eqref{eq:team-epsilon-scale} if only a fraction $\chi_k$ is informed.
+\end{proposition}
+
+\begin{proof}
+\emph{Step 1 (localise the robots).} By (d) and \cref{lem:basin-certificate}, every
+$p_i(t)$ with $i\in\V_k$ lies in $\operatorname{int}\mathcal{B}_k$ for $t\geq t_s$.
+
+\emph{Step 2 (the envelope collapses to one bowl).} Let $p\in\operatorname{int}\mathcal{B}_k$, so
+$\norm{p-p_s^{(k)}}<\norm{p-p_s^{(j)}}$ for all $j\neq k$. Since $\kappa>0$ is the same for all
+sources and $t\mapsto\kappa t^2$ is strictly increasing on $[0,\infty)$,
+\begin{equation*}
+    f_k(p)=\kappa\norm{p-p_s^{(k)}}^2<\kappa\norm{p-p_s^{(j)}}^2=f_j(p)
+    \quad\forall j\neq k,
+\end{equation*}
+so the minimum in \eqref{eq:multisource-field} is attained uniquely at $k$ and
+$f(p)=f_k(p)$. Equality of curvature is used here and only here; with source-dependent
+$\kappa_j$ the ordering of squared distances no longer implies the ordering of field values and
+the step fails.
+
+\emph{Step 3 (measurements become single-source measurements).} Combining Steps 1 and 2, for
+$i\in\V_k$ and $t\geq t_s$,
+\begin{equation*}
+    \sigma_i=f(p_i)+\eta_i=f_k(p_i)+\eta_i=\kappa\norm{p_i-p_s^{(k)}}^2+\eta_i,
+\end{equation*}
+which is exactly the measurement model of \cref{fact:localisation} for a single source at
+$p_s^{(k)}$.
+
+\emph{Step 4 (the dynamics decouple).} Robot $i\in\V_k$ uses
+$\mathcal{N}_i\cap\V_k$ in \eqref{eq:baseline-controller}, so the consensus term involves only
+team-$k$ states, and by Step 3 the measurement term involves only $p_i$ and $p_s^{(k)}$. Hence
+$\dot p_i$ for $i\in\V_k$ is a function of $\{p_j\}_{j\in\V_k}$ alone: the team-$k$ closed loop
+is autonomous and identical in form to \eqref{eq:baseline-controller}.
+
+\emph{Step 5 (formation).} Condition (a) supplies connectivity and $n_k\geq3$, condition (c)
+supplies the uniform measurement bound, and condition (b) is \eqref{eq:gain-condition} for the
+team parameters. \cref{fact:formation} therefore applies to team $k$ and gives exact formation
+after a finite time $T_{f,k}\leq\sqrt2\,n_k\sqrt{V_{f,k}(t_s)}/\gamma_k$.
+
+\emph{Step 6 (localisation).} After $T_{f,k}$ the hypotheses of \cref{fact:localisation} hold
+with $(n_k,R_k,\beta_k,p_s^{(k)})$, giving
+$\dot e_k=-2\beta_k\kappa e_k+d_{\eta,k}$ with
+$\norm{d_{\eta,k}}\leq2\beta_k\delta/R_k$ and therefore
+$\limsup_t\norm{e_k}\leq\delta/(\kappa R_k)$, which is \eqref{eq:team-ultimate-bound}. Under
+partial information, \cref{fact:epsilon} and \cref{lem:team-scaling} replace this by
+$\varepsilon_k$.
+\end{proof}
+
+\begin{remark}[Why the proposition is conditional, and what is missing]\label{rem:gap1-conditional}
+Hypothesis (d) is an assumption about the closed loop, not a consequence of it. The difficulty is
+visible in the order of the proof: Step 5 establishes that $q_k(t)\to0$ in finite time, but
+\eqref{eq:basin-certificate} needs $q_k$ to be small \emph{already}, over
+$[t_s,T_{f,k}]$, in order to license Step 3. The two are not circular only because (d) is
+assumed. Closing this loop requires either a certified bound on the post-split formation
+transient $q_k$ on $[t_s,T_{f,k}]$, or a controller that keeps robots inside their basin during
+the transient by construction. Neither is provided by the baseline controller, so
+\cref{prop:multisource-reduction} should be read as a decomposition theorem with a run-time
+checkable hypothesis, and \eqref{eq:basin-certificate} should be logged for every run rather than
+assumed.
+\end{remark}
+
+\subsection{Numerical verification for Gap 1}\label{sec:gap1-numerics}
+
+\paragraph{Check 1: cancellation of $n_k$.}
+$\varepsilon_k$ was evaluated from the unsimplified expression of Step 1 of
+\cref{lem:team-scaling}, for $n_k=3,\ldots,31$ at four fixed fractions
+$\chi_k\in\{0.5,0.7,0.9,1.0\}$, with $\delta=0.05$, $\kappa=1$, $R_k=1$. Since
+\eqref{eq:team-epsilon-scale} predicts no $n_k$ dependence, the test statistic is the relative
+spread across $n_k$ at fixed $\chi_k$.
+
+\begin{center}
+\begin{longtable}{@{}p{0.34\linewidth}p{0.26\linewidth}p{0.30\linewidth}@{}}
+\toprule
+Quantity & Predicted & Measured \\
+\midrule
+\endhead
+Relative spread of $\varepsilon_k$ over $n_k$ & $0$ (exact cancellation) & $5.6\times10^{-16}$ \\
+$\varepsilon_k$ at $\chi_k=1$ & $\delta/(\kappa R_k)=0.05$ & $0.05$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+The spread is at the level of double-precision rounding, so the cancellation in Steps 3--4 is
+exact rather than approximate. The practical reading is the one in
+\cref{rem:team-sizing}: a $12$-robot, $3$-source split cannot beat a $9$-robot, $3$-source split
+on asymptotic accuracy at equal $(\chi_k,R_k)$; any observed advantage must come from transients
+or from robustness, not from \eqref{eq:team-epsilon-scale}.
+
+\paragraph{Check 2: positivity of the denominator.}
+The factor $2\pi n_{\mathcal X}-n\abs{\sin(2\pi n_{\mathcal X}/n)}$ of \cref{lem:denominator} was
+swept over all integer pairs with $3\leq n\leq60$, $1\leq n_{\mathcal X}\leq n$. The minimum is
+$1.148\times10^{-2}$, attained at $(n,n_{\mathcal X})=(60,1)$, and no sign change occurs anywhere
+on the grid. Separately,
+$\max_{x\in[0,2\pi]}\left(\abs{\sin x}-x\right)=0$ to machine precision, confirming the
+inequality used in the proof. The worst case is a single informed robot in a large team, which is
+also where the bound is least useful: $\varepsilon$ is then large, but it is finite.
+
+\paragraph{Check 3: the containment certificate.}
+Because \eqref{eq:basin-certificate} is sufficient and not necessary
+(\cref{rem:basin-sufficiency}), a single passing run proves nothing. Two two-source
+configurations were run with $R=1$, and both the certificate margin
+$d_k-\left(\norm{p_k^*-p_s^{(k)}}+R_k+q_k\right)$ and the ground-truth Voronoi margin
+$m_k\coloneqq\min_{i\in\V_k}\min_{j\neq k}\left(\norm{p_i-p_s^{(j)}}-\norm{p_i-p_s^{(k)}}\right)$
+were logged, the latter being positive exactly when containment holds.
+
+\begin{center}
+\begin{longtable}{@{}p{0.24\linewidth}p{0.16\linewidth}p{0.20\linewidth}p{0.16\linewidth}p{0.16\linewidth}@{}}
+\toprule
+Configuration & $d_k$ & Certificate & $\min_tm_k$ & Contained \\
+\midrule
+\endhead
+Sources at $x=\pm4$ & $4.00$ & holds & $+4.90$ & yes \\
+Sources at $x=\pm1.35$ & $1.35$ & fails & $-0.049$ & no \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+In the separated case the certificate holds and containment holds, as the lemma requires. In the
+tight case the ring radius $R=1$ alone consumes most of the clearance $d_k=1.35$, the certificate
+fails, and containment is in fact lost during the transient. The lemma is never violated in the
+direction it claims, and the second row shows that seam crossing is a real failure mode rather
+than a theoretical worry. This is the empirical basis for the recommendation in
+\cref{rem:gap1-conditional} to log \eqref{eq:basin-certificate} per run.
+
+\section{Gap 2: a moving source}\label{sec:gap2}
+\NotationContext{moving}
+
+\subsection{Setting}\label{sec:gap2-setting}
+
+Let the source follow an absolutely continuous trajectory $p_s(t)$ with
+\begin{equation}\label{eq:speed-bound}
+    \norm{\dot p_s(t)}\leq v_{\max}\quad\text{for almost every }t,
+\end{equation}
+and let the field be the moving bowl $f(p,t)=\kappa\norm{p-p_s(t)}^2$. Measurements are
+$\sigma_i=f(p_i,t)+\eta_i$ with $\abs{\eta_i}\leq\delta$, and all robots are informed unless
+stated otherwise. Write $e(t)=p^*(t)-p_s(t)$ and $\lambda=2\beta\kappa$.
+
+\subsection{Step-by-step: source motion does not affect formation}\label{sec:gap2-formation}
+
+The first thing to establish is that \cref{fact:formation} survives unchanged. This is not
+obvious, because the measurement $\sigma_i$ now depends on time through $p_s(t)$.
+
+\begin{lemma}[Formation is insensitive to source velocity]\label{lem:formation-invariance}
+Assume $\G$ connected, $n\geq3$, and $\abs{\sigma_i(t)}\leq f_{D_{\max}}$ for all $i,t$. If
+$\gamma=\alpha-2\beta nf_{D_{\max}}/R>0$, then $V_f(t)=0$ for all
+$t\geq T_f\leq\sqrt2\,n\sqrt{V_f(0)}/\gamma$, and neither $T_f$ nor the bound depends on
+$\dot p_s$.
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1 (shifted states move with the robots).} The slot offsets $R\phi_i$ are constant, so
+$\dot z_i=\dot p_i=u_i$.
+
+\emph{Step 2 (differentiate $V_f$).} With $\bar z=n^{-1}\sum_jz_j$ and $q_i=z_i-\bar z$,
+\begin{equation*}
+    \dot V_f=\sum_iq_i^{\top}\dot q_i
+    =\sum_iq_i^{\top}\left(\dot z_i-\dot{\bar z}\right)
+    =\sum_iq_i^{\top}\dot z_i-\Big(\underbrace{\sum_iq_i}_{=0}\Big)^{\!\top}\dot{\bar z}
+    =\sum_iq_i^{\top}u_i.
+\end{equation*}
+
+\emph{Step 3 (insert the controller).} Substituting \eqref{eq:baseline-controller},
+\begin{equation*}
+    \dot V_f=\alpha\sum_iq_i^{\top}\sum_{j\in\mathcal{N}_i}\sgn\!\left(z_j-z_i\right)
+    -\frac{2\beta}{R}\sum_i\sigma_i\,q_i^{\top}\phi_i.
+\end{equation*}
+
+\emph{Step 4 (the consensus term dissipates).} By the first identity of \cref{fact:sign} the
+first sum equals $-S(z)$, so that term contributes $-\alpha S(z)$.
+
+\emph{Step 5 (bound the measurement term).} Using $\abs{\sigma_i}\leq f_{D_{\max}}$,
+$\norm{\phi_i}=1$, Cauchy--Schwarz, and then $Q(z)\leq nS(z)$ from \cref{fact:sign},
+\begin{equation*}
+    \abs*{\frac{2\beta}{R}\sum_i\sigma_iq_i^{\top}\phi_i}
+    \leq\frac{2\beta f_{D_{\max}}}{R}\sum_i\norm{q_i}
+    =\frac{2\beta f_{D_{\max}}}{R}Q(z)
+    \leq\frac{2\beta nf_{D_{\max}}}{R}S(z).
+\end{equation*}
+This is the only place where $\sigma_i$ enters, and only its magnitude bound is used. Whether the
+bowl is stationary or moving is irrelevant, which is the substance of the lemma.
+
+\emph{Step 6 (combine).} Steps 4 and 5 give
+\begin{equation}\label{eq:vf-decrease}
+    \dot V_f\leq-\left(\alpha-\frac{2\beta nf_{D_{\max}}}{R}\right)S(z)=-\gamma S(z).
+\end{equation}
+
+\emph{Step 7 (finite-time convergence).} By the third identity of \cref{fact:sign},
+$S(z)\geq\sqrt{2V_f}/n$, so $\dot V_f\leq-\gamma\sqrt{2V_f}/n$. Where $V_f>0$, put
+$W\coloneqq\sqrt{V_f}$; then
+\begin{equation*}
+    \dot W=\frac{\dot V_f}{2\sqrt{V_f}}
+    \leq-\frac{\gamma\sqrt2\sqrt{V_f}}{2n\sqrt{V_f}}
+    =-\frac{\gamma}{\sqrt2\,n}.
+\end{equation*}
+Integrating, $W(t)\leq W(0)-\gamma t/(\sqrt2\,n)$, so $W$ reaches zero no later than
+$T_f=\sqrt2\,n\,W(0)/\gamma=\sqrt2\,n\sqrt{V_f(0)}/\gamma$, and $V_f\equiv0$ afterwards because
+$\dot V_f\leq0$. No step involved $\dot p_s$.
+\end{proof}
+
+\subsection{Step-by-step: the centroid error dynamics}\label{sec:gap2-dynamics}
+
+\begin{lemma}[Error dynamics under source motion]\label{lem:moving-error-dynamics}
+For $t\geq T_f$, with all robots informed,
+\begin{equation}\label{eq:moving-error-dynamics}
+    \dot e=-\lambda e+d_\eta-\dot p_s,
+    \qquad
+    \lambda=2\beta\kappa,
+    \qquad
+    d_\eta=-\frac{2\beta}{nR}\sum_i\eta_i\phi_i,
+    \qquad
+    \norm{d_\eta}\leq\frac{2\beta\delta}{R}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1 (average the controller).} Since $p^*=n^{-1}\sum_ip_i$,
+\begin{equation*}
+    \dot p^*=\frac1n\sum_iu_i
+    =\frac{\alpha}{n}\sum_i\sum_{j\in\mathcal{N}_i}\sgn\!\left(z_j-z_i\right)
+    -\frac{2\beta}{nR}\sum_i\sigma_i\phi_i.
+\end{equation*}
+
+\emph{Step 2 (the consensus term averages to zero).} The double sum ranges over ordered pairs
+$(i,j)$ with $\{i,j\}\in\E$. Each undirected edge contributes both
+$\sgn(z_j-z_i)$ and $\sgn(z_i-z_j)$, and $\sgn$ is odd componentwise, so the two cancel. Hence
+the first term vanishes exactly, for any graph and any states.
+
+\emph{Step 3 (exact formation).} For $t\geq T_f$, \cref{lem:formation-invariance} gives $q_i=0$,
+i.e.\ $z_i=\bar z$ for all $i$, which means $p_i=p^*+R\phi_i$.
+
+\emph{Step 4 (expand the measurement).} Write $p_i-p_s=e+R\phi_i$. Then
+\begin{align*}
+    f(p_i,t)&=\kappa\norm{e+R\phi_i}^2
+    =\kappa\left(\norm{e}^2+2Re^{\top}\phi_i+R^2\norm{\phi_i}^2\right)\\
+    &=\kappa\norm{e}^2+2\kappa Re^{\top}\phi_i+\kappa R^2 .
+\end{align*}
+
+\emph{Step 5 (project onto the slot directions).} Multiply by $\phi_i$ and sum, using
+\cref{fact:moments}:
+\begin{equation*}
+    \sum_if(p_i,t)\phi_i
+    =\kappa\norm{e}^2\underbrace{\sum_i\phi_i}_{=0}
+    +2\kappa R\underbrace{\left(\sum_i\phi_i\phi_i^{\top}\right)}_{=\frac n2I_2}e
+    +\kappa R^2\underbrace{\sum_i\phi_i}_{=0}
+    =\kappa nRe.
+\end{equation*}
+The two constant-in-$i$ terms are annihilated by the first moment identity; only the term linear
+in $e$ survives, and it survives \emph{exactly}, with no truncation. This is why the quadratic
+bowl gives an unbiased centroid feedback.
+
+\emph{Step 6 (add noise).} With $\sigma_i=f(p_i,t)+\eta_i$,
+$\sum_i\sigma_i\phi_i=\kappa nRe+\sum_i\eta_i\phi_i$, so from Step 1
+\begin{equation*}
+    \dot p^*=-\frac{2\beta}{nR}\left(\kappa nRe+\sum_i\eta_i\phi_i\right)
+    =-2\beta\kappa e+d_\eta .
+\end{equation*}
+
+\emph{Step 7 (differentiate the error).} $e=p^*-p_s$ gives
+$\dot e=\dot p^*-\dot p_s=-\lambda e+d_\eta-\dot p_s$.
+
+\emph{Step 8 (bound the noise term).} By the triangle inequality,
+$\norm{d_\eta}\leq\frac{2\beta}{nR}\sum_i\abs{\eta_i}\norm{\phi_i}\leq\frac{2\beta}{nR}\cdot n\delta
+=\frac{2\beta\delta}{R}$.
+\end{proof}
+
+\begin{remark}[The structural point]\label{rem:moving-structure}
+Comparing \eqref{eq:moving-error-dynamics} with \eqref{eq:baseline-error-dynamics}, source motion
+enters the error dynamics as an additive disturbance $-\dot p_s$ on an otherwise unchanged
+exponentially stable linear system, and it does not enter the formation subsystem at all
+(\cref{lem:formation-invariance}). This is the whole reason Gap 2 admits a clean answer: the
+baseline is input-to-state stable with respect to that channel, so no redesign is needed to get a
+bound, only to get a \emph{small} bound.
+\end{remark}
+
+\subsection{Step-by-step: the ISS bound}\label{sec:gap2-iss}
+
+\begin{theorem}[Ultimate bound under bounded source motion]\label{thm:moving-iss}
+Under \eqref{eq:speed-bound} and the hypotheses of \cref{lem:moving-error-dynamics}, for all
+$t\geq T_f$
+\begin{equation}\label{eq:moving-transient}
+    \norm{e(t)}\leq e^{-\lambda(t-T_f)}\norm{e(T_f)}
+    +\left(\frac{\delta}{\kappa R}+\frac{v_{\max}}{2\beta\kappa}\right)
+    \left(1-e^{-\lambda(t-T_f)}\right),
+\end{equation}
+and therefore
+\begin{equation}\label{eq:moving-ultimate-bound}
+    \limsup_{t\to\infty}\norm{e(t)}
+    \leq\frac{\delta}{\kappa R}+\frac{v_{\max}}{2\beta\kappa}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (collect the disturbance).} Write \eqref{eq:moving-error-dynamics} as
+$\dot e=-\lambda e+w$ with $w\coloneqq d_\eta-\dot p_s$. By \eqref{eq:speed-bound} and Step 8 of
+\cref{lem:moving-error-dynamics},
+\begin{equation}\label{eq:disturbance-bound}
+    \norm{w(t)}\leq\frac{2\beta\delta}{R}+v_{\max}\eqqcolon c .
+\end{equation}
+
+\emph{Step 2 (a differential inequality for the norm).} Let $r(t)\coloneqq\norm{e(t)}$. Where
+$r>0$, $r$ is differentiable with $\dot r=e^{\top}\dot e/\norm{e}$, so
+\begin{equation*}
+    \dot r=\frac{e^{\top}\left(-\lambda e+w\right)}{\norm{e}}
+    =-\lambda r+\frac{e^{\top}w}{\norm{e}}
+    \leq-\lambda r+\norm{w}
+    \leq-\lambda r+c,
+\end{equation*}
+using Cauchy--Schwarz and \eqref{eq:disturbance-bound}.
+
+\emph{Step 3 (handle $r=0$).} At a time where $e=0$ the map $r$ need not be differentiable, but
+its upper right Dini derivative satisfies
+$D^+r\leq\norm{\dot e}=\norm{w}\leq c=-\lambda\cdot0+c$. Hence
+\begin{equation}\label{eq:dini}
+    D^+r(t)\leq-\lambda r(t)+c
+\end{equation}
+holds for all $t\geq T_f$ without exception, and $r$ is locally Lipschitz, so the comparison
+principle applies to \eqref{eq:dini}.
+
+\emph{Step 4 (integrate the comparison system).} Let $\bar r$ solve
+$\dot{\bar r}=-\lambda\bar r+c$, $\bar r(T_f)=r(T_f)$. Multiplying by $e^{\lambda t}$,
+$\frac{d}{dt}\left(e^{\lambda t}\bar r\right)=ce^{\lambda t}$; integrating from $T_f$ to $t$,
+\begin{equation*}
+    e^{\lambda t}\bar r(t)-e^{\lambda T_f}r(T_f)
+    =\frac{c}{\lambda}\left(e^{\lambda t}-e^{\lambda T_f}\right),
+\end{equation*}
+and multiplying by $e^{-\lambda t}$,
+\begin{equation}\label{eq:comparison-solution}
+    \bar r(t)=e^{-\lambda(t-T_f)}r(T_f)
+    +\frac{c}{\lambda}\left(1-e^{-\lambda(t-T_f)}\right).
+\end{equation}
+By comparison, $r(t)\leq\bar r(t)$ for $t\geq T_f$.
+
+\emph{Step 5 (evaluate $c/\lambda$).} This is where the two disturbance sources separate:
+\begin{equation}\label{eq:c-over-lambda}
+    \frac{c}{\lambda}
+    =\frac{2\beta\delta/R+v_{\max}}{2\beta\kappa}
+    =\frac{2\beta\delta}{2\beta\kappa R}+\frac{v_{\max}}{2\beta\kappa}
+    =\frac{\delta}{\kappa R}+\frac{v_{\max}}{2\beta\kappa}.
+\end{equation}
+The first term is exactly the static radius of \cref{fact:localisation}; the second is the price
+of motion. Note that $\beta$ cancels from the noise term but not from the motion term, so
+increasing $\beta$ shrinks the motion penalty without touching the noise floor.
+
+\emph{Step 6 (conclude).} Substituting \eqref{eq:c-over-lambda} into
+\eqref{eq:comparison-solution} gives \eqref{eq:moving-transient}, and letting $t\to\infty$ with
+$e^{-\lambda(t-T_f)}\to0$ gives \eqref{eq:moving-ultimate-bound}.
+\end{proof}
+
+\subsection{Step-by-step: the exact constant-velocity lag}\label{sec:gap2-lag}
+
+\eqref{eq:moving-ultimate-bound} is an inequality on a norm, so it cannot be falsified by a
+single trajectory. The following corollary is an equality on a vector, and is therefore the
+sharper test.
+
+\begin{corollary}[Constant-velocity steady lag]\label{cor:constant-velocity}
+Let $\dot p_s\equiv v$ be constant and $\eta_i\equiv0$. Then for $t\geq T_f$
+\begin{equation}\label{eq:constant-velocity-solution}
+    e(t)=e^{-\lambda(t-T_f)}e(T_f)
+    -\frac{v}{\lambda}\left(1-e^{-\lambda(t-T_f)}\right),
+\end{equation}
+so the error converges to the constant vector
+\begin{equation}\label{eq:constant-velocity-lag}
+    e_\infty=-\frac{v}{\lambda}=-\frac{v}{2\beta\kappa}.
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+\emph{Step 1 (specialise the dynamics).} With $\eta_i\equiv0$, Step 6 of
+\cref{lem:moving-error-dynamics} gives $d_\eta=0$, so \eqref{eq:moving-error-dynamics} becomes
+the linear time-invariant system $\dot e=-\lambda e-v$ with constant input.
+
+\emph{Step 2 (integrating factor).} Because $\lambda$ is constant,
+\begin{equation*}
+    \frac{d}{dt}\left(e^{\lambda t}e(t)\right)
+    =e^{\lambda t}\left(\dot e+\lambda e\right)
+    =-e^{\lambda t}v .
+\end{equation*}
+
+\emph{Step 3 (integrate componentwise).} Integrating from $T_f$ to $t$, and using that $v$ is
+constant,
+\begin{equation*}
+    e^{\lambda t}e(t)-e^{\lambda T_f}e(T_f)
+    =-v\int_{T_f}^te^{\lambda s}\,ds
+    =-\frac{v}{\lambda}\left(e^{\lambda t}-e^{\lambda T_f}\right).
+\end{equation*}
+
+\emph{Step 4 (solve).} Multiplying by $e^{-\lambda t}$ yields
+\eqref{eq:constant-velocity-solution}.
+
+\emph{Step 5 (limit).} As $t\to\infty$ the factor $e^{-\lambda(t-T_f)}$ vanishes since
+$\lambda=2\beta\kappa>0$, leaving $e(t)\to-v/\lambda$, which is
+\eqref{eq:constant-velocity-lag}.
+
+\emph{Step 6 (consistency).} Taking norms,
+$\norm{e_\infty}=\norm{v}/(2\beta\kappa)\leq v_{\max}/(2\beta\kappa)$, so
+\eqref{eq:constant-velocity-lag} saturates the motion term of
+\eqref{eq:moving-ultimate-bound} while contributing nothing to the noise term, as expected for
+$\delta=0$. The bound of \cref{thm:moving-iss} is therefore tight in this regime.
+\end{proof}
+
+\begin{remark}[Direction, not just magnitude]\label{rem:lag-direction}
+\eqref{eq:constant-velocity-lag} states that the formation trails the source along
+$-v$ exactly, with gain $1/(2\beta\kappa)$. It is a two-component prediction, so it fixes both
+the magnitude and the direction of the steady error. Any implementation error that rotates the
+effective feedback, such as a slot-assignment mismatch or an inconsistent $\phi_i$ ordering, will
+break the direction while possibly preserving the magnitude, which makes this the most
+informative single test for Gap 2.
+\end{remark}
+
+\subsection{Partial information and velocity feedforward}\label{sec:gap2-partial}
+
+Two extensions follow with no new machinery.
+
+\paragraph{Partial information.}
+If only a guaranteed fraction of robots is informed, Step 5 of
+\cref{lem:moving-error-dynamics} no longer gives the exact identity $\sum_i\sigma_i\phi_i=\kappa nRe$
+and \cref{fact:epsilon} must be used in place of \cref{fact:localisation}. The comparison
+argument of \cref{thm:moving-iss} is unchanged in structure, and yields
+\begin{equation}\label{eq:moving-partial-bound}
+    \limsup_{t\to\infty}\norm{e(t)}
+    \leq\varepsilon\!\left(\underline n_{\mathcal X}\right)+\frac{v_{\max}}{\lambda_{\mathcal X}},
+\end{equation}
+where $\underline n_{\mathcal X}$ is a lower bound on the informed count and
+$\lambda_{\mathcal X}$ is the corresponding contraction rate. This is conditional in a way
+\eqref{eq:moving-ultimate-bound} is not: source motion changes which robots are within sensing
+range, so $\underline n_{\mathcal X}$ is itself a closed-loop quantity and must be verified, not
+assumed.
+
+\paragraph{Feedforward.}
+Suppose an estimate $\hat v(t)$ of $\dot p_s$ is broadcast and every robot applies
+$u_i^{\mathrm{ff}}=u_i+\hat v(t)$. Two consequences follow immediately.
+\begin{enumerate}[label=(\roman*),nosep]
+    \item \emph{Formation is untouched.} The added term is common to all robots, so it cancels
+    from $\dot z_i-\dot z_j$ and hence from $\dot q_i$. \cref{lem:formation-invariance} applies
+    verbatim.
+    \item \emph{The disturbance shrinks.} Averaging as in Step 1 of
+    \cref{lem:moving-error-dynamics} adds $\hat v$ to $\dot p^*$, so
+    $\dot e=-\lambda e+d_\eta+\tilde v$ with $\tilde v\coloneqq\hat v-\dot p_s$. If
+    $\norm{\tilde v}\leq\bar v$, then \cref{thm:moving-iss} applies with $v_{\max}$ replaced by
+    $\bar v$, and perfect feedforward recovers the static radius $\delta/(\kappa R)$ exactly.
+\end{enumerate}
+Supplying $\hat v$ by a distributed estimator is a separate design problem and is not solved by
+the baseline controller; time-varying gradient-free cooperative seeking under different
+structural assumptions is treated in \cite{michael2023}.
+
+\subsection{Numerical verification for Gap 2}\label{sec:gap2-numerics}
+
+\paragraph{Check 4: the vector lag.}
+A noiseless run with $n=6$, $R=1$, $\kappa=1$, $\beta=0.05$ (so $\lambda=0.1$) and
+$v=(0.08,0.04)\,\mathrm{m/s}$ was integrated to steady state, and both components of $e$ were
+compared with \eqref{eq:constant-velocity-lag}.
+
+\begin{center}
+\begin{longtable}{@{}p{0.30\linewidth}p{0.30\linewidth}p{0.30\linewidth}@{}}
+\toprule
+Quantity & Predicted & Measured \\
+\midrule
+\endhead
+$e_\infty=-v/(2\beta\kappa)$ & $(-0.800,\,-0.400)$ & $(-0.818,\,-0.410)$ \\
+Relative error on the vector & $0$ & $2.31\%$ \\
+Slope of $\norm{e_\infty}$ vs $\norm{v}$ & $1/\lambda=10$ & within $4.97\%$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Both components match, so the direction is confirmed and not merely the magnitude, which is the
+test \cref{rem:lag-direction} asks for. The residual few percent is the fixed-step integration
+error of the sign controller, which chatters about the consensus manifold at an amplitude
+proportional to the step size; the speeds above were chosen so the predicted lag is well clear of
+that floor. At smaller speeds the predicted lag and the numerical floor are comparable and the
+experiment cannot resolve \eqref{eq:constant-velocity-lag}, which is a property of the
+discretisation rather than of \cref{cor:constant-velocity}.
+
+\paragraph{Check 5: the affine and inverse dependencies.}
+Sweeping $\norm{v}$ at fixed $\beta\kappa$ reproduces the predicted slope $1/\lambda$ to within
+$5\%$, confirming that the steady lag is affine in speed and inverse in $\beta\kappa$, which is
+the design trade-off identified in Step 5 of \cref{thm:moving-iss}.
+
+\section{Gap 3: escaping local extrema and certifying the global maximum}\label{sec:gap3}
+\NotationContext{field}
+
+\subsection{Setting}\label{sec:gap3-setting}
+
+Let $\Omega\subset\R^2$ be compact and $f\in C^3(\Omega)$ be a nonconvex field to be maximised,
+with isolated local maximisers $\ell_1,\ldots,\ell_P$ ordered so that
+$f(\ell_1)>f(\ell_2)\geq\cdots\geq f(\ell_P)$, global value $f^\star=f(\ell_1)$, and value gap
+\begin{equation}\label{eq:value-gap}
+    \Delta\coloneqq f(\ell_1)-f(\ell_2)>0.
+\end{equation}
+Let $L_f$ be a Lipschitz constant of $f$ on $\Omega$ and $L_H$ one of $\nabla^2f$, so
+\begin{equation}\label{eq:hessian-lipschitz}
+    \norm{\nabla^2f(x)-\nabla^2f(y)}\leq L_H\norm{x-y}
+    \quad\forall x,y\in\Omega .
+\end{equation}
+For maximisation the measurement term in \eqref{eq:baseline-controller} carries the opposite
+sign, and the ring of radius $R$ around the centroid supplies the circular gradient estimate
+\begin{equation}\label{eq:circular-estimator}
+    g_R(p)\coloneqq\frac{2}{nR}\sum_{i=1}^nf\!\left(p+R\phi_i\right)\phi_i .
+\end{equation}
+
+\subsection{Step-by-step: the estimator bias is $O(R^2)$, but only for $n\geq4$}\label{sec:gap3-bias}
+
+\begin{lemma}[Circular gradient estimator bias]\label{lem:estimator-bias}
+Let $f\in C^3$ satisfy \eqref{eq:hessian-lipschitz}, let $n\geq4$, and let
+$B(p,R)\subset\Omega$. Then
+\begin{equation}\label{eq:estimator-bias}
+    g_R(p)=\nabla f(p)+r_R(p),
+    \qquad
+    \norm{r_R(p)}\leq\frac{L_HR^2}{3}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1 (Taylor with integral remainder).} Fix $h\in\R^2$ with $p+sh\in\Omega$ for
+$s\in[0,1]$. The exact second-order Taylor formula is
+\begin{equation}\label{eq:taylor-exact}
+    f(p+h)=f(p)+\nabla f(p)^{\top}h
+    +\int_0^1(1-s)\,h^{\top}\nabla^2f(p+sh)\,h\,ds .
+\end{equation}
+
+\emph{Step 2 (split off the frozen Hessian).} Since $\int_0^1(1-s)\,ds=\frac12$, subtracting and
+adding $\frac12h^{\top}\nabla^2f(p)h$ inside \eqref{eq:taylor-exact} gives
+\begin{equation}\label{eq:taylor-split}
+    f(p+h)=f(p)+\nabla f(p)^{\top}h+\frac12h^{\top}\nabla^2f(p)h+\rho(h),
+\end{equation}
+\begin{equation}\label{eq:remainder-def}
+    \rho(h)=\int_0^1(1-s)\,h^{\top}
+    \left[\nabla^2f(p+sh)-\nabla^2f(p)\right]h\,ds .
+\end{equation}
+
+\emph{Step 3 (bound the remainder).} Applying \eqref{eq:hessian-lipschitz} to the bracket with
+$x=p+sh$, $y=p$, so that $\norm{x-y}=s\norm{h}$,
+\begin{equation*}
+    \abs{\rho(h)}
+    \leq\int_0^1(1-s)\,L_Hs\norm{h}\cdot\norm{h}^2\,ds
+    =L_H\norm{h}^3\int_0^1s(1-s)\,ds
+    =\frac{L_H\norm{h}^3}{6},
+\end{equation*}
+using $\int_0^1s(1-s)\,ds=\frac12-\frac13=\frac16$.
+
+\emph{Step 4 (insert into the estimator).} Put $h=R\phi_i$, so $\norm{h}=R$, and write
+$\rho_i\coloneqq\rho(R\phi_i)$. Substituting \eqref{eq:taylor-split} into
+\eqref{eq:circular-estimator} and separating the four terms,
+\begin{align*}
+    g_R(p)=\frac{2}{nR}\Bigg[
+    &f(p)\sum_i\phi_i
+    +R\sum_i\left(\nabla f(p)^{\top}\phi_i\right)\phi_i\\
+    &+\frac{R^2}{2}\sum_i\left(\phi_i^{\top}\nabla^2f(p)\phi_i\right)\phi_i
+    +\sum_i\rho_i\phi_i\Bigg].
+\end{align*}
+
+\emph{Step 5 (kill the zeroth-order term).} $\sum_i\phi_i=0$ by \cref{fact:moments}, so the
+first bracketed term vanishes. This is what makes the estimator insensitive to an unknown
+additive offset in the field.
+
+\emph{Step 6 (recover the gradient exactly).} Since
+$\left(\nabla f^{\top}\phi_i\right)\phi_i=\phi_i\phi_i^{\top}\nabla f$,
+\begin{equation*}
+    \frac{2}{nR}\cdot R\sum_i\phi_i\phi_i^{\top}\nabla f(p)
+    =\frac{2}{n}\cdot\frac n2I_2\,\nabla f(p)
+    =\nabla f(p),
+\end{equation*}
+using the second identity of \cref{fact:moments}. The gradient is reproduced with no constant to
+tune.
+
+\emph{Step 7 (kill the curvature term).} Here $n\geq4$ is used: by \eqref{eq:third-moment} with
+$H=\nabla^2f(p)$ symmetric, $\sum_i\left(\phi_i^{\top}H\phi_i\right)\phi_i=0$, so the third term
+vanishes identically. Note that it is the \emph{third} moment of the slot directions that is
+required, not the second, which is why $n=3$ is excluded.
+
+\emph{Step 8 (bound what is left).} The only surviving term is
+$r_R(p)=\frac{2}{nR}\sum_i\rho_i\phi_i$, and by Step 3 with $\norm{h}=R$,
+\begin{equation*}
+    \norm{r_R(p)}
+    \leq\frac{2}{nR}\sum_i\abs{\rho_i}\norm{\phi_i}
+    \leq\frac{2}{nR}\cdot n\cdot\frac{L_HR^3}{6}
+    =\frac{L_HR^2}{3}. \qedhere
+\end{equation*}
+\end{proof}
+
+The exclusion of $n=3$ is not an artefact of the proof. The next lemma computes the leading term
+that survives, which turns the $n=3$ case from a gap in the argument into a quantitative
+prediction.
+
+\begin{lemma}[Exact leading bias at $n=3$]\label{lem:n3-bias}
+Let $n=3$ and write $H\coloneqq\nabla^2f(p)=\begin{psmallmatrix}H_{11}&H_{12}\\H_{12}&H_{22}\end{psmallmatrix}$.
+Then
+\begin{equation}\label{eq:n3-bias-vector}
+    r_R(p)=\frac R4
+    \begin{pmatrix}H_{11}-H_{22}\\-2H_{12}\end{pmatrix}
+    +O\!\left(R^2\right),
+    \qquad
+    \norm{r_R(p)}=\frac R4\sqrt{\left(H_{11}-H_{22}\right)^2+4H_{12}^2}+O\!\left(R^2\right).
+\end{equation}
+In particular the bias is $O(R)$ rather than $O(R^2)$, and it vanishes to first order exactly
+when $H\propto I_2$.
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1 (reduce the quadratic form).} With $\phi=(\cos\theta,\sin\theta)$ and the
+double-angle identities $\cos^2\theta=\frac{1+\cos2\theta}{2}$,
+$\sin^2\theta=\frac{1-\cos2\theta}{2}$, $2\cos\theta\sin\theta=\sin2\theta$,
+\begin{equation*}
+    \phi^{\top}H\phi
+    =H_{11}\cos^2\theta+2H_{12}\cos\theta\sin\theta+H_{22}\sin^2\theta
+    =\frac{H_{11}+H_{22}}{2}
+    +\frac{H_{11}-H_{22}}{2}\cos2\theta
+    +H_{12}\sin2\theta .
+\end{equation*}
+
+\emph{Step 2 (the isotropic part drops out).} The first term is independent of $i$, so it
+multiplies $\sum_i\phi_i=0$ and contributes nothing.
+
+\emph{Step 3 (evaluate the $\cos2\theta$ moment).} For $\theta_i\in\{0,2\pi/3,4\pi/3\}$ we have
+$3\theta_i\in\{0,2\pi,4\pi\}$, hence $\sum_i\cos3\theta_i=3$ and $\sum_i\sin3\theta_i=0$, while
+$\sum_i\cos\theta_i=\sum_i\sin\theta_i=0$. Using
+$\cos2\theta\cos\theta=\frac12(\cos3\theta+\cos\theta)$ and
+$\cos2\theta\sin\theta=\frac12(\sin3\theta-\sin\theta)$,
+\begin{equation*}
+    \sum_i\cos2\theta_i\,\phi_i
+    =\left(\tfrac12(3+0),\ \tfrac12(0-0)\right)
+    =\left(\tfrac32,\,0\right).
+\end{equation*}
+
+\emph{Step 4 (evaluate the $\sin2\theta$ moment).} Using
+$\sin2\theta\cos\theta=\frac12(\sin3\theta+\sin\theta)$ and
+$\sin2\theta\sin\theta=\frac12(\cos\theta-\cos3\theta)$,
+\begin{equation*}
+    \sum_i\sin2\theta_i\,\phi_i
+    =\left(\tfrac12(0+0),\ \tfrac12(0-3)\right)
+    =\left(0,\,-\tfrac32\right).
+\end{equation*}
+
+\emph{Step 5 (assemble the third moment).} Combining Steps 1--4,
+\begin{equation}\label{eq:n3-third-moment}
+    \sum_{i=1}^3\left(\phi_i^{\top}H\phi_i\right)\phi_i
+    =\frac{H_{11}-H_{22}}{2}\begin{pmatrix}3/2\\0\end{pmatrix}
+    +H_{12}\begin{pmatrix}0\\-3/2\end{pmatrix}
+    =\frac34\begin{pmatrix}H_{11}-H_{22}\\-2H_{12}\end{pmatrix},
+\end{equation}
+which is nonzero unless $H_{11}=H_{22}$ and $H_{12}=0$. This is the promised failure of
+\eqref{eq:third-moment} at $n=3$.
+
+\emph{Step 6 (propagate through the estimator).} Steps 4--6 of \cref{lem:estimator-bias} are
+unchanged, so the curvature term of Step 7 now survives:
+\begin{equation*}
+    r_R(p)=\frac{2}{nR}\cdot\frac{R^2}{2}\sum_i\left(\phi_i^{\top}H\phi_i\right)\phi_i
+    +\frac{2}{nR}\sum_i\rho_i\phi_i
+    =\frac R3\cdot\frac34\begin{pmatrix}H_{11}-H_{22}\\-2H_{12}\end{pmatrix}
+    +O\!\left(R^2\right),
+\end{equation*}
+where $n=3$ was substituted and Step 8 of \cref{lem:estimator-bias} bounds the remainder by
+$L_HR^2/3$. Simplifying $\frac R3\cdot\frac34=\frac R4$ gives the first claim.
+
+\emph{Step 7 (take the norm).} $\norm{\left(a,-2b\right)}=\sqrt{a^2+4b^2}$ with
+$a=H_{11}-H_{22}$, $b=H_{12}$, giving the second claim.
+\end{proof}
+
+\begin{remark}[Design consequence]\label{rem:n3-design}
+\cref{lem:n3-bias} says a three-robot ring measures a systematic direction error whenever the
+field is anisotropically curved, and that the error shrinks only linearly in $R$. Since $R$ also
+sets the noise rejection through $\delta/(\kappa R)$, shrinking $R$ to fight the bias worsens the
+noise floor. Using $n\geq4$ removes the trade-off at its source, which is a concrete reason to
+prefer $n_k\geq4$ per team in \cref{sec:gap1} even though \cref{fact:formation} only needs
+$n_k\geq3$.
+\end{remark}
+
+\subsection{Step-by-step: no controller of this form can be globally convergent}\label{sec:gap3-trapping}
+
+\begin{proposition}[Local trapping is unavoidable and not exceptional]\label{prop:no-global-guarantee}
+Consider the ideal ascent flow obtained from \eqref{eq:circular-estimator} in the limit
+$R\to0$ with exact formation,
+\begin{equation}\label{eq:ideal-ascent}
+    \dot p^*=\beta\nabla f\!\left(p^*\right),
+    \qquad\beta>0 .
+\end{equation}
+Let $\ell$ be a local maximiser with $\nabla^2f(\ell)\prec0$ and $f(\ell)<f^\star$. Then there is
+an open set $\Omega_c\ni\ell$, of positive Lebesgue measure, that is forward invariant under
+\eqref{eq:ideal-ascent} and from which every trajectory converges to $\ell$. Consequently no
+choice of $\beta$ makes \eqref{eq:ideal-ascent} globally convergent to $\ell_1$.
+\end{proposition}
+
+\begin{proof}
+\emph{Step 1 ($\ell$ is an equilibrium).} $\nabla f(\ell)=0$ because $\ell$ is an interior local
+maximiser, so $\dot p^*=0$ there.
+
+\emph{Step 2 ($\ell$ is locally exponentially stable).} The Jacobian of
+\eqref{eq:ideal-ascent} at $\ell$ is $\beta\nabla^2f(\ell)$. As $\nabla^2f(\ell)$ is symmetric
+and negative definite, its eigenvalues are real and negative, hence so are those of
+$\beta\nabla^2f(\ell)$ for $\beta>0$. Local exponential stability follows.
+
+\emph{Step 3 ($\ell$ is an isolated critical point).} $\nabla^2f(\ell)\prec0$ is nonsingular, so
+by the inverse function theorem applied to $\nabla f$ there is a neighbourhood of $\ell$ on which
+$\nabla f$ vanishes only at $\ell$.
+
+\emph{Step 4 (a Lyapunov function).} Define $V(p)\coloneqq f(\ell)-f(p)$. Then $V(\ell)=0$ and,
+shrinking to the neighbourhood of Step 3 where $\ell$ is the unique maximiser, $V(p)>0$ for
+$p\neq\ell$. Along \eqref{eq:ideal-ascent},
+\begin{equation}\label{eq:vdot-ascent}
+    \dot V=-\nabla f(p^*)^{\top}\dot p^*
+    =-\beta\norm{\nabla f(p^*)}^2\leq0 .
+\end{equation}
+
+\emph{Step 5 (construct the invariant set).} Choose $c>0$ small enough that the connected
+component $\Omega_c$ of $\{p:V(p)<c\}$ containing $\ell$ is bounded, contained in the interior of
+$\Omega$, and contains no critical point of $f$ other than $\ell$. Such a $c$ exists by Step 3
+and continuity of $f$. By \eqref{eq:vdot-ascent}, $V$ is nonincreasing along trajectories, so
+$V(p^*(t))<c$ persists and $\Omega_c$ is forward invariant.
+
+\emph{Step 6 (convergence inside $\Omega_c$).} $\Omega_c$ is compact in closure and forward
+invariant, so LaSalle's theorem applies: every trajectory starting in $\Omega_c$ converges to the
+largest invariant subset of $\{p\in\Omega_c:\dot V=0\}$. By \eqref{eq:vdot-ascent} that set is
+$\{p\in\Omega_c:\nabla f(p)=0\}=\{\ell\}$ by the choice of $c$. Hence $p^*(t)\to\ell$.
+
+\emph{Step 7 ($\Omega_c$ is not negligible).} $V$ is continuous, so $\{V<c\}$ is open, and
+$\Omega_c$ is an open connected component of an open set containing $\ell$. A nonempty open
+subset of $\R^2$ has positive Lebesgue measure. The trapping set is therefore not a measure-zero
+pathology that could be dismissed by a genericity argument.
+
+\emph{Step 8 (conclude).} $f(\ell)<f^\star=f(\ell_1)$, so trajectories from $\Omega_c$ converge
+to a point that is not the global maximiser, for every $\beta>0$. Since $\beta$ only rescales
+time in \eqref{eq:ideal-ascent}, no gain tuning can help. Escaping $\Omega_c$ requires adding a
+mechanism that is not a function of the local gradient alone.
+\end{proof}
+
+\begin{remark}[What this does and does not say]\label{rem:trapping-scope}
+\cref{prop:no-global-guarantee} is a statement about \eqref{eq:ideal-ascent}, which is the
+$R\to0$ ideal of the circular estimator. A finite ring radius $R$ averages the field over a
+circle and can therefore step over narrow barriers, and \cref{lem:estimator-bias} quantifies how
+far the finite-$R$ flow deviates from \eqref{eq:ideal-ascent}. So the proposition does not forbid
+a finite-$R$ implementation from occasionally escaping; it forbids any \emph{guarantee} of global
+convergence based on local ascent, and it makes the standard remedies, namely restarts and
+dither, structural necessities rather than heuristics.
+\end{remark}
+
+\subsection{Step-by-step: multi-start selection identifies the global maximum}\label{sec:gap3-multistart}
+\NotationContext{multistart}
+
+Given \cref{prop:no-global-guarantee}, the practical question is not how to avoid traps but how
+to \emph{detect} that the best of several outcomes is the global one. Run $M$ independent teams,
+let $\hat\ell_k$ be the terminal centroid of team $k$, and let $\hat F_k$ be the score it
+reports, for instance a formation-averaged field value.
+
+\begin{theorem}[Correct selection under bounded errors]\label{thm:multistart}
+Assume
+\begin{enumerate}[label=(\alph*),nosep]
+    \item at least one team $k_1$ terminates near the global maximiser, in the sense that
+    $\norm{\hat\ell_{k_1}-\ell_1}\leq\varepsilon_{\mathrm{loc}}$;
+    \item every other team terminates near \emph{some} local maximiser,
+    $\norm{\hat\ell_k-\ell_{j(k)}}\leq\varepsilon_{\mathrm{loc}}$ for some index $j(k)$;
+    \item scores are accurate to $\delta_F$, i.e.\ $\abs{\hat F_k-f(\hat\ell_k)}\leq\delta_F$ for
+    all $k$;
+    \item the separation condition
+    \begin{equation}\label{eq:multistart-condition}
+        \Delta>2\left(L_f\varepsilon_{\mathrm{loc}}+\delta_F\right).
+    \end{equation}
+\end{enumerate}
+Then every maximiser of the reported scores is a team that terminated near $\ell_1$:
+\begin{equation}\label{eq:multistart-selection}
+    \argmax_{1\leq k\leq M}\hat F_k
+    \subseteq\left\{k:\norm{\hat\ell_k-\ell_1}\leq\varepsilon_{\mathrm{loc}}\right\}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (lower bound the winner's score).} By (c) applied to $k_1$,
+$\hat F_{k_1}\geq f(\hat\ell_{k_1})-\delta_F$.
+
+\emph{Step 2 (transfer to the true peak value).} $f$ is $L_f$-Lipschitz on $\Omega$, so by (a)
+\begin{equation*}
+    \abs{f(\hat\ell_{k_1})-f(\ell_1)}
+    \leq L_f\norm{\hat\ell_{k_1}-\ell_1}
+    \leq L_f\varepsilon_{\mathrm{loc}},
+\end{equation*}
+hence $f(\hat\ell_{k_1})\geq f(\ell_1)-L_f\varepsilon_{\mathrm{loc}}$.
+
+\emph{Step 3 (combine).} Chaining Steps 1 and 2,
+\begin{equation}\label{eq:multistart-lower}
+    \hat F_{k_1}\geq f(\ell_1)-L_f\varepsilon_{\mathrm{loc}}-\delta_F .
+\end{equation}
+
+\emph{Step 4 (upper bound a suboptimal team).} Let $k$ be any team with $j(k)\geq2$. By (c) and
+then (b) with the same Lipschitz argument,
+\begin{equation*}
+    \hat F_k\leq f(\hat\ell_k)+\delta_F
+    \leq f\!\left(\ell_{j(k)}\right)+L_f\varepsilon_{\mathrm{loc}}+\delta_F .
+\end{equation*}
+
+\emph{Step 5 (use the value gap).} The ordering of the maximisers and
+\eqref{eq:value-gap} give $f(\ell_{j})\leq f(\ell_2)=f(\ell_1)-\Delta$ for every $j\geq2$, so
+\begin{equation}\label{eq:multistart-upper}
+    \hat F_k\leq f(\ell_1)-\Delta+L_f\varepsilon_{\mathrm{loc}}+\delta_F .
+\end{equation}
+
+\emph{Step 6 (subtract).} Subtracting \eqref{eq:multistart-upper} from
+\eqref{eq:multistart-lower}, the common term $f(\ell_1)$ cancels:
+\begin{equation*}
+    \hat F_{k_1}-\hat F_k
+    \geq-L_f\varepsilon_{\mathrm{loc}}-\delta_F
+    +\Delta-L_f\varepsilon_{\mathrm{loc}}-\delta_F
+    =\Delta-2\left(L_f\varepsilon_{\mathrm{loc}}+\delta_F\right).
+\end{equation*}
+
+\emph{Step 7 (apply the separation condition).} By (d) the right-hand side is strictly positive,
+so $\hat F_{k_1}>\hat F_k$ for every team $k$ with $j(k)\geq2$.
+
+\emph{Step 8 (conclude).} No team that terminated near a suboptimal maximiser can attain the
+maximum of $\{\hat F_k\}$, since $k_1$ strictly beats it. Every maximiser must therefore be a
+team satisfying $\norm{\hat\ell_k-\ell_1}\leq\varepsilon_{\mathrm{loc}}$, which is
+\eqref{eq:multistart-selection}.
+\end{proof}
+
+\begin{remark}[Reading the condition]\label{rem:multistart-reading}
+\eqref{eq:multistart-condition} is the worst case in which both error sources conspire against
+the winner and in favour of the runner-up simultaneously, each at full magnitude and in the least
+favourable direction. It is sufficient, not necessary, and in practice selection succeeds well
+outside it, as \cref{sec:gap3-numerics} shows. The useful content is structural: the factor $2$
+says localisation error and score error are equally damaging, and the appearance of $L_f$ says a
+steep field tolerates less positional error, both of which are actionable when budgeting a
+run. Note also that (a) is an assumption: it is delivered by using enough restarts, and
+\cref{prop:no-global-guarantee} is exactly the statement that a single start cannot deliver it.
+\end{remark}
+
+\subsection{Dither: stated as a hypothesis, not a theorem}\label{sec:gap3-dither}
+\NotationContext{field}
+
+The second standard remedy is to add a decaying dither to the ring radius or to the centroid
+command, in the spirit of extremum seeking \cite{krsticwang2000,khong2014}. Averaging theory
+gives an asymptotic description of the resulting flow for sufficiently fast dither, but it does
+not by itself produce a global convergence certificate for a fixed dither schedule on a fixed
+multimodal field: the standard results are local around an averaged equilibrium, and matching an
+escape-time argument to a decaying amplitude schedule requires assumptions on barrier widths and
+depths that are not available here. Accordingly, dither is retained as a design hypothesis to be
+assessed empirically, and no proposition is claimed for it in this document. What
+\cref{thm:multistart} provides is independent of that choice: whatever escape mechanism is used,
+the selection step is what converts a set of local outcomes into a certified global one.
+
+\subsection{Numerical verification for Gap 3}\label{sec:gap3-numerics}
+
+The test field is a three-component Gaussian mixture on $\Omega=[-6,6]^2$ with amplitudes
+$(1.00,0.78,0.60)$, centres $(0,0)$, $(3.2,1.6)$, $(-2.8,1.9)$, and widths $(1.10,0.95,0.85)$.
+Its peak values are $(1.0009,0.7852,0.6092)$, giving the value gap
+$\Delta=0.2157$ used below.
+
+\paragraph{Check 6: the bias exponent.}
+$\norm{g_R(p)-\nabla f(p)}$ was measured at $p=(0.6,-0.4)$ over a decade of $R$ and a power law
+was fitted. \cref{lem:estimator-bias} predicts slope $2$ for $n\geq4$;
+\cref{lem:n3-bias} predicts slope $1$ for $n=3$.
+
+\begin{center}
+\begin{longtable}{@{}p{0.20\linewidth}p{0.34\linewidth}p{0.36\linewidth}@{}}
+\toprule
+$n$ & Predicted slope & Fitted slope \\
+\midrule
+\endhead
+$3$ & $1$ (\cref{lem:n3-bias}) & $1.095$ \\
+$4$ & $2$ (\cref{lem:estimator-bias}) & $1.989$ \\
+$6$ & $2$ & $1.989$ \\
+$8$ & $2$ & $1.990$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\paragraph{Check 7: the exact $n=3$ constant.}
+The slope alone does not test \eqref{eq:n3-bias-vector}, only its order. At the same $p$ the
+Hessian is $H_{11}=-0.4537$, $H_{12}=-0.1195$, $H_{22}=-0.5708$, so
+\cref{lem:n3-bias} predicts
+\begin{equation*}
+    \frac{\norm{r_R}}{R}\to\frac14\sqrt{\left(H_{11}-H_{22}\right)^2+4H_{12}^2}
+    =0.066520 .
+\end{equation*}
+
+\begin{center}
+\begin{longtable}{@{}p{0.30\linewidth}p{0.30\linewidth}p{0.30\linewidth}@{}}
+\toprule
+Quantity at $R=10^{-4}$ & Predicted & Measured \\
+\midrule
+\endhead
+Magnitude $\norm{r_R}/R$ & $0.066520$ & ratio $0.99998$ \\
+Direction of $r_R$ & $\left(H_{11}-H_{22},\,-2H_{12}\right)$ & $0.015^\circ$ error \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Both the magnitude and the direction match, and the residual grows as $O(R)$ when $R$ is
+increased, consistent with the $L_HR^2/3$ remainder of Step 6 of \cref{lem:n3-bias}. Because the
+direction is a two-component prediction determined entirely by
+\eqref{eq:n3-third-moment}, this check validates the moment computation of Steps 3--5 and not just
+the scaling that Check 6 already established.
+
+\paragraph{Check 8: how large the trapping set is.}
+The ideal ascent flow \eqref{eq:ideal-ascent} was integrated from $48\,400$ initial conditions on
+a uniform grid over $\Omega$ and each trajectory was attributed to the peak it reached.
+
+\begin{center}
+\begin{longtable}{@{}p{0.30\linewidth}p{0.24\linewidth}p{0.36\linewidth}@{}}
+\toprule
+Peak & Value & Fraction of initial conditions \\
+\midrule
+\endhead
+$\ell_1$ (global) & $1.0009$ & $39.97\%$ \\
+$\ell_2$ & $0.7852$ & $31.00\%$ \\
+$\ell_3$ & $0.6092$ & $29.02\%$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+A single start therefore fails on $60.03\%$ of initial conditions on this field. This is the
+quantitative content of Step 7 of \cref{prop:no-global-guarantee}: the trapping set is not a thin
+exceptional set but the majority of the domain, so restarts are a requirement rather than an
+optimisation.
+
+\paragraph{Check 9: the selection condition.}
+\NotationContext{multistart}
+Terminal outcomes were simulated for $M=3$ teams by perturbing true peak locations by
+$\varepsilon_{\mathrm{loc}}$ and scores by $\delta_F$, drawn adversarially in sign, over a grid of
+$(\varepsilon_{\mathrm{loc}},\delta_F)$ with $4\,000$ trials per grid point.
+
+\begin{center}
+\begin{longtable}{@{}p{0.44\linewidth}p{0.24\linewidth}p{0.22\linewidth}@{}}
+\toprule
+Region & Predicted & Measured accuracy \\
+\midrule
+\endhead
+Inside \eqref{eq:multistart-condition} & always correct & $100\%$ \\
+Widest uncertainty tested & no guarantee & $97.7\%$ \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+Selection is exact everywhere \eqref{eq:multistart-condition} holds, as \cref{thm:multistart}
+requires, and degrades only gradually outside it. This is the expected signature of a sufficient
+worst-case condition: it is never violated where it applies, and it is conservative where it does
+not, which is the point of \cref{rem:multistart-reading}.
+
+\subsection{What the verification does not establish}\label{sec:gap3-limits}
+
+Three limitations should be stated plainly, since each proof above is only as strong as its
+hypotheses.
+
+\begin{enumerate}[label=\arabic*.,nosep]
+    \item The checks confirm the \emph{predicted scalings and directions}. They do not confirm
+    that the constants $L_HR^2/3$, $\delta/(\kappa R)$ or $v_{\max}/(2\beta\kappa)$ are tight;
+    they are upper bounds derived through triangle and Cauchy--Schwarz inequalities and are
+    expected to be loose.
+    \item \cref{prop:multisource-reduction} remains conditional on
+    \eqref{eq:basin-certificate}, which the controller does not enforce
+    (\cref{rem:gap1-conditional}). No numerical experiment can convert a conditional theorem into
+    an unconditional one.
+    \item Bounds of the form $\limsup_{t\to\infty}$, as in \eqref{eq:moving-ultimate-bound}, are
+    asymptotic. A finite-horizon run showing a small tail error is supportive but strictly weaker
+    evidence than the inequality claims, and a tail \emph{mean} below the bound is weaker still
+    than a tail maximum.
+\end{enumerate}
+
+\begin{thebibliography}{9}
+
+\bibitem{du2024}
+B.~Du, K.~Qian, C.~Claudel, and D.~Sun,
+``Multi-robot cooperative source seeking of a scalar field with a sign gradient-free algorithm,''
+\emph{IEEE Transactions on Robotics}, 2024.
+
+\bibitem{cortes2004}
+J.~Cort\'es, S.~Mart\'inez, T.~Karata\c{s}, and F.~Bullo,
+``Coverage control for mobile sensing networks,''
+\emph{IEEE Transactions on Robotics and Automation}, vol.~20, no.~2, pp.~243--255, 2004.
+doi: \href{https://doi.org/10.1109/TRA.2004.824698}{10.1109/TRA.2004.824698}.
+
+\bibitem{michael2023}
+E.~Michael, C.~Manzie, T.~A.~Wood, D.~Zelazo, and I.~Shames,
+``Gradient free cooperative seeking of a moving source,''
+\emph{Automatica}, vol.~152, art.~110948, 2023.
+doi: \href{https://doi.org/10.1016/j.automatica.2023.110948}{10.1016/j.automatica.2023.110948}.
+
+\bibitem{khong2014}
+S.~Z.~Khong, Y.~Tan, C.~Manzie, and D.~Ne\v{s}i{\'c},
+``Multi-agent source seeking via discrete-time extremum seeking control,''
+\emph{Automatica}, vol.~50, no.~9, pp.~2312--2320, 2014.
+doi: \href{https://doi.org/10.1016/j.automatica.2014.06.009}{10.1016/j.automatica.2014.06.009}.
+
+\bibitem{krsticwang2000}
+M.~Krsti{\'c} and H.-H.~Wang,
+``Stability of extremum seeking feedback for general nonlinear dynamic systems,''
+\emph{Automatica}, vol.~36, no.~4, pp.~595--601, 2000.
+doi: \href{https://doi.org/10.1016/S0005-1098(99)00183-1}{10.1016/S0005-1098(99)00183-1}.
+
+\end{thebibliography}
+
+\end{document}

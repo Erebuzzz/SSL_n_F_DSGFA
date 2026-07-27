@@ -449,15 +449,15 @@ Each step should produce:
 
 ```matlab
 cd sims
-verify_theory              % all 12 checks
+verify_theory              % all 14 checks
 verify_theory baseline     % v1..v6
-verify_theory gap1         % v7, v8
+verify_theory gap1         % v7, v8, v13
 verify_theory gap2         % v9
-verify_theory gap3         % v10, v11, v12
+verify_theory gap3         % v10, v11, v12, v14
 verify_theory v10          % a single check
 ```
 
-Outputs land in `sims/outputs/verify_theory/`: one PNG per check plus `summary.json` with the verdict and the numbers behind it. Full suite runtime is about two and a half minutes.
+Outputs land in `sims/outputs/verify_theory/`: one PNG per check plus `summary.json` with the verdict and the numbers behind it. Full suite runtime is about four minutes.
 
 | ID | Claim | Outcome |
 |---|---|---|
@@ -473,6 +473,8 @@ Outputs land in `sims/outputs/verify_theory/`: one PNG per check plus `summary.j
 | V10 | Estimator bias | Fitted slopes $1.10$ at $n=3$, $1.99$ at $n\ge4$ |
 | V11 | Local trapping | Suboptimal basins cover $60\%$ of the domain |
 | V12 | Multi-start selection | $100\%$ accuracy inside the guaranteed region |
+| V13 | $\varepsilon$ denominator positivity | Positive on every $(n,n_\mathcal{X})$ pair; worst case $1.15\times10^{-2}$ |
+| V14 | Exact $n=3$ bias constant | Magnitude matches to $2\times10^{-5}$, direction to $0.015^\circ$ |
 
 ### The three checks that changed something
 
@@ -493,6 +495,14 @@ Outputs land in `sims/outputs/verify_theory/`: one PNG per check plus `summary.j
 V6 is pure algebra, so it confirms internal consistency of the imported saturation geometry without providing any independent evidence that the geometry is correct. V5 and V12 both show the bounds are loose: the observed tail error is a third of $\varepsilon_\mathrm{all}$, and multi-start selection is still $98\%$ accurate well outside the guaranteed region. Loose bounds are still correct bounds, but they should not be quoted as predictions of observed behaviour.
 
 None of this closes the conditional status of Gap 1. V8 tests the certificate; it does not prove the controller enforces it.
+
+### Two checks added by the proof write-up
+
+Writing the fully expanded proofs in `docs/research/proof_documentation.tex` surfaced two claims that the original twelve checks did not cover.
+
+**V13: the denominator positivity guard is vacuous.** The error radius $\varepsilon(n_\mathcal{X})$ carries a denominator $2\pi n_\mathcal{X} - n|\sin(2\pi n_\mathcal{X}/n)|$ that is normally protected by an explicit positivity assumption. Substituting $x = 2\pi n_\mathcal{X}/n$ rewrites it as $n(x - |\sin x|)$, which is positive for every $x>0$ because $|\sin x| \le x$. A sweep over $3 \le n \le 60$ and $1 \le n_\mathcal{X} \le n$ finds a minimum of $1.15\times10^{-2}$ at $(60,1)$, so the assumption can be dropped rather than checked. What degrades for a small informed count is the size of $\varepsilon$, not its existence.
+
+**V14: the $n=3$ bias has a closed form.** V10 established the exponent; V14 establishes the constant. Evaluating the third moment of three slot directions against a symmetric $H$ gives $\sum_i (\phi_i^\top H \phi_i)\phi_i = \tfrac34 (H_{11}-H_{22},\,-2H_{12})$, so the bias is $r_R = \tfrac{R}{4}(H_{11}-H_{22},\,-2H_{12}) + O(R^2)$. Measured at $R=10^{-4}$ the magnitude is $0.99998$ times the prediction and the direction is off by $0.015^\circ$. The practical reading is that a three-robot ring on an anisotropically curved field has a systematic direction error that only shrinks linearly in $R$, while noise rejection wants $R$ large, so $n \ge 4$ per team removes a real trade-off rather than a bookkeeping one.
 
 ## Simulation entry point
 

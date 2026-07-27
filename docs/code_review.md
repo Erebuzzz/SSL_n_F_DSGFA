@@ -415,6 +415,49 @@ No TeX runtime is installed, confirmed again by a sweep for `pdflatex`, `xelatex
 ## Graphical verification suite verification
 
 - MATLAB Code Analyzer on `verify_theory.m`: no issues.
-- Full suite: 12/12 checks pass, 150 s wall clock. Re-run with `cd sims && matlab -batch "verify_theory"`.
-- The sign consensus was vectorized into a single sparse product per step after the first run took 221 s for six checks; the full twelve now run in 150 s.
+- Full suite: 14/14 checks pass, 231 s wall clock. Re-run with `cd sims && matlab -batch "verify_theory"`.
+- The sign consensus was vectorized into a single sparse product per step after the first run took 221 s for six checks; the full twelve then ran in 150 s, and all fourteen now run in 231 s.
 - `_texcheck.py` clean after the figure insertions: 105 labels, 62 refs, no unresolved keys or unbalanced delimiters.
+
+---
+
+## Step-by-step proof document (2026-07-27)
+
+`docs/research/proof_documentation.tex` is a proofs-only companion to `research_gaps.tex`, scoped to the three gap sections.
+
+### What was removed, and the consequences
+
+Removed per request: title, date, abstract, table of contents, the reading guide, all figures, and every reference to the MATLAB harness. Dropping figures meant `graphicx`, `\graphicspath`, and the `\verifyfig` macro all go away, and the numerical evidence had to be re-expressed as tables of predicted-versus-measured numbers. That turned out to be an improvement for the numbers that are scalar comparisons, and a real loss only for V3-style results where the shape of a curve is the finding, which is why those are absent here rather than described in prose.
+
+Two judgement calls worth flagging:
+
+- **The per-page notation key was kept.** It was not on the removal list, it costs no front matter, and a document that is almost entirely symbol manipulation is exactly where it earns its keep. Five contexts instead of eleven, since the scope is narrower.
+- **A short "standing results" section was added despite the gaps-only instruction.** The gap proofs cite five baseline properties (moment identities, sign dissipation, finite-time formation, all-informed localisation, the partial-information radius). Stating them as `Fact` environments without proof keeps the document self-contained without re-deriving baseline material. Every non-`Fact` statement in the document is proved in full.
+
+### Two new results found while expanding the proofs
+
+Writing out every step surfaced two claims that were previously glossed over.
+
+- **`lem:denominator`.** The denominator of the partial-information error radius, $2\pi n_\mathcal{X} - n|\sin(2\pi n_\mathcal{X}/n)|$, is normally guarded by an explicit positivity assumption. Substituting $x = 2\pi n_\mathcal{X}/n$ rewrites it as $n(x - |\sin x|)$, and $|\sin x| \le x$ makes it positive for every admissible pair. The guard is vacuous and can be dropped. This also cleans up the proof of `lem:team-scaling`, where cancelling $n_k$ needs a nonzero denominator to be legitimate.
+- **`lem:n3-bias`.** The $n \ge 4$ hypothesis in the estimator-bias lemma was previously justified by noting that the third-moment identity fails at $n=3$. Computing what survives gives $\sum_i (\phi_i^\top H \phi_i)\phi_i = \tfrac34(H_{11}-H_{22},\,-2H_{12})$ and hence $r_R = \tfrac{R}{4}(H_{11}-H_{22},\,-2H_{12}) + O(R^2)$. This upgrades an excluded case into a quantitative prediction, and it explains the $1.10$ slope measured by V10 rather than merely tolerating it.
+
+Both are new claims, so both were added to the harness as V13 and V14 rather than asserted from a scratch calculation. V14 is the stronger test of the two: it checks the direction of a vector, not just a magnitude, so it validates the moment computation itself.
+
+### Review notes
+
+- The `\bottomrule` false positive in `_texcheck.py` was real, not cosmetic. The `longtable` row splitter stripped `\hline` and the `\end*head` markers but not the booktabs rules, so any booktabs `longtable` reported a spurious one-column row. `research_gaps.tex` uses `\hline` throughout and so never hit it. Fixed by stripping the rule commands.
+- The bare-macro check flagged `sgn` inside `\DeclareMathOperator{\sgn}{sgn}`, where the bare name is the operator's printed form and therefore correct. Fixed by stripping `\DeclareMathOperator` and `\DeclarePairedDelimiter` argument pairs.
+- `lem:clearance` was added because the certificate lemma quietly assumed $d_k = \tfrac12\min_{j\ne k}\|p_s^{(k)}-p_s^{(j)}\|$. The $\ge$ direction is a one-line triangle inequality; the $\le$ direction needs an argument that the midpoint to the nearest source actually lies on $\partial\mathcal{B}_k$, which is not automatic.
+- The equal-curvature assumption is now isolated to a single step (Step 2 of `prop:multisource-reduction`) with an explicit note on what breaks without it. Previously it was an assumption stated at the top of the section and used implicitly.
+- `thm:moving-iss` now handles $r = 0$ explicitly via the upper Dini derivative. The previous version divided by $\|e\|$ without saying what happens when the error vanishes, which is a genuine gap even though the conclusion is unaffected.
+
+### Verification
+
+- `_texcheck.py docs/research/proof_documentation.tex`: clean. 5 cite keys, 5 bibitems, 96 labels, 63 refs, 5 notation keys.
+- `_texcheck.py` on `research_gaps.tex` after the checker fixes and the V13/V14 table rows: clean, 106 labels, 66 refs, 11 notation keys.
+- `_selftest.py`: 8/8, so the checker fixes did not disable any existing check.
+- MATLAB Code Analyzer on `verify_theory.m` after adding V13, V14, and `mixtureHess`: no issues.
+- V13: pass. Denominator factor $\ge 1.148\times10^{-2}$ over $3 \le n \le 60$ and all $n_\mathcal{X}$, worst case at $(60,1)$; $|\sin x| - x \le 0$ to machine precision.
+- V14: pass. At $R = 10^{-4}$ the measured $\|r_R\|/R$ is $0.99998$ times the predicted $0.066520$, with a direction error of $0.015^\circ$.
+- `summary.json` merged correctly: all of v1..v14 plus `meta` present after running the two new checks individually.
+- Still unverified: the document has never been compiled, since there is no TeX runtime on this machine. Unknowns are the same as for `research_gaps.tex`, namely actual footer height and `longtable` page breaking, plus one new one: this document has no `\pagestyle` reset between sections, so the first page's notation key depends on `\firstmark` behaving as expected when a section starts mid-page.

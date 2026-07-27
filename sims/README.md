@@ -31,11 +31,11 @@ Gap 1 outputs per config under `sims/outputs/research/gap1/<config>/`:
 
 ```matlab
 cd sims
-verify_theory              % all 12 checks, about 2.5 minutes
-verify_theory baseline     % v1..v6  polygon identities through epsilon/lambda
-verify_theory gap1         % v7, v8  team scaling, basin certificate
-verify_theory gap2         % v9      moving-source lag
-verify_theory gap3         % v10..v12 estimator bias, trapping, multi-start
+verify_theory              % all 14 checks, about 4 minutes
+verify_theory baseline     % v1..v6      polygon identities through epsilon/lambda
+verify_theory gap1         % v7, v8, v13 team scaling, basin certificate, denominator
+verify_theory gap2         % v9          moving-source lag
+verify_theory gap3         % v10..v12, v14 estimator bias, trapping, multi-start
 verify_theory v10          % a single check
 ```
 
@@ -46,3 +46,4 @@ Three results are worth knowing before interpreting any `research.m` run:
 - **V3** measures a formation-error floor proportional to `alpha * dt`, confirmed to be `O(dt^0.99)`. At the `research.m` defaults that floor is roughly `0.15`, so smaller reported formation errors are discretization artefacts.
 - **V8** shows that closely spaced sources genuinely break basin containment, so the Gap 1 certificate has to be checked per run rather than assumed.
 - **V10** shows the circular gradient estimator is `O(R^2)` only for `n >= 4`; at `n = 3` it degrades to `O(R)`.
+- **V14** pins down the `n = 3` bias exactly: it is `(R/4) * sqrt((H11-H22)^2 + 4*H12^2)` to leading order, where `H` is the field Hessian. It vanishes only when the field is isotropically curved, so a three-robot team on an anisotropic field carries a systematic direction error.

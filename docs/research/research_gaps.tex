@@ -117,7 +117,7 @@
   \textbf{Established} follows from the baseline calculation reproduced here.
   \textbf{Conditional} is correct given a named assumption not proved here.
   \textbf{Proposed research} is a hypothesis with no proof claimed.
-  Checks V1--V12 come from \texttt{sims/verify\_theory.m}: evidence, never proof.
+  Checks V1--V14 come from \texttt{sims/verify\_theory.m}: evidence, never proof.
   Full symbol table in the Nomenclature above.}
 
 \DeclareNotationKey{core}{%
@@ -188,7 +188,7 @@
   Dither uses amplitude $a$, frequency $\omega$ and direction $d$.}
 
 \DeclareNotationKey{valid}{%
-  Checks V1--V12 come from \texttt{sims/verify\_theory.m}; gap runs come from \texttt{sims/research.m}.
+  Checks V1--V14 come from \texttt{sims/verify\_theory.m}; gap runs come from \texttt{sims/research.m}.
   $\Delta t$ is the Euler step and $\alpha\Delta t$ sets the formation-error floor of Check~V3.
   Recorded per run: $V_f$, $S(z)$, $n_{\mathcal X}(t)$ and $e(t)$; additionally
   $d_k$, $q_k(t)$, $m_k(t)$, $e_k(t)$ for Gap 1, and $v_{\max}$ for Gap 2.}
@@ -1076,7 +1076,7 @@ Equation \eqref{eq:forced-ascent} alone does not imply barrier crossing or globa
 
 \subsection{Graphical verification suite}\label{sec:verification-suite}
 
-Checks V1 to V12, referenced throughout the preceding sections, are produced by \texttt{sims/verify\_theory.m}. Each is a falsification attempt: it plots a measured quantity against the quantity the theory predicts and records a verdict in \texttt{sims/outputs/verify\_theory/summary.json}. Regenerate everything with
+Checks V1 to V14, referenced throughout the preceding sections, are produced by \texttt{sims/verify\_theory.m}. Each is a falsification attempt: it plots a measured quantity against the quantity the theory predicts and records a verdict in \texttt{sims/outputs/verify\_theory/summary.json}. Regenerate everything with
 \begin{verbatim}
 cd sims && matlab -batch "verify_theory"
 \end{verbatim}
@@ -1099,12 +1099,14 @@ V9 & \cref{cor:constant-velocity} & Lag vector and a speed sweep & Vector matche
 V10 & \cref{lem:estimator-bias} & Bias against $R$, log-log, several $n$ & Slopes $1.10$ at $n=3$ and $1.99$ at $n\geq4$ \\
 V11 & \cref{prop:no-global-guarantee} & Basins of the ideal ascent flow & Suboptimal basins cover $60\%$ of the domain \\
 V12 & \cref{thm:multistart} & Selection accuracy against the condition & $100\%$ inside the guaranteed region \\
+V13 & \eqref{eq:du-epsilon} denominator & Denominator factor over all $(n,n_{\mathcal X})$ pairs & Positive everywhere; worst case $1.15\times10^{-2}$ \\
+V14 & \eqref{eq:third-moment} at $n=3$ & Bias vector against its closed form & Magnitude to $2\times10^{-5}$, direction to $0.015^\circ$ \\
 \hline
 \end{tabular}
 \end{center}
 
 \begin{remark}
-Three of these checks are worth more than a pass mark. V3 shows that the fixed-step implementation has a formation-error floor proportional to $\alpha\Delta t$, so any reported formation error below that floor is an artefact. V8 shows that seam crossing genuinely occurs when the clearance condition fails, so \eqref{eq:basin-certificate} is not a formality. V10 isolates the $n\geq4$ hypothesis as the source of the $O(R^2)$ rate rather than a convenience. Conversely, V5, V6 and V12 confirm consistency but are weak evidence: V6 is purely algebraic, and V5 and V12 show the bounds are loose for zero-mean noise.
+Three of these checks are worth more than a pass mark. V3 shows that the fixed-step implementation has a formation-error floor proportional to $\alpha\Delta t$, so any reported formation error below that floor is an artefact. V8 shows that seam crossing genuinely occurs when the clearance condition fails, so \eqref{eq:basin-certificate} is not a formality. V10 isolates the $n\geq4$ hypothesis as the source of the $O(R^2)$ rate rather than a convenience. Conversely, V5, V6 and V12 confirm consistency but are weak evidence: V6 is purely algebraic, and V5 and V12 show the bounds are loose for zero-mean noise. V13 and V14 were added while writing the step-by-step proofs in \texttt{docs/research/proof\_documentation.tex} and each settles a question the earlier checks left open: V13 shows the positivity guard usually attached to the denominator of \eqref{eq:du-epsilon} is vacuous, since the substitution $x=2\pi n_{\mathcal X}/n$ turns the factor into $n\left(x-\left|\sin x\right|\right)>0$; V14 fixes the constant \emph{and} direction of the $n=3$ bias, where V10 only fixed its exponent.
 \end{remark}
 
 \subsection{Experiment classes and acceptance criteria}

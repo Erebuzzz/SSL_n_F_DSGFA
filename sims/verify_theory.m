@@ -64,9 +64,11 @@ end
 
 function registry = checkRegistry()
 registry = struct( ...
-    "id", {"v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12"}, ...
+    "id", {"v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10", "v11", "v12", ...
+           "v13", "v14"}, ...
     "group", {"baseline", "baseline", "baseline", "baseline", "baseline", "baseline", ...
-              "gap1", "gap1", "gap2", "gap3", "gap3", "gap3"}, ...
+              "gap1", "gap1", "gap2", "gap3", "gap3", "gap3", ...
+              "gap1", "gap3"}, ...
     "title", { ...
         "Regular-polygon identities", ...
         "Connectivity bound Q <= n S", ...
@@ -79,7 +81,9 @@ registry = struct( ...
         "Moving-source steady lag", ...
         "Circular estimator bias O(R^2)", ...
         "Local trapping of ideal ascent", ...
-        "Multi-start selection condition"}, ...
+        "Multi-start selection condition", ...
+        "Positivity of the epsilon denominator", ...
+        "Exact leading bias constant at n=3"}, ...
     "claim", { ...
         "lem:circle-identities", ...
         "lem:connectivity-bound", ...
@@ -92,13 +96,16 @@ registry = struct( ...
         "cor:constant-velocity / eq:moving-ultimate-bound", ...
         "lem:estimator-bias", ...
         "prop:no-global-guarantee", ...
-        "thm:multistart / eq:selection-condition"}, ...
+        "thm:multistart / eq:selection-condition", ...
+        "lem:denominator (proof documentation)", ...
+        "lem:n3-bias (proof documentation)"}, ...
     "fcn", {@checkPolygonIdentities, @checkConnectivityBound, ...
             @checkFormationFiniteTime, @checkGradientIdentity, ...
             @checkAllInformedBound, @checkEpsilonLambda, ...
             @checkTeamScaling, @checkBasinCertificate, ...
             @checkMovingSourceLag, @checkEstimatorBias, ...
-            @checkLocalTrapping, @checkMultiStartSelection});
+            @checkLocalTrapping, @checkMultiStartSelection, ...
+            @checkEpsilonDenominator, @checkN3BiasConstant});
 end
 
 function selected = selectChecks(registry, args)
@@ -1144,6 +1151,140 @@ record = struct( ...
     "figure", "v12_multistart_selection.png");
 end
 
+%% V13 — Positivity of the epsilon denominator (lem:denominator)
+
+function record = checkEpsilonDenominator(outDir)
+% The denominator of eq:du-epsilon is usually guarded by an explicit
+% positivity assumption. Substituting x = 2*pi*nx/n turns it into
+% n*(x - |sin x|), which is positive for every x > 0, so the guard is
+% vacuous. This check sweeps the whole admissible integer grid.
+nList = 3:60;
+factorMin = zeros(numel(nList), 1);
+worst = inf;
+worstPair = [0, 0];
+for a = 1:numel(nList)
+    n = nList(a);
+    nx = (1:n)';
+    factor = 2 * pi * nx - n * abs(sin(2 * pi * nx / n));
+    factorMin(a) = min(factor);
+    if factorMin(a) < worst
+        worst = factorMin(a);
+        worstPair = [n, nx(find(factor == factorMin(a), 1))];
+    end
+end
+
+x = linspace(0, 2 * pi, 200001);
+gapMax = max(abs(sin(x)) - x);
+
+pass = worst > 0 && gapMax <= 0;
+
+fig = figure("Visible", "off", "Position", [100, 100, 960, 400]);
+tiledlayout(1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile
+semilogy(nList, factorMin, "o-", "LineWidth", 1.4, "MarkerSize", 4);
+grid on
+xlabel("robots per team $n$", "Interpreter", "latex");
+ylabel("$\min_{n_{\mathcal{X}}}\,(2\pi n_{\mathcal{X}}-n|\sin(2\pi n_{\mathcal{X}}/n)|)$", ...
+    "Interpreter", "latex");
+title({"Claim: strictly positive for every $n$.", ...
+       sprintf("Worst case %.3g at $n=%d$, $n_{\\mathcal{X}}=%d$.", ...
+       worst, worstPair(1), worstPair(2))}, "Interpreter", "latex");
+
+nexttile
+plot(x, x, "k--", "LineWidth", 1.4);
+hold on
+plot(x, abs(sin(x)), "LineWidth", 1.8);
+grid on
+xlim([0, 2 * pi]);
+xlabel("$x=2\pi n_{\mathcal{X}}/n$", "Interpreter", "latex");
+title(sprintf("$|\\sin x|\\leq x$, max excess %.1e", gapMax), "Interpreter", "latex");
+legend({"$x$", "$|\sin x|$"}, "Interpreter", "latex", "Location", "northwest");
+
+finishFigure(fig, fullfile(outDir, "v13_epsilon_denominator.png"));
+
+record = struct( ...
+    "pass", pass, ...
+    "verdict", sprintf("denominator factor >= %.4g over n = 3..60 and all n_X; |sin x| - x never exceeds %.1e", ...
+        worst, gapMax), ...
+    "min_denominator_factor", worst, ...
+    "worst_n_and_nx", worstPair, ...
+    "max_sin_excess", gapMax, ...
+    "figure", "v13_epsilon_denominator.png");
+end
+
+%% V14 — Exact leading bias constant at n = 3 (lem:n3-bias)
+
+function record = checkN3BiasConstant(outDir)
+% Check V10 fixes only the exponent of the n = 3 bias. This one tests the
+% closed-form vector predicted by lem:n3-bias, which fixes the constant and
+% the direction as well, so it also validates the third-moment computation.
+field = mixtureField();
+p = [0.6, -0.4];
+H = mixtureHess(p, field);
+gradTrue = mixtureGrad(p, field);
+phi = slots(3);
+
+predDir = [H(1, 1) - H(2, 2), -2 * H(1, 2)] / 4;
+predConst = norm(predDir);
+
+radii = logspace(-4, -1.3, 22);
+measured = zeros(numel(radii), 2);
+for b = 1:numel(radii)
+    R = radii(b);
+    vals = mixtureValue(p + R * phi, field);
+    gR = (2 / (3 * R)) * sum(vals .* phi, 1);
+    measured(b, :) = (gR - gradTrue) / R;
+end
+
+magnitude = vecnorm(measured, 2, 2);
+ratio = magnitude / predConst;
+angleDeg = real(acosd((measured * predDir') ./ (magnitude * predConst)));
+
+pass = abs(ratio(1) - 1) < 0.01 && angleDeg(1) < 1;
+
+fig = figure("Visible", "off", "Position", [100, 100, 960, 400]);
+tiledlayout(1, 2, "TileSpacing", "compact", "Padding", "compact");
+
+nexttile
+semilogx(radii, magnitude, "o-", "LineWidth", 1.4, "MarkerSize", 5);
+hold on
+yline(predConst, "r--", "LineWidth", 1.6);
+grid on
+xlabel("ring radius R [m]");
+ylabel("$\|r_R\|/R$", "Interpreter", "latex");
+title({"Claim: the ratio tends to the closed form", ...
+       sprintf("$\\frac14\\sqrt{(H_{11}-H_{22})^2+4H_{12}^2}=%.6f$", predConst)}, ...
+    "Interpreter", "latex");
+legend({"measured", "predicted"}, "Location", "southwest");
+
+nexttile
+semilogx(radii, measured(:, 1), "o-", "LineWidth", 1.4, "MarkerSize", 5);
+hold on
+semilogx(radii, measured(:, 2), "s-", "LineWidth", 1.4, "MarkerSize", 5);
+yline(predDir(1), "b--", "LineWidth", 1.2);
+yline(predDir(2), "r--", "LineWidth", 1.2);
+grid on
+xlabel("ring radius R [m]");
+ylabel("$r_R/R$ components", "Interpreter", "latex");
+title(sprintf("Direction error %.3f deg at R = %.0e", angleDeg(1), radii(1)), ...
+    "Interpreter", "latex");
+legend({"$x$ measured", "$y$ measured", "$x$ predicted", "$y$ predicted"}, ...
+    "Interpreter", "latex", "Location", "east");
+
+finishFigure(fig, fullfile(outDir, "v14_n3_bias_constant.png"));
+
+record = struct( ...
+    "pass", pass, ...
+    "verdict", sprintf("measured |r_R|/R is %.5f times the predicted %.6f at R = %.0e, direction error %.3f deg", ...
+        ratio(1), predConst, radii(1), angleDeg(1)), ...
+    "hessian_entries", [H(1, 1), H(1, 2), H(2, 2)], ...
+    "predicted_constant", predConst, ...
+    "ratio_at_smallest_radius", ratio(1), ...
+    "direction_error_deg", angleDeg(1), ...
+    "figure", "v14_n3_bias_constant.png");
+end
+
 %% Shared model helpers
 
 function prm = baselineParams()
@@ -1297,6 +1438,17 @@ for j = 1:numel(field.A)
     dsq = sum(diff.^2, 2);
     w = field.A(j) * exp(-dsq / (2 * field.s(j)^2)) / field.s(j)^2;
     g = g - w .* diff;
+end
+end
+
+function H = mixtureHess(p, field)
+% Analytic Hessian of the Gaussian mixture at a single point.
+H = zeros(2, 2);
+for j = 1:numel(field.A)
+    d = (p - field.c(j, :))';
+    s2 = field.s(j)^2;
+    w = field.A(j) * exp(-(d' * d) / (2 * s2)) / s2;
+    H = H + w * ((d * d') / s2 - eye(2));
 end
 end
 

@@ -170,9 +170,37 @@
     "claim": "thm:multistart / eq:selection-condition",
     "title": "Multi-start selection condition"
   },
+  "v13": {
+    "pass": true,
+    "verdict": "denominator factor >= 0.01148 over n = 3..60 and all n_X; |sin x| - x never exceeds 0.0e+00",
+    "min_denominator_factor": 0.011477511120379091,
+    "worst_n_and_nx": [
+      60,
+      1
+    ],
+    "max_sin_excess": 0,
+    "figure": "v13_epsilon_denominator.png",
+    "claim": "lem:denominator (proof documentation)",
+    "title": "Positivity of the epsilon denominator"
+  },
+  "v14": {
+    "pass": true,
+    "verdict": "measured |r_R|/R is 0.99998 times the predicted 0.066520 at R = 1e-04, direction error 0.015 deg",
+    "hessian_entries": [
+      -0.45374347523840353,
+      -0.11947324019298358,
+      -0.570805612073493
+    ],
+    "predicted_constant": 0.066520186959128522,
+    "ratio_at_smallest_radius": 0.99997570665712454,
+    "direction_error_deg": 0.015428477676773375,
+    "figure": "v14_n3_bias_constant.png",
+    "claim": "lem:n3-bias (proof documentation)",
+    "title": "Exact leading bias constant at n=3"
+  },
   "meta": {
-    "checks_run": 12,
-    "checks_passed": 12,
-    "timestamp": "2026-07-27 12:30:01"
+    "checks_run": 14,
+    "checks_passed": 14,
+    "timestamp": "2026-07-27 16:23:08"
   }
 }

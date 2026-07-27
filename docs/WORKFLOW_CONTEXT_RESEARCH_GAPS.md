@@ -8,22 +8,24 @@ Last updated: 2026-07-27.
 1. **`docs/RESEARCH_GAPS_THEORY.md`** — Mathematical framing for three gaps, plus Gap 1 prior-work comparison against MESA and DIAS.
 2. **`docs/research/research_gaps.tex`** — LaTeX with unified-split Gap 1, config table, unicycle note, and `sec:gap1-related` positioning section.
 3. **`sims/research.m`** — Gap 1 configs `n8_N2`, `n9_N3`, `n12_N3`; unified cluster start then split; `unicycle` robot model for all gaps.
-4. **`sims/verify_theory.m`** — 12 graphical checks (V1..V12), one per lemma/theorem/identity, embedded into the `.tex` beside each claim. All pass; full suite about 150 s.
+4. **`sims/verify_theory.m`** — 14 graphical checks (V1..V14), one per lemma/theorem/identity, embedded into `research_gaps.tex` beside each claim. All pass; full suite about 150 s.
 5. **Notation aids in the `.tex`** — a Nomenclature `longtable` after the TOC, plus a per-page key in the footer driven by `\NotationContext{<id>}` marks. Eleven keys, twelve switch points. Disable with `\notationkeyfalse`.
+6. **`docs/research/proof_documentation.tex`** — a proofs-only companion covering the three gaps with every algebraic step written out, plus numerical verification tables. Deliberately has no title, date, abstract, table of contents, reading guide, figures, or references to the MATLAB harness. Keeps the per-page notation key. Two new results came out of writing it: `lem:denominator` (the $\varepsilon$ positivity guard is vacuous, checked by V13) and `lem:n3-bias` (closed form for the $n=3$ estimator bias, checked by V14).
 
 ## Checking the LaTeX without a compiler
 
 There is still no TeX runtime on this machine, so `research_gaps.tex` has never been compiled.
 
 ```bash
-python docs/research/_texcheck.py            # static checks, exits nonzero on problems
+python docs/research/_texcheck.py                                    # research_gaps.tex by default
+python docs/research/_texcheck.py docs/research/proof_documentation.tex
 python docs/research/_texcheck.py --budget   # also print per-key footer height estimates
 python docs/research/_selftest.py            # confirm the checker fires on injected faults
 ```
 
 `_texcheck.py` covers delimiter balance, citation and label resolution, environment balance, bare-macro typos, notation-key declaration and activation, footer height budget, and longtable column counts. `_selftest.py` mutates a temporary copy with one fault per check and asserts each is caught, so the checker itself is not trusted blindly.
 
-When a TeX runtime becomes available, the first compile should inspect the bottom of a page inside each of Gap 1, Gap 2, and Gap 3 to confirm the footer does not overflow the bottom margin.
+When a TeX runtime becomes available, the first compile should inspect the bottom of a page inside each of Gap 1, Gap 2, and Gap 3 in both `.tex` files to confirm the footer does not overflow the bottom margin.
 
 ## Gap 1 novelty claim (settled 2026-07-27)
 
