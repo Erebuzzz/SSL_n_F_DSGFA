@@ -74,7 +74,7 @@ flowchart TD
 
 ## Simulation Showcase
 
-Visual animations demonstrating distributed formation acquisition, source localization, and research extensions:
+Key simulation animations and validation plots across robot models and research extensions:
 
 ### 1. Multi-Source Swarm Splitting (Gap 1: 9 Robots, 3 Sources)
 
@@ -102,7 +102,9 @@ Swarm maintaining a rigid circular formation while tracking a non-stationary sou
 
 Feedback-linearized unicycles with heading vector visualization and sliding-mode chatter elimination.
 
-![Unicycle Model with Boundary Layer](sims/outputs/Unicycle/motion.gif)
+| Robot Trajectory & Heading | Localization Error Decay |
+| :---: | :---: |
+| ![Unicycle Trajectory](sims/outputs/Unicycle/trajectory.png) | ![Unicycle Localization Error](sims/outputs/Unicycle/localization_error.png) |
 
 - **Scenario**: 6 differential unicycle robots under point-offset feedback linearization ($r = 2.0$ m).
 - **Outcome**: Boundary-layer saturation ($\varepsilon_{\text{bl}} = 0.2$) removes high-frequency heading chattering, allowing convergence inside the theoretical bound $\varepsilon = 0.1$.
@@ -113,7 +115,9 @@ Feedback-linearized unicycles with heading vector visualization and sliding-mode
 
 Full differential-drive kinematics with wheel velocity limits and realistic actuator dynamics.
 
-![TurtleBot Swarm](sims/outputs/TurtleBot/motion.gif)
+| TurtleBot Swarm Trajectory | Formation Error Series |
+| :---: | :---: |
+| ![TurtleBot Trajectory](sims/outputs/TurtleBot/trajectory.png) | ![TurtleBot Formation Error](sims/outputs/TurtleBot/formation_error.png) |
 
 - **Scenario**: 6 TurtleBot robots with differential wheel control, tested across numerical Euler and Simulink `ode4` solvers.
 - **Outcome**: Accurate formation acquisition and source localization under kinematic constraints.
@@ -124,7 +128,9 @@ Full differential-drive kinematics with wheel velocity limits and realistic actu
 
 Benchmark validation of Du et al. (2024) Section IV point-robot formulation.
 
-![Single-Integrator Baseline](sims/outputs/SingleIntegrator/motion.gif)
+| Formation Trajectory | Localization Error vs Bound |
+| :---: | :---: |
+| ![Single-Integrator Trajectory](sims/outputs/SingleIntegrator/trajectory.png) | ![Single-Integrator Localization Error](sims/outputs/SingleIntegrator/localization_error.png) |
 
 - **Scenario**: 6 single-integrator robots with quadratic source field and bounded noise.
 - **Outcome**: Exact verification of the sufficient gain condition ($\alpha/\beta = 2000 > 1730.4$) and localization error bound ($\varepsilon = 0.1$).
@@ -135,7 +141,9 @@ Benchmark validation of Du et al. (2024) Section IV point-robot formulation.
 
 Swarm behavior in scalar fields with multiple local maxima and saddle points.
 
-![Non-Convex Potential Field](sims/outputs/research/gap3/motion.gif)
+| Multi-Modal Field Trajectory | Convergence & Trapping Analysis |
+| :---: | :---: |
+| ![Non-Convex Trajectory](sims/outputs/research/gap3/trajectory.png) | ![Gap 3 Results](sims/outputs/research/gap3/gap3_results.png) |
 
 - **Scenario**: Scalar potential field containing multiple local extrema, testing convergence and basin of attraction properties.
 - **Outcome**: Swarm avoids divergence, forms circular formation around local potential well, demonstrating need for multi-start or dither mechanisms to guarantee global optimum selection.
