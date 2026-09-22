@@ -2,9 +2,9 @@
 % Research-gap validation harness for extensions to Du et al. (2024).
 %
 % Validates three open directions (see docs/RESEARCH_GAPS_THEORY.md):
-%   Gap 1 — N teams for N source minima (unified start, then split)
-%   Gap 2 — Moving / non-stationary source p_s(t)
-%   Gap 3 — Non-convex field; global maximum vs local traps
+%   Gap 1: N teams for N source minima (unified start, then split)
+%   Gap 2: Moving / non-stationary source p_s(t)
+%   Gap 3: Non-convex field; global maximum vs local traps
 %
 % Run from sims/:
 %   research                    % all gaps, default robot model
@@ -14,8 +14,8 @@
 %   research gap3               % Gap 3 single integrator
 %
 % Robot model (edit below or pass as 2nd arg: single_integrator | unicycle):
-%   single_integrator — point robots, paper-like gains
-%   unicycle — feedback-linearized control points (Unicycle.m preset)
+%   single_integrator: point robots, paper-like gains
+%   unicycle: feedback-linearized control points (Unicycle.m preset)
 %
 % Gap 1 outputs per config: sims/outputs/research/gap1/<config_name>/
 %   trajectory.png, team_localization.png, phase_timeline.png,
@@ -78,7 +78,7 @@ outputOpts = struct( ...
     "animation_fps", animationFps, ...
     "robot_model", robotModel);
 
-fprintf("research.m — gaps: %s | robot: %s\n", strjoin(gapsToRun, ", "), robotModel);
+fprintf("research.m: gaps: %s | robot: %s\n", strjoin(gapsToRun, ", "), robotModel);
 fprintf("Theory reference: docs/RESEARCH_GAPS_THEORY.md\n\n");
 
 allSummaries = struct();
@@ -101,7 +101,7 @@ writeJson(fullfile(runRoot, "research_summary.json"), allSummaries);
 fprintf("\nAll requested gaps complete. Summary: %s\n", fullfile(runRoot, "research_summary.json"));
 end
 
-%% Gap 1 — Multi-source teams (unified start, then split)
+%% Gap 1: Multi-source teams (unified start, then split)
 function summaries = runGap1MultiSource(runRoot, outputOpts, simOpts, configFilter)
 gapRoot = fullfile(runRoot, "gap1");
 if ~exist(gapRoot, "dir")
@@ -331,7 +331,7 @@ configs(3) = struct( ...
     "cluster_center", [7.0, 7.5], "cluster_spread", 0.9);
 end
 
-%% Gap 2 — Moving source
+%% Gap 2: Moving source
 function summary = runGap2MovingSource(runRoot, outputOpts, simOpts)
 gapDir = fullfile(runRoot, "gap2");
 if ~exist(gapDir, "dir")
@@ -454,7 +454,7 @@ fprintf("  Tail mean tracking error: %.4f (ISS predicted offset ~ %.4f)\n", tail
 fprintf("  Output: %s\n\n", gapDir);
 end
 
-%% Gap 3 — Global maximum on non-convex field
+%% Gap 3: Global maximum on non-convex field
 function summary = runGap3GlobalMaximum(runRoot, outputOpts, simOpts)
 gapDir = fullfile(runRoot, "gap3");
 if ~exist(gapDir, "dir")

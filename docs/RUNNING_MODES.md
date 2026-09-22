@@ -1,4 +1,4 @@
-# Running Guide — Every Mode, Exact Commands
+# Running Guide: Every Mode, Exact Commands
 
 This is the canonical "how do I run it" reference for the whole reproduction of
 Du et al. (2024), *Simultaneous Source Localization and Formation via a Distributed
@@ -36,7 +36,7 @@ Unicycle
 TurtleBot   % set runMode = "simulink" inside the script for the .slx path
 ```
 
-**Run guide:** [`sims/RUN_GUIDE.md`](../sims/RUN_GUIDE.md) — mode switching, noise cases, gains, Simulink vs numeric, outputs, troubleshooting.
+**Run guide:** [`sims/RUN_GUIDE.md`](../sims/RUN_GUIDE.md): mode switching, noise cases, gains, Simulink vs numeric, outputs, troubleshooting.
 
 Outputs land under `sims/outputs/<Name>/`.
 
@@ -65,7 +65,7 @@ expose a **boundary-layer** option that swaps `sgn(x)` for the saturated
 | Value | Behaviour |
 |---|---|
 | `0` (default) | Exact paper `sgn`. MATLAB↔Python parity is bit-identical. On unicycle/TurtleBot robots the `sgn` chattering corrupts localization (settles **outside** the bound). |
-| `0.2` (presets) | Boundary layer — removes chattering, so the control point tracks the ideal flow and localization lands **inside** the bound. |
+| `0.2` (presets) | Boundary layer: removes chattering, so the control point tracks the ideal flow and localization lands **inside** the bound. |
 
 - **Python:** CLI flag `--sign-boundary-layer 0.2`, or JSON `"controller": {"sign_boundary_layer": 0.2}`.
 - **MATLAB:** JSON `"controller": {"sign_boundary_layer": 0.2}` (read by `sgf_control`).
@@ -75,7 +75,7 @@ See [docs/CONFIG_GUIDE.md](CONFIG_GUIDE.md) and
 
 ---
 
-## Mode 1 — Single-integrator (Python)
+## Mode 1: Single-integrator (Python)
 
 The Phase 1 point-robot simulator: `p_dot_i = u_i` with the Eq. 4 control law.
 
@@ -106,11 +106,11 @@ python -m sgf_sim run-config configs/paper_timescale.json
 
 - **Configs:** `configs/paper_default.json` (Gaussian), `configs/paper_bounded_validation.json` (bounded),
   `configs/paper_timescale.json` (bounded, paper-faithful *timescale*).
-- **Output:** `outputs/runs/<run_id>/` — `trajectory.png`, `formation_error.png`,
+- **Output:** `outputs/runs/<run_id>/`: `trajectory.png`, `formation_error.png`,
   `formation_error_per_robot.png` (paper Fig. 3), `localization_error.png`, `summary.json`.
 - **Expected:** bounded validation reports `"inside_bound": true` (loc ≈ 0.03 vs ε = 0.1).
   `paper_timescale` reports `formation_entry_time` ≈ 4.9 s and localization decaying over
-  ~40–60 s (final loc ≈ 0.17) — see the timescale note below.
+  ~40–60 s (final loc ≈ 0.17): see the timescale note below.
 
 > **Formation timescale (why the default finishes instantly).** The formation term is a
 > **finite-time sliding-mode** controller, so its convergence time scales as `≈ 3 / alpha`.
@@ -119,7 +119,7 @@ python -m sgf_sim run-config configs/paper_timescale.json
 > formation completes in milliseconds. The paper's Fig. 3 shows ~5 s because it uses a modest
 > `alpha ≈ 1`. That gain ratio is **sufficient, not necessary**: taken literally with a small
 > `alpha` it forces `beta ≈ alpha/1730`, making localization (rate `2 beta kappa`) take
-> ~1400 s. `configs/paper_timescale.json` therefore uses `alpha = 1.0, beta = 0.03` (ratio 33 —
+> ~1400 s. `configs/paper_timescale.json` therefore uses `alpha = 1.0, beta = 0.03` (ratio 33 -
 > below the sufficient bound but well inside the empirically stable region) to reproduce the
 > paper's ~5 s formation **and** a visible localization transient, at the cost of the tight
 > ε = 0.1 guarantee. Use the `paper_*` bounded/Gaussian presets when you want the theorem-faithful
@@ -131,7 +131,7 @@ python -m pytest tests -p no:hypothesispytest -q
 
 ---
 
-## Mode 2 — Single-integrator parity (MATLAB)
+## Mode 2: Single-integrator parity (MATLAB)
 
 The MATLAB re-implementation of Mode 1, reading the *same* JSON configs, for
 control-theory review and author-workflow parity.
@@ -152,14 +152,14 @@ verify_parity
 ```
 
 - **Configs:** same `configs/paper_default.json`, `configs/paper_bounded_validation.json`.
-- **Output:** `outputs/runs/<run_id>_matlab/` — plots, `summary.json`, `result.mat`.
+- **Output:** `outputs/runs/<run_id>_matlab/`: plots, `summary.json`, `result.mat`.
 - **Expected:** `verify_parity` prints `RESULT: PASS` with max deviation ~1e-15.
   Exact equality with Python holds only for `noise.model = "none"` (NumPy and
   MATLAB use different RNGs).
 
 ---
 
-## Mode 3 — Numerical unicycle (Python)
+## Mode 3: Numerical unicycle (Python)
 
 Phase 2: point-offset feedback linearization of the sign controller onto unicycle
 robots, with sampled communication and optional actuator saturation. **CLI-driven**
@@ -184,9 +184,9 @@ Key flags: `--alpha` (10), `--beta` (0.05), `--offset` r (2.0), `--comms-period`
 (0 = continuous), `--max-v` / `--max-omega` (off by default), `--sign-boundary-layer`
 (0 = exact sgn).
 
-- **Configs:** none — parameters come from flags. `configs/unicycle_default.json` is
+- **Configs:** none: parameters come from flags. `configs/unicycle_default.json` is
   the shared-schema example (consumed by the MATLAB TurtleBot layer, not Python).
-- **Output:** `outputs/unicycle/<action>_.../` — plots + `summary.json`.
+- **Output:** `outputs/unicycle/<action>_.../`: plots + `summary.json`.
 - **Expected:** `validate` returns exit 0 and `"inside_bound": true` with
   `--sign-boundary-layer 0.2` (loc ≈ 0.0006); exit 3 and `false` with pure `sgn`
   (loc ≈ 0.74).
@@ -197,7 +197,7 @@ python -m pytest tests/test_unicycle.py -p no:hypothesispytest -q
 
 ---
 
-## Mode 4 — TurtleBot differential-drive, numeric (MATLAB)
+## Mode 4: TurtleBot differential-drive, numeric (MATLAB)
 
 Phase 2.5: the sign controller on TurtleBot-style differential-drive robots via
 feedback linearization, reusing the Phase 1.3 `matlab/` control helpers. Explicit
@@ -210,7 +210,7 @@ run_turtlebot_from_config('matlab_turtlebot/configs/turtlebot_working.json')
 
 - **Config:** `matlab_turtlebot/configs/turtlebot_working.json` (bounded noise,
   `alpha=10, beta=0.05, r=2.0`, continuous comms, `sign_boundary_layer = 0.2`).
-- **Output:** `outputs/turtlebot/turtlebot_working_turtlebot/` — `trajectory.png`,
+- **Output:** `outputs/turtlebot/turtlebot_working_turtlebot/`: `trajectory.png`,
   `formation_error.png`, `localization_error.png`, `motion.gif`, `summary.json`,
   `result.mat`.
 - **Expected:** `Inside theorem bound: 1`, final formation ≈ 0.005, localization
@@ -219,7 +219,7 @@ run_turtlebot_from_config('matlab_turtlebot/configs/turtlebot_working.json')
 
 ---
 
-## Mode 5 — TurtleBot swarm, Simulink (MATLAB/Simulink)
+## Mode 5: TurtleBot swarm, Simulink (MATLAB/Simulink)
 
 Phase 2.5 centerpiece: a genuine Simulink block diagram (vector `Integrator` +
 `MATLAB Function` ODE block for the sign controller / measurement / feedback
@@ -239,11 +239,11 @@ build_turtlebot_simulink_model(cfg, 'matlab_turtlebot/models');
 ```
 
 - **Config:** `matlab_turtlebot/configs/turtlebot_simulink_default.json`
-  (`mode = "turtlebot_simulink"`, `noise = none` — a deterministic continuous
+  (`mode = "turtlebot_simulink"`, `noise = none`: a deterministic continuous
   reference, `sign_boundary_layer = 0.2`, solver `ode4`).
 - **Model:** `matlab_turtlebot/models/sgf_turtlebot_swarm.slx` (also regenerated per
   run into the output folder's `models/`).
-- **Output:** `outputs/turtlebot/turtlebot_simulink_default_turtlebot/` — same
+- **Output:** `outputs/turtlebot/turtlebot_simulink_default_turtlebot/`: same
   artifact set as Mode 4, plus the generated `.slx`.
 - **Expected:** final formation ≈ 0.005, localization ≈ 0.0008 (at the source to
   numerical precision). With `sign_boundary_layer = 0.2` the Simulink (`ode4`) and
@@ -252,9 +252,9 @@ build_turtlebot_simulink_model(cfg, 'matlab_turtlebot/models');
 
 ---
 
-## Mode 6 — CoppeliaSim multi-robot (Python)
+## Mode 6: CoppeliaSim multi-robot (Python)
 
-Phase 3: the same control law driving a `RobotBackend` — either an offline
+Phase 3: the same control law driving a `RobotBackend`: either an offline
 kinematic **mock** backend or a physics-in-the-loop **CoppeliaSim** backend. The
 `coppelia/` package is self-contained (it does not import `sgf_sim`).
 
@@ -275,11 +275,11 @@ python -m coppelia run --backend coppelia --noise bounded --run-id physics_demo
 ```
 
 > **Full step-by-step CoppeliaSim walkthrough:** see
-> [docs/COPPELIASIM_SETUP_GUIDE.md](COPPELIASIM_SETUP_GUIDE.md) — install, scene builder,
+> [docs/COPPELIASIM_SETUP_GUIDE.md](COPPELIASIM_SETUP_GUIDE.md): install, scene builder,
 > wheel-geometry caveats, the inside-the-bound tuning recipe, and troubleshooting.
 
 - **Configs:** `coppelia/configs/mock_bounded.json`, `coppelia/configs/coppelia_default.json`.
-- **Output:** `outputs/coppelia/<run_id>/` — `trajectory.png`, error PNGs,
+- **Output:** `outputs/coppelia/<run_id>/`: `trajectory.png`, error PNGs,
   `animation.gif`, `summary.json`, `validation_report.md`.
 
 ```powershell

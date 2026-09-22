@@ -59,7 +59,7 @@ SWEEP_META = json.loads(_meta_path.read_text()) if _meta_path.exists() else {}
 L = []
 w = L.append
 
-w(f"# SGF Batch Report — uninformed-robot cases (MATLAB single-integrator & TurtleBot Simulink)")
+w(f"# SGF Batch Report: uninformed-robot cases (MATLAB single-integrator & TurtleBot Simulink)")
 w("")
 w(f"*Generated {DATE} · MATLAB R2026a (+ Simulink) · reproduction of Du et al. (2024), "
   "\"Simultaneous Source Localization and Formation via a Distributed Sign Gradient-Free "
@@ -68,8 +68,8 @@ w("")
 w("## 1. Objective and case matrix")
 w("")
 w("This report sweeps two MATLAB runtimes of the paper's Eq. 4 sign gradient-free control "
-  "law across robot count, source location, and noise, and — unlike the earlier all-informed "
-  "report — deliberately starts a **fraction of each swarm outside the sensing radius**. Those "
+  "law across robot count, source location, and noise, and: unlike the earlier all-informed "
+  "report: deliberately starts a **fraction of each swarm outside the sensing radius**. Those "
   "robots are *uninformed* (blind): by Eq. 2 they measure only the constant saturation value "
   "`f_Dmax = κ·Dmax² + δ = 144.2`, never the true field. Each run records whether the swarm "
   "still (a) forms the target circle and (b) localizes its centroid to the source despite the "
@@ -87,10 +87,10 @@ w("`2 modes × 3 sizes × 2 noise × 2 sources = ` **24 distinct runs. All 24 co
   "successfully.** The Simulink builder now injects **real seeded Gaussian measurement noise** "
   "([build_turtlebot_simulink_model.m](../../matlab_turtlebot/build_turtlebot_simulink_model.m), "
   "a vector Random Number source sampled at the solver step), so each noisy Simulink run is a "
-  "genuinely distinct, reproducible run — not a duplicate of its noise-free twin as in the "
+  "genuinely distinct, reproducible run: not a duplicate of its noise-free twin as in the "
   "previous report.")
 w("")
-w("### Assumption 2 / Remark 1 (informed robots) — exercised, not assumed")
+w("### Assumption 2 / Remark 1 (informed robots): exercised, not assumed")
 w("")
 w("The paper requires the perturbation to be bounded (|η(pᵢ)| ≤ δ) **and at least one robot "
   "within `Dmax`** so the field is observed. Here the uninformed robots are created purely by "
@@ -109,7 +109,7 @@ w("Common to all runs: `kappa = 1`, `R = 2`, `Dmax = 12`, `seed = 1`, ring commu
   "topology (connected for any n ≥ 3). Initial positions are placed on a ring **relative to "
   "the source**: the `n − k` informed robots at radii 5–10 m (inside `Dmax`) and the `k` "
   "uninformed robots at radii 14–17 m (outside `Dmax`). Because the layout is source-relative, "
-  "the initial formation-error geometry is identical at both sources — which is why source A "
+  "the initial formation-error geometry is identical at both sources: which is why source A "
   "and B produce identical error curves.")
 w("")
 w("| Parameter | single_integrator | turtlebot_simulink |")
@@ -120,7 +120,7 @@ w("| Signum | exact `sgn` | boundary layer `sat(·/0.2)` |")
 w("| Integrator | explicit Euler | Simulink `ode4`, fixed-step |")
 w("| dt | 0.0005 s | 0.004 s |")
 w("| duration | 60 s | 90 s |")
-w("| control-point offset r | — | 2.0 m |")
+w("| control-point offset r |: | 2.0 m |")
 w("| noise (when on) | η ~ N(0, 0.2) additive on informed measurement | same, via seeded Simulink Random Number block |")
 w("| perturbation bound δ (ε reference) | 0.2 | 0.2 |")
 w("")
@@ -131,7 +131,7 @@ w("The `single_integrator` gain ratio (2000) satisfies the paper's conservative 
 w("")
 w("**ε applicability.** The theorem's ε bound assumes *bounded* noise (|η| ≤ δ). It therefore "
   "applies to the **noise-free** runs (`inside ε?` shows yes/no there), but for the **gaussian** "
-  "runs — whose noise is unbounded — ε is reported only as a *reference* value and `inside ε?` "
+  "runs: whose noise is unbounded: ε is reported only as a *reference* value and `inside ε?` "
   "is shown as `n/a`. In practice the gaussian runs land at essentially the same final error as "
   "their noise-free twins, well inside the reference ε.")
 w("")
@@ -154,7 +154,7 @@ for rid, rec in cases:
 w("")
 w("`SI` = single_integrator, `TS` = turtlebot_simulink. `min inf.` = `min_n_informed` = "
   "`n − k` informed robots at the start (the rest are blind). `inside ε?`: yes/no against the "
-  "theorem bound for bounded/noise-free runs; `n/a` for gaussian (unbounded) noise — see §2.")
+  "theorem bound for bounded/noise-free runs; `n/a` for gaussian (unbounded) noise: see §2.")
 w("")
 w("**Animations.** One-third of the batch (8 runs) also exports a `motion.gif` showing the "
   "formation contracting and the centroid approaching the source (blind robots start outside "
@@ -238,7 +238,7 @@ def case_section(rid, rec):
         out.append(f"![per-robot formation error]({r}/formation_error_per_robot.png)")
     if (HERE / r / "motion.gif").exists():
         out.append("")
-        out.append(f"*Animation — formation + source approach (source = red star, target circle dotted):*")
+        out.append(f"*Animation: formation + source approach (source = red star, target circle dotted):*")
         out.append("")
         out.append(f"![motion]({r}/motion.gif)")
     out.append("")
@@ -337,14 +337,14 @@ sweep_block(
         "Reading the sweep:",
         "",
         "- **Formation time ∝ 1/α.** Formation entry drops from ≈ 2.9 s at α = 1 to ≈ 0.09 s at "
-        "α = 100 — the finite-time consensus term `α·Σ sgn(z_j − z_i)` closes the initial spread "
+        "α = 100: the finite-time consensus term `α·Σ sgn(z_j − z_i)` closes the initial spread "
         "faster the larger α is. On a 0–60 s axis, α = 100 looks like an instantaneous drop.",
         "- **The chatter floor grows with α.** With the exact `sgn`, the steady-state formation "
         "residual *rises* with α (≈ 2×10⁻³ at α = 1 up to ≈ 0.18 at α = 100): a bigger gain "
         "drives a larger limit-cycle around the sliding surface. Faster formation is paid for "
         "with a coarser final circle.",
         "- **Localization timescale is α-independent.** All five localization curves decay at "
-        "nearly the same exponential rate `2βκ = 0.1 /s`, set by β, not α — smaller α even "
+        "nearly the same exponential rate `2βκ = 0.1 /s`, set by β, not α: smaller α even "
         "localizes slightly *faster* because it injects less chatter into the centroid.",
     ],
     is_ts=False,
@@ -362,12 +362,12 @@ sweep_block(
         "- **The 1/α formation law survives the vehicle model.** Formation entry tracks the "
         "single-integrator almost exactly (≈ 2.9 s at α = 1 down to ≈ 0.10 s at α = 100), so the "
         "finite-time mechanism carries through the feedback-linearization.",
-        "- **But accuracy is non-monotonic — there is an upper useful α.** α = 20 is the sweet "
+        "- **But accuracy is non-monotonic: there is an upper useful α.** α = 20 is the sweet "
         "spot (final formation ≈ 5×10⁻³). Beyond it the large gain excites the differential-drive "
         "/ boundary-layer dynamics: α = 50 overshoots and leaves the ε bound (final localization "
         "≈ 0.27 > ε = 0.19), and α = 100 degrades the circle (final formation ≈ 0.87).",
         "- **Commanded speed explodes with α.** Peak \\|v\\| climbs from ≈ 10 m/s (α = 1) to "
-        "≈ 283 m/s (α = 100) — unphysical for a real TurtleBot, and the practical reason the main "
+        "≈ 283 m/s (α = 100): unphysical for a real TurtleBot, and the practical reason the main "
         "Simulink runs use α = 10. Unlike the ideal single-integrator, the real-vehicle model "
         "has a ceiling on useful formation gain.",
     ],
@@ -377,7 +377,7 @@ sweep_block(
 w("### 6.3 Extreme localization gain: β = 10000 (Simulink)")
 w("")
 w("Holding β = 10000 (vs the paper's 0.05) and sweeping α = 1, 10, 100 probes the opposite "
-  "imbalance — localization gain overwhelming formation. Plots and summaries are saved; no gif "
+  "imbalance: localization gain overwhelming formation. Plots and summaries are saved; no gif "
   "(the trajectory scale is non-physical). The overlay is log-scale because the errors diverge.")
 w("")
 w("![6.3 beta = 10000 sweep](formation_gain_beta_sweep.png)")
@@ -398,7 +398,7 @@ w("- **The swarm diverges regardless of α.** All three runs blow up to a format
   "orders of magnitude, so α is irrelevant here.")
 w("- **Mechanism.** The huge push drives every robot outward at the saturation velocity "
   "\\|v\\| = (2β/R)·f_Dmax = 1.442×10⁶ m/s; they immediately leave `Dmax`, then all read the "
-  "constant `f_Dmax` and keep accelerating outward in a fixed direction — neither formation nor "
+  "constant `f_Dmax` and keep accelerating outward in a fixed direction: neither formation nor "
   "localization ever begins.")
 w("- **Lesson.** β does not buy localization *speed* (the rate is `2βκ` only in the small-gain "
   "regime where formation stays intact); an oversized β destabilizes the whole system. The "
@@ -421,12 +421,12 @@ w("- **ε inflates with the blind fraction, as the theorem says.** ε = 0.169 / 
   "The gaussian runs (unbounded noise, ε not formally applicable) land at essentially the same "
   "final error as their noise-free twins.")
 w("- **Source-independence is exact.** For every (mode, n, noise), source A [5.5,5.5] and "
-  "source B [30,-20] produce identical error curves and metrics — the control law plus the "
+  "source B [30,-20] produce identical error curves and metrics: the control law plus the "
   "source-relative initial layout are translation-invariant, so a far source localizes as well "
   "as the paper's.")
 w("- **Simulink noise is now real and reproducible.** With the seeded Random Number source, each "
   "gaussian Simulink run differs measurably from its noise-free twin (e.g. n=4 final "
-  "localization 8.9×10⁻⁴ vs 2.0×10⁻⁴) yet stays fully convergent — and the differential-drive "
+  "localization 8.9×10⁻⁴ vs 2.0×10⁻⁴) yet stays fully convergent: and the differential-drive "
   "runs converge at ratio 200, below the sufficient bound for all n, reconfirming it is "
   "sufficient, not necessary.")
 w("- **Commanded velocities are large** (|v| ≈ 24–30 m/s, |ω| ≈ 13–18 rad/s) because the "
@@ -434,7 +434,7 @@ w("- **Commanded velocities are large** (|v| ≈ 24–30 m/s, |ω| ≈ 13–18 r
   "TurtleBot3 hardware limits. Set `max_linear_velocity` / `max_angular_velocity` to clamp them.")
 w("- **The gain sweeps (§6) separate the two knobs.** α sets formation speed (∝ 1/α) in both "
   "models, but the differential-drive model has an upper useful α (past α ≈ 20 accuracy degrades "
-  "and commanded speed explodes), whereas β must stay small — the β = 10000 probe diverges "
+  "and commanded speed explodes), whereas β must stay small: the β = 10000 probe diverges "
   "outright. This is why the main matrix uses large α with a small β.")
 w("")
 w("## 8. Reproduction")

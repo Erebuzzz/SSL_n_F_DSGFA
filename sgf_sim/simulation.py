@@ -40,8 +40,8 @@ class SimulationResult:
         if self.epsilon is not None and self.bound_applicable:
             inside_bound = final_localization <= self.epsilon
         min_informed = int(np.min(self.n_informed))
-        # Honest "informed robots matter" reporting: the bound is valid for any
-        # informed count >= 1, but it inflates as the informed fraction shrinks.
+        # The bound holds for any informed count >= 1, but inflates
+        # as fewer robots are in sensing range.
         eps_all_informed = all_informed_epsilon(
             self.config.kappa, self.config.radius, self.config.noise_bound
         )

@@ -10,12 +10,11 @@ All project docs live in [`docs/`](docs/):
 
 | Doc | Purpose |
 |---|---|
-| [docs/RUNNING_MODES.md](docs/RUNNING_MODES.md) | **Start here** — how to run every mode (Python, MATLAB, Simulink, CoppeliaSim) with exact commands and configs. |
+| [docs/RUNNING_MODES.md](docs/RUNNING_MODES.md) | **Start here**: how to run every mode (Python, MATLAB, Simulink, CoppeliaSim) with exact commands and configs. |
 | [sims/RUN_GUIDE.md](sims/RUN_GUIDE.md) | Standalone MATLAB scripts: mode switching, parameter presets, outputs, troubleshooting. |
 | [docs/CONFIG_GUIDE.md](docs/CONFIG_GUIDE.md) | Shared JSON config schema, section by section. |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased plan and status for the whole reproduction. |
-| [docs/code_review.md](docs/code_review.md) | Collaborator-facing review notes and verification status. |
-| [docs/du_2024_extraction.md](docs/du_2024_extraction.md), [docs/Sign_Gradient_Free_Localization_Deep_Extraction.md](docs/Sign_Gradient_Free_Localization_Deep_Extraction.md) | Paper extraction notes. |
+| [docs/Sign_Gradient_Free_Localization_Deep_Extraction.md](docs/Sign_Gradient_Free_Localization_Deep_Extraction.md) | Paper extraction notes. |
 
 Per-package READMEs stay with their code: [`sims/`](sims/README.md),
 [`matlab/`](matlab/README.md),

@@ -22,7 +22,7 @@ algorithm drives either backend by changing one config field (`backend`):
 
 The `mock` backend integrates the unicycle kinematics
 `x_dot = v cos θ, y_dot = v sin θ, θ_dot = ω` with a fixed Euler step. It does not
-model slip/inertia/collisions — that realism is exactly what the CoppeliaSim
+model slip/inertia/collisions: that realism is exactly what the CoppeliaSim
 backend adds. Because the interface is identical, a scene validated in mock mode
 switches to physics by flipping `--backend coppelia`.
 
@@ -40,18 +40,18 @@ python -m pytest coppelia/tests -p no:hypothesispytest -q
 
 Artifacts land in `outputs/coppelia/<run_id>/`:
 
-- `trajectory.png` — robot trails, target circle, source, centroid path, over a
+- `trajectory.png`: robot trails, target circle, source, centroid path, over a
   filled contour (heatmap) of the scalar source field `f(z) = kappa*||z - p_s||^2`
   with a dashed `Dmax` sensing-radius circle
-- `formation_error.png`, `localization_error.png` — raw + smoothed curves
-- `animation.gif` (or `.mp4`) — 4 synchronized panels (formation+source over the
+- `formation_error.png`, `localization_error.png`: raw + smoothed curves
+- `animation.gif` (or `.mp4`): 4 synchronized panels (formation+source over the
   field heatmap, trails, live formation error, live localization error)
-- `summary.json` — same shape as the numerical phases
-- `telemetry.npz` / `telemetry.csv` — full per-step signal history (poses, control
+- `summary.json`: same shape as the numerical phases
+- `telemetry.npz` / `telemetry.csv`: full per-step signal history (poses, control
   points, command `f_i`, commanded `v`/`omega`, field samples `sigma_i`, per-robot
   informed flags, error metrics) for offline analysis; on by default, disable with
   `--no-telemetry`
-- `validation_report.md` — collaborator-readable report
+- `validation_report.md`: collaborator-readable report
 
 ## Running against CoppeliaSim
 
@@ -77,7 +77,7 @@ positions, drops a red source marker, draws concentric field contour rings on th
 floor around the source, then drives the wheels each control period. See
 `coppelia/scene/README.md` for scene details and the manual-setup alternative.
 
-> The `coppelia` backend cannot be exercised in this offline repo checkout — it is
+> The `coppelia` backend cannot be exercised in this offline repo checkout: it is
 > validated by running it against a live CoppeliaSim instance. The import of the
 > client is guarded, so everything else (including the whole mock pipeline and the
 > test-suite) works without CoppeliaSim installed. Instantiating the backend
@@ -137,7 +137,7 @@ the numbers.
   That is fine for a point integrator but physically impossible for a robot.
 - **The unicycle inversion amplifies this.** The commanded angular velocity scales
   as `ω ≈ |f|/r`. With huge `f` and a small offset `r`, `ω` explodes and no
-  reasonable Euler step (or real actuator) can track it — the feedback
+  reasonable Euler step (or real actuator) can track it: the feedback
   linearization breaks and the run diverges.
 - **So Phase 3 defaults to physically-sane gains** (`α=10, β=0.05`, ratio 200,
   offset `r=0.5`, velocity limits disabled). Consequences:
@@ -147,7 +147,7 @@ the numbers.
     seed-dependent), because a small residual formation error biases the symmetric
     gradient estimate. Driving it to ≈ 0.03 would require the ≈2000 ratio, i.e.
     unphysical speeds.
-  - `gain_condition_passed` is reported as **false** on purpose — the sufficient
+  - `gain_condition_passed` is reported as **false** on purpose: the sufficient
     (not necessary) condition is knowingly not met, and the algorithm converges
     anyway. This is exactly the "theory is conservative; test below the bound"
     experiment called out in the extraction notes.
@@ -173,7 +173,7 @@ measures that difference (a Phase-3 acceptance criterion in the roadmap).
   is validated only on a live simulator, not in offline CI.
 - Actuator saturation, wheel slip, and inertia are modelled by CoppeliaSim, not by
   the mock backend.
-- Sampled-data communication (`T = 0.1 s`, Section V) is not yet modelled — the
+- Sampled-data communication (`T = 0.1 s`, Section V) is not yet modelled: the
   loop uses `dt` as the control period. Adding a separate comms period is a natural
   follow-up (and overlaps with Phase 4).
 - Feeding the same shared JSON config used by the Python/MATLAB numerical phases

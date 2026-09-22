@@ -10,7 +10,7 @@ The format is JSON because Python can read it with the standard `json` module an
 |---|---|
 | `configs/paper_default.json` | Paper-like Gaussian single-integrator run. |
 | `configs/paper_bounded_validation.json` | Theorem-valid bounded-noise single-integrator run. |
-| `configs/paper_timescale.json` | Paper Fig. 3 *timescale* — modest gains (`alpha=1.0, beta=0.03`) so formation completes in ~5 s then localizes. Trades the tight ε=0.1 bound for paper-faithful dynamics. |
+| `configs/paper_timescale.json` | Paper Fig. 3 *timescale*: modest gains (`alpha=1.0, beta=0.03`) so formation completes in ~5 s then localizes. Trades the tight ε=0.1 bound for paper-faithful dynamics. |
 | `configs/unicycle_default.json` | Planned numerical unicycle run. |
 | `configs/turtlebot_simulink_default.json` | Planned MATLAB/Simulink TurtleBot run. |
 
@@ -54,7 +54,7 @@ The gain ratio `alpha / beta` should be compared against `4 * n * f_Dmax / R` (t
 **Absolute gains set the timescale.** The formation term is finite-time, so formation completes
 in `≈ 3 / alpha` seconds; localization decays exponentially at rate `2 * beta * kappa`. The
 `paper_default` / `paper_bounded_validation` presets use large `alpha` (100–2000) to satisfy the
-conservative ratio and land inside the tight ε bound — formation then finishes almost instantly.
+conservative ratio and land inside the tight ε bound: formation then finishes almost instantly.
 To reproduce the paper's ~5 s formation (Fig. 3) use `alpha ≈ 1`; because the ratio is sufficient
 (not necessary), `configs/paper_timescale.json` drops to `alpha=1.0, beta=0.03` (ratio 33) to get
 the paper timescale for both formation and localization. See `docs/RUNNING_MODES.md` (Mode 1) for
@@ -96,13 +96,13 @@ If both `adjacency` and `edges` are null, Python uses the named topology.
 ### `initial_conditions`
 
 Optional. Sets each robot's starting pose explicitly. **Omit the whole section** to keep the
-built-in 6-robot layout (fully back-compatible — this is what every shipped config does).
+built-in 6-robot layout (fully back-compatible: this is what every shipped config does).
 
 > **Default layout follows the source.** When `positions` is omitted, the built-in layout is
 > defined *relative to* `paper_parameters.source`: it is the paper geometry translated by
 > `source − [5.5, 5.5]`. So changing the source moves the whole starting formation with it,
 > keeping every robot within `Dmax` at `t = 0` (a source far from a fixed origin layout would
-> otherwise leave every robot **uninformed** — no source signal, no localization). At the paper
+> otherwise leave every robot **uninformed**: no source signal, no localization). At the paper
 > source `[5.5, 5.5]` the layout is bit-identical to the original. Explicit `positions` opt out
 > of this and are used verbatim.
 
@@ -122,8 +122,8 @@ built-in 6-robot layout (fully back-compatible — this is what every shipped co
 
 #### Informed vs. uninformed robots
 
-The paper splits robots into **informed** (within sensing range `Dmax` of the source — they
-measure the true field `f(p_i) + noise`) and **blind/uninformed** (outside range — they get
+The paper splits robots into **informed** (within sensing range `Dmax` of the source: they
+measure the true field `f(p_i) + noise`) and **blind/uninformed** (outside range: they get
 only the constant saturation value `f_Dmax = kappa*Dmax^2 + delta`). This is computed
 **automatically every step from each robot's distance to the source**, so a robot that leaves
 the sensing radius becomes uninformed on its own.
@@ -135,7 +135,7 @@ status is `informed[i] == 1 AND ||p_i - source|| < Dmax`. Honoured by all paths
 the generated Simulink model uses all-informed only.
 
 Theory notes surfaced in `summary.json` (`validation` block): `min_n_informed`,
-`min_informed_for_valid_bound` (always 1 — the bound is valid for any `n_informed ≥ 1`),
+`min_informed_for_valid_bound` (always 1: the bound is valid for any `n_informed ≥ 1`),
 `epsilon_all_informed` (the Remark-4 best case `delta/(kappa*R)`), and
 `epsilon_inflation_factor`. The practical rule of thumb: **at least one informed robot is
 required** for localization (with zero, there is no source signal and the centroid cannot
@@ -145,7 +145,7 @@ Formation (the circle shape) still forms from the consensus term regardless of i
 Honoured by Python `sgf_sim` (`run-config`), the `coppelia` package (mock + physics), and
 both MATLAB paths (`matlab/`, `matlab_turtlebot/`). The shape is validated against `n`; a
 mismatched row count raises a clear error. **This section is also the mechanism for running
-`n ≠ 6`** — see "Changing the number of robots" below.
+`n ≠ 6`**: see "Changing the number of robots" below.
 
 ### `robot_model`
 
@@ -158,7 +158,7 @@ Holds robot-model parameters for later phases.
 | `max_linear_velocity` | Optional command saturation. |
 | `max_angular_velocity` | Optional command saturation. |
 | `wheel_radius` | Wheel radius for differential-drive conversion (meters). |
-| `wheel_base` | Wheel separation / track width (meters). The `coppelia` loader reads the key `wheel_base` (not `wheel_separation`). Defaults are TurtleBot3 Burger values (`0.033`, `0.16`); set them to match your actual robot model — e.g. the Pioneer p3dx used by the default CoppeliaSim scene has different geometry. |
+| `wheel_base` | Wheel separation / track width (meters). The `coppelia` loader reads the key `wheel_base` (not `wheel_separation`). Defaults are TurtleBot3 Burger values (`0.033`, `0.16`); set them to match your actual robot model: e.g. the Pioneer p3dx used by the default CoppeliaSim scene has different geometry. |
 | `command_period` | Sampled command period, matching the paper's Section V value when set to `0.1`. |
 
 ### `controller`
@@ -215,7 +215,7 @@ Override output folder:
 python -m sgf_sim run-config configs/paper_default.json --output-dir outputs/config_runs
 ```
 
-Phase 2 unicycle model — both signum modes are available:
+Phase 2 unicycle model: both signum modes are available:
 
 ```powershell
 # original paper controller (exact sgn) -- localization stalls outside the bound
@@ -240,17 +240,17 @@ The default is `n = 6` (paper Section IV). Valid range is `n ≥ 3` (`validate()
 `n > 2`). Most of the machinery scales automatically, but four things are pinned to 6 and
 must be handled when you change `n`. Here is exactly what to do.
 
-**Scales automatically — no action needed:**
+**Scales automatically: no action needed:**
 
-- **Formation target circle** — slots are `θ_i = 2π i / n`, `φ_i = (cos θ_i, sin θ_i)`,
+- **Formation target circle**: slots are `θ_i = 2π i / n`, `φ_i = (cos θ_i, sin θ_i)`,
   generated from `n` in every path.
-- **`ring` and `complete` topologies** — rebuilt from `n` for any size.
-- **Theory bounds** — `gain_threshold = 4·n·f_Dmax/R` and the `epsilon` bound both take `n`
+- **`ring` and `complete` topologies**: rebuilt from `n` for any size.
+- **Theory bounds**: `gain_threshold = 4·n·f_Dmax/R` and the `epsilon` bound both take `n`
   and `n_informed` directly; the all-informed case reduces to Remark 4 `δ/(κR)` for any `n`.
-- **Runtime arrays, centroid, error series, `n_informed`** — all sized from `n`.
-- **Plots / animation** — per-robot loops are dynamic. (Cosmetic only: with `n > 10`, trail
-  colors from the default cycle repeat and the legend gets crowded — not an error.)
-- **CoppeliaSim scene** — the builder loads `n` robot models automatically.
+- **Runtime arrays, centroid, error series, `n_informed`**: all sized from `n`.
+- **Plots / animation**: per-robot loops are dynamic. (Cosmetic only: with `n > 10`, trail
+  colors from the default cycle repeat and the legend gets crowded: not an error.)
+- **CoppeliaSim scene**: the builder loads `n` robot models automatically.
 
 **Manual edits required:**
 
@@ -267,14 +267,14 @@ must be handled when you change `n`. Here is exactly what to do.
 4. **Provide `initial_conditions.positions` for the new `n`** (and `headings` for
    orientation-aware paths). The built-in default layout is defined only for `n = 6` and the
    MATLAB paths hard-error otherwise. This is the whole reason the `initial_conditions`
-   section exists — with it, `n ≠ 6` works from the config file alone, no code edit.
+   section exists: with it, `n ≠ 6` works from the config file alone, no code edit.
 5. **CLI note:** the Python `sgf_sim` CLI has no `--n` flag, so change `n` via a JSON config
    and `run-config` (not the bare `run`/`validate` subcommands).
 6. **Tests:** a few fixtures assume the 6-robot default (`tests/test_theory.py`,
-   `tests/test_unicycle.py`, `coppelia/tests/…`) — update them only if you change the
+   `tests/test_unicycle.py`, `coppelia/tests/…`): update them only if you change the
    *default* `n` in code, not for a one-off config run.
 
-**Minimal example — an 8-robot ring:**
+**Minimal example: an 8-robot ring:**
 
 ```json
 {
@@ -286,7 +286,7 @@ must be handled when you change `n`. Here is exactly what to do.
 }
 ```
 
-(Include the other sections — `experiment`, `noise`, `outputs` — as usual.) With a
+(Include the other sections: `experiment`, `noise`, `outputs`: as usual.) With a
 scalable topology (`ring`), custom positions, and `edges` nulled out, this runs unchanged
 through `python -m sgf_sim run-config`, the MATLAB `run_from_config`, and the `coppelia`
 package.

@@ -1,4 +1,4 @@
-# sims — Standalone MATLAB Simulations
+# sims: Standalone MATLAB Simulations
 
 Self-contained scripts for the three robot models in this project. Each file runs end-to-end with no external helpers or JSON configs.
 

@@ -1,15 +1,52 @@
+# Python and testing caches
 __pycache__/
 .pytest_cache/
 *.pyc
 tmp/
 
-# MATLAB / Simulink build artifacts
+# MATLAB and Simulink build artifacts
 slprj/
 *.slxc
 *.autosave
 
+# AI agent and tooling local configs
 .mcp.json
 .claude
 .agents
 .codex
 AGENTS.md
+
+# Agent workflow context and code review notes (kept locally, not committed)
+*WORKFLOW_CONTEXT*.md
+*workflow*.md
+*code_review*.md
+
+# Temporary, scratch, and draft markdown files
+*.tmp.md
+*scratch*.md
+*draft*.md
+*notes*.md
+temp_*.md
+_*.md
+*.bak.md
+TODO.md
+NOTES.md
+
+# Auto-generated simulation markdown reports
+outputs/**/*.md
+sims/outputs/**/*.md
+**/validation_report.md
+**/summary.md
+outputs/**/REPORT.md
+
+# Large raw output binaries (keep git lightweight; figures and json summaries remain tracked)
+sims/outputs/**/result.mat
+
+# Editor and OS temporary files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

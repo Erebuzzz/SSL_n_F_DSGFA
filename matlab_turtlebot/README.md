@@ -1,4 +1,4 @@
-# Phase 2.5 — MATLAB / Simulink TurtleBot Build
+# Phase 2.5: MATLAB / Simulink TurtleBot Build
 
 A TurtleBot-oriented differential-drive implementation of the paper's sign
 gradient-free source-localization-and-formation controller (Du et al., 2024,
@@ -56,13 +56,13 @@ run_turtlebot_from_config('matlab_turtlebot/configs/turtlebot_simulink_default.j
 
 Each run writes, under `outputs/turtlebot/<run_id>_turtlebot/`:
 
-- `trajectory.png` — robot trails, final circular formation target, centroid path, source
-- `formation_error.png`, `localization_error.png` — error series (with the epsilon bound)
-- `motion.gif` — synchronized 4-panel animation (formation scene + live formation and
+- `trajectory.png`: robot trails, final circular formation target, centroid path, source
+- `formation_error.png`, `localization_error.png`: error series (with the epsilon bound)
+- `motion.gif`: synchronized 4-panel animation (formation scene + live formation and
   localization error curves + time cursor + gain-ratio/topology metadata)
-- `result.mat` — full `result` and `cfg` structs
-- `summary.json` — parameters, theorem validation, and metrics (same schema as Python)
-- `models/sgf_turtlebot_swarm.slx` — the generated Simulink model (Simulink path only)
+- `result.mat`: full `result` and `cfg` structs
+- `summary.json`: parameters, theorem validation, and metrics (same schema as Python)
+- `models/sgf_turtlebot_swarm.slx`: the generated Simulink model (Simulink path only)
 
 ## The Simulink model
 
@@ -104,7 +104,7 @@ sampled-comms and bounded-noise behaviour.
 unchanged. The Simulink `swarm_ode` block reproduces the *same* arithmetic
 inline (it cannot call those functions from generated code), and the shared
 `turtlebot_result_from_trajectory` helper recomputes every metric through the
-real `sgf_*` helpers — so numeric, Simulink, and single-integrator paths agree by
+real `sgf_*` helpers: so numeric, Simulink, and single-integrator paths agree by
 construction, not by copy.
 
 ## The chattering problem and the boundary-layer fix
@@ -116,7 +116,7 @@ should follow the *same* trajectory as the single-integrator model. It does not,
 and the reason is **chattering**, not the gains or the integrator:
 
 - Near the formation equilibrium the differences `z_j - z_i` are ~0, so each
-  `sgn(...)` flips sign every step. The `alpha * sgn` term never settles — it
+  `sgn(...)` flips sign every step. The `alpha * sgn` term never settles: it
   produces a permanent high-frequency `f_i` with `|f_i|` of tens of m/s.
 - In the *linear* single integrator this chatter is a benign symmetric jitter and
   the slow `beta` source-seeking drift accumulates cleanly (localization -> the
@@ -125,13 +125,13 @@ and the reason is **chattering**, not the gains or the integrator:
   (`v = f . [cos, sin]`, `omega = f . [-sin, cos] / r`), the chatter spins the
   heading at ~20 rad/s and scrambles that weak localization signal. The formation
   (a strong signal) still converges, but the centroid stalls ~0.5-0.8 m from the
-  source — **outside** the theorem's epsilon-neighbourhood.
+  source: **outside** the theorem's epsilon-neighbourhood.
 
 Diagnostics confirmed this: RK4 instead of Euler, and 4-8x finer `dt`, barely
-moved localization (0.83 -> 0.55) — because the problem is the discontinuous
+moved localization (0.83 -> 0.55): because the problem is the discontinuous
 right-hand side, not integration order.
 
-**Fix — a boundary layer.** Replace the discontinuous `sgn(x)` with the saturated
+**Fix: a boundary layer.** Replace the discontinuous `sgn(x)` with the saturated
 approximation `sat(x / eps) = clip(x / eps, -1, 1)` (standard boundary-layer
 sliding-mode control). When `|x| < eps` the term becomes smooth and vanishes at
 equilibrium, so `omega -> 0`, the heading settles, and the control point tracks
@@ -151,7 +151,7 @@ Boundary-layer sweep (unicycle, `alpha=10, beta=0.05, r=2, dt=0.004`, noise-free
 | 0.1 | 0.122 | 0.064 | 16.7 |
 | **0.2** | **0.005** | **0.075** | 16.2 |
 
-## Verification — now inside the theorem bound
+## Verification: now inside the theorem bound
 
 ### Numeric path (`turtlebot_working.json`, noise = bounded, `eps_bl = 0.2`)
 
@@ -182,7 +182,7 @@ paths now agree to **~1e-7** on the final metrics (before the fix they differed 
 solver choice is essentially irrelevant once chattering is removed. The Simulink
 run's `inside_bound = 0` is only the degenerate noise-free case: with `delta = 0`
 the theoretical `epsilon = delta / (kappa R) = 0`, so any nonzero residual is
-"outside" a zero-width bound — `0.00078` is at the source to numerical precision.
+"outside" a zero-width bound: `0.00078` is at the source to numerical precision.
 
 ## TurtleBot3 hardware note
 

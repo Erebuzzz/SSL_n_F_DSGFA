@@ -106,7 +106,7 @@ Open the script, edit `%% Configuration` and `%% Parameters`, save, and re-run.
 
 ---
 
-## Mode 1 — SingleIntegrator.m
+## Mode 1: SingleIntegrator.m
 
 ### What it simulates
 
@@ -127,7 +127,7 @@ Open the script, edit `%% Configuration` and `%% Parameters`, save, and re-run.
 
 ### Common cases
 
-**Theorem validation (default)** — already set:
+**Theorem validation (default)**: already set:
 
 ```matlab
 noiseModel = "bounded";
@@ -139,7 +139,7 @@ signBoundaryLayer = 0.0;
 
 Expected: `inside_bound = 1`, final localization ~0.03 vs epsilon = 0.1.
 
-**Paper-like Gaussian noise** — uncomment in script or set:
+**Paper-like Gaussian noise**: uncomment in script or set:
 
 ```matlab
 noiseModel = "gaussian";
@@ -178,7 +178,7 @@ saveAnimation = false;
 
 ---
 
-## Mode 2 — Unicycle.m
+## Mode 2: Unicycle.m
 
 ### What it simulates
 
@@ -200,7 +200,7 @@ saveAnimation = false;
 
 ### Common cases
 
-**Working demo (default)** — localizes inside epsilon:
+**Working demo (default)**: localizes inside epsilon:
 
 ```matlab
 alpha = 10.0;
@@ -247,7 +247,7 @@ noiseBound = 0;
 
 ---
 
-## Mode 3 — TurtleBot.m
+## Mode 3: TurtleBot.m
 
 ### What it simulates
 
@@ -420,9 +420,9 @@ Key fields after each run:
 
 These scripts consolidate logic from:
 
-- `matlab/` — single-integrator JSON/config workflow
-- `matlab_turtlebot/` — TurtleBot numeric + Simulink JSON workflow
-- Python `sgf_sim unicycle` — CLI unicycle (Phase 2)
+- `matlab/`: single-integrator JSON/config workflow
+- `matlab_turtlebot/`: TurtleBot numeric + Simulink JSON workflow
+- Python `sgf_sim unicycle`: CLI unicycle (Phase 2)
 
 The modular packages remain for batch configs, parity checks, and CoppeliaSim integration. For distribution and quick experiments, use this `sims/` folder.
 

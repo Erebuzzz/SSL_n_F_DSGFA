@@ -3,8 +3,8 @@
 % gradient-free controller on TurtleBot-style differential-drive robots.
 %
 % Two execution paths (set runMode below):
-%   "numeric"  — explicit Euler, sampled commands, optional actuator limits
-%   "simulink" — programmatically built .slx (Integrator + MATLAB Function ODE),
+%   "numeric":  explicit Euler, sampled commands, optional actuator limits
+%   "simulink": programmatically built .slx (Integrator + MATLAB Function ODE),
 %                fixed-step ode4; requires Simulink + Stateflow (MATLAB Function)
 %
 % Run from anywhere (no addpath / no external helpers required):
@@ -169,7 +169,7 @@ if summary.validation.bound_applicable && ~isempty(summary.validation.inside_bou
         summary.validation.inside_bound, summary.validation.epsilon);
 end
 
-%% Helper Functions — Numeric path
+%% Helper Functions: Numeric path
 
 function result = runNumericPath(cfg, adjacency, phi)
 rng(cfg.seed, "twister");
@@ -259,7 +259,7 @@ posNext = pos + dt * [v(:) .* cos(theta(:)), v(:) .* sin(theta(:))];
 thetaNext = wrapToPiLocal(theta(:) + dt * omega(:));
 end
 
-%% Helper Functions — Simulink path
+%% Helper Functions: Simulink path
 
 function result = runSimulinkPath(cfg, adjacency, phi)
 if ~exist(cfg.run_dir, "dir")
@@ -484,7 +484,7 @@ result.commanded_omega = commandedOmega;
 result.summary = summary;
 end
 
-%% Helper Functions — Shared control / measurement / theory
+%% Helper Functions: Shared control, measurement, theory
 
 function [sigma, informed] = measureSource(positions, cfg)
 distances = sqrt(sum((positions - cfg.source) .^ 2, 2));
@@ -628,7 +628,7 @@ summary.metrics = struct( ...
     "max_commanded_angular_velocity", max(abs(cmdOmega), [], "all"));
 end
 
-%% Helper Functions — Plots / I/O
+%% Helper Functions: Plots and I/O
 
 function plotControlPointTrajectory(result, cfg, phi, runDir)
 fig = figure("Visible", "off");

@@ -184,7 +184,7 @@ $$
 
 Two papers occupy the space adjacent to Gap 1. Neither closes it, and the way they miss is what defines our contribution.
 
-**MESA** — Turgeman and Werner, *Multiple Source Seeking using Glowworm Swarm Optimization and Distributed Gradient Estimation*, ACC 2018 (`docs/research/Multiple_Source_Seeking_using_Glowworm_Swarm_Optimization_and_Distributed_Gradient_Estimation.pdf`).
+**MESA**: Turgeman and Werner, *Multiple Source Seeking using Glowworm Swarm Optimization and Distributed Gradient Estimation*, ACC 2018 (`docs/research/Multiple_Source_Seeking_using_Glowworm_Swarm_Optimization_and_Distributed_Gradient_Estimation.pdf`).
 
 Closest structural match to Gap 1. Unicycle agents form groups of size $\delta$ and each group settles on one extremum of a multi-modal field. Directly reusable:
 
@@ -199,7 +199,7 @@ Closest structural match to Gap 1. Unicycle agents form groups of size $\delta$ 
 
 **What MESA does not do:** it estimates the gradient explicitly by least squares on neighbor measurement differences, $\hat g_i = (R_i^T R_i)^{-1} R_i^T b_i$, requiring $|\mathcal{N}_i| \ge 2$ and full-column-rank $R_i$. Du et al. is deliberately **gradient-free** with ternary $\{-1,0,1\}$ communication, and it carries an explicit steady-state bound $\varepsilon$. MESA has a Lyapunov argument for formation and a density-error bound, but no localization accuracy bound tied to noise. So MESA is a **baseline to compare against**, not a method to adopt wholesale.
 
-**DIAS** — Chen, Kailas, Deolasee, Luo, Sycara, Kim, *Distributed Multi-robot Source Seeking in Unknown Environments with Unknown Number of Sources*, ICRA 2025 ([arXiv:2503.11048](https://arxiv.org/abs/2503.11048)).
+**DIAS**: Chen, Kailas, Deolasee, Luo, Sycara, Kim, *Distributed Multi-robot Source Seeking in Unknown Environments with Unknown Number of Sources*, ICRA 2025 ([arXiv:2503.11048](https://arxiv.org/abs/2503.11048)).
 
 Attacks the part Gap 1 currently assumes away: **source locations and source count are unknown**. Directly reusable:
 

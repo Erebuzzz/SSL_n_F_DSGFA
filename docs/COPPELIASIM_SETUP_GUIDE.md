@@ -1,4 +1,4 @@
-# CoppeliaSim Setup Guide — Step by Step
+# CoppeliaSim Setup Guide: Step by Step
 
 How to run the sign gradient-free source-localization + formation controller (Du et al.
 2024, Phase 3) against a **live CoppeliaSim** physics simulation, end to end.
@@ -6,9 +6,9 @@ How to run the sign gradient-free source-localization + formation controller (Du
 The `coppelia/` package drives a swarm of differential-drive robots through the CoppeliaSim
 **ZeroMQ remote API**. It has two interchangeable backends behind one control loop:
 
-- **`mock`** — a pure-Python kinematic backend. No CoppeliaSim, no extra install. Use it to
+- **`mock`**: a pure-Python kinematic backend. No CoppeliaSim, no extra install. Use it to
   verify the pipeline and produce artifacts offline. **Start here.**
-- **`coppelia`** — the physics-in-the-loop backend. Connects to a running CoppeliaSim,
+- **`coppelia`**: the physics-in-the-loop backend. Connects to a running CoppeliaSim,
   builds the scene programmatically, drives the wheels, and reads back ground-truth poses.
 
 > The `coppelia` backend is validated only against a live simulator (it is not exercised in
@@ -24,10 +24,10 @@ The `coppelia/` package drives a swarm of differential-drive robots through the 
 |---|---|
 | **Python 3.11+** (verified on 3.13) | `python -m pip install numpy matplotlib` |
 | **CoppeliaSim 4.x** | The free **Edu** edition works. Download from coppeliarobotics.com. |
-| **`coppeliasim-zmqremeteapi-client`** | Python client for the ZMQ remote API — **not** in `pyproject.toml`; install it manually (next step). |
+| **`coppeliasim-zmqremeteapi-client`** | Python client for the ZMQ remote API: **not** in `pyproject.toml`; install it manually (next step). |
 
 The ZMQ remote API server is **enabled by default** in CoppeliaSim 4.x on TCP port **23000**
-— you do not need to start an add-on or edit any config to enable it.
+- you do not need to start an add-on or edit any config to enable it.
 
 ---
 
@@ -38,7 +38,7 @@ python -m pip install coppeliasim-zmqremoteapi-client
 ```
 
 Import name is `coppeliasim_zmqremoteapi_client` (underscores). The `coppelia` package guards
-this import, so the repo imports fine without it — the error only appears when you actually
+this import, so the repo imports fine without it: the error only appears when you actually
 connect with the `coppelia` backend. CoppeliaSim 4.x also bundles the same client under
 `programming/zmqRemoteApi/clients/python`, but the pip install is the documented route.
 
@@ -70,7 +70,7 @@ is on the CoppeliaSim connection, not the algorithm.
 
 1. Start **CoppeliaSim 4.x**.
 2. Leave it on a **new / empty scene** (`File → New Scene`). You do **not** build anything by
-   hand — the Python client constructs the whole scene for you over the remote API.
+   hand: the Python client constructs the whole scene for you over the remote API.
 3. Do **not** press Play. The Python side calls `startSimulation()` itself.
 4. Confirm the remote API server is listening on port 23000 (default). If you changed it, pass
    `--coppelia-port` to match.
@@ -84,7 +84,7 @@ That is the entire manual setup. Everything else is programmatic.
 When you run the `coppelia` backend, `coppelia/scene/build_scene.py` does the following over
 the remote API, for `n` robots (default 6):
 
-1. **Loads a robot model** with `sim.loadModel(...)` — the **Pioneer p3dx** differential-drive
+1. **Loads a robot model** with `sim.loadModel(...)`: the **Pioneer p3dx** differential-drive
    model by default (`robots/mobile/pioneer p3dx.ttm`, resolved relative to your CoppeliaSim
    install). The `dr12` model is also selectable.
 2. **Renames** each robot's base to the alias `robot[i]` (`i` zero-based).
@@ -92,8 +92,8 @@ the remote API, for `n` robots (default 6):
    keeping the model's own base height for z, and sets its heading from `initial_headings[i]`.
 4. **Finds the two drive joints** by walking the model subtree and matching joint aliases
    containing `left` / `right` (case-insensitive). It raises `RuntimeError` if it can't find
-   both — so a custom model must have identifiably named wheel motors.
-5. **Creates a red source marker** — a static, non-collidable sphere (diameter 0.25 m) at
+   both: so a custom model must have identifiably named wheel motors.
+5. **Creates a red source marker**: a static, non-collidable sphere (diameter 0.25 m) at
    `paper_parameters.source`, aliased `source_marker`.
 
 Poses are read in the **world frame**; heading is the Z-Euler (yaw) angle. Units are SI
@@ -119,12 +119,12 @@ python -m coppelia run-config coppelia/configs/coppelia_default.json --backend c
 
 While it runs you should see the robots spawn, the red source appear, and the swarm drive
 toward a circular formation around the source. Artifacts are written to
-`outputs/coppelia/<run_id>/` — the same set as the mock backend, so you can diff mock vs
+`outputs/coppelia/<run_id>/`: the same set as the mock backend, so you can diff mock vs
 physics directly.
 
 **Exit code:** `0` if the final localization error is inside the epsilon bound, `3` if not
 (useful for scripting). With the physically-sane default gains (`alpha=10, beta=0.05`,
-ratio 200) the gain condition and the bound are **not** met by design — see §7.
+ratio 200) the gain condition and the bound are **not** met by design: see §7.
 
 ---
 
@@ -136,7 +136,7 @@ All flags with their defaults. Run from the repository root.
 |---|---|---|
 | `--backend {mock,coppelia}` | `mock` | Kinematic mock vs live CoppeliaSim. |
 | `--duration` | `90.0` | Simulation seconds. |
-| `--dt` | `0.004` | Control/integration period (also the comms period — see note). |
+| `--dt` | `0.004` | Control/integration period (also the comms period: see note). |
 | `--seed` | `1` | RNG seed (noise + mock actuator noise). |
 | `--noise {none,gaussian,bounded}` | `gaussian` | Measurement noise model. Use `bounded` for theorem checks. |
 | `--alpha` / `--beta` | `10.0` / `0.05` | Formation / localization gains (ratio 200 by default). |
@@ -166,7 +166,7 @@ All flags with their defaults. Run from the repository root.
 
 The auto-builder is on by default. To drive a scene you built yourself, name the robot bases
 `/robot[i]` with `/robot[i]/leftMotor` and `/robot[i]/rightMotor` joints, and construct the
-backend in code with `ZmqBackend(config, build_scene=False)` — there is no CLI switch for
+backend in code with `ZmqBackend(config, build_scene=False)`: there is no CLI switch for
 this path.
 
 ---
@@ -177,7 +177,7 @@ The Phase 3 defaults (`alpha=10, beta=0.05`, ratio 200, offset 0.5, exact `sgn`)
 for **physical realizability on differential-drive robots**, not to satisfy Theorem 1's
 conservative sufficient condition (threshold `4·n·f_Dmax/R ≈ 1730` for the defaults). So a
 default run sits outside the bound *by design*. To reproduce a theorem-satisfying, chatter-free
-run — the same recipe demonstrated in `outputs/coppelia/mock_gainpass_tuned/` — use:
+run: the same recipe demonstrated in `outputs/coppelia/mock_gainpass_tuned/`: use:
 
 ```powershell
 python -m coppelia run --backend coppelia --noise bounded ^
@@ -211,10 +211,10 @@ See [docs/OUTPUT_ANALYSIS.md](OUTPUT_ANALYSIS.md) §3.1 for the full analysis be
 | `ImportError` / install hint on connect | `coppeliasim-zmqremoteapi-client` not installed (§1). |
 | Connection refused / timeout | CoppeliaSim not running, or remote API not on port 23000. Start it, or set `--coppelia-port`. |
 | `RuntimeError` finding wheel motors | Robot model lacks joints with `left`/`right` in their aliases. Use Pioneer p3dx, or rename your model's wheel joints. |
-| Model fails to load | `sim.loadModel` path not found — the model is resolved under the CoppeliaSim install's `models/` dir; confirm the Pioneer model exists in your install. |
-| Robots drift wrong distance / spin oddly | Wheel geometry mismatch — set `robot_model.wheel_radius` / `wheel_base` to your model's real values (§4 caveat). |
+| Model fails to load | `sim.loadModel` path not found: the model is resolved under the CoppeliaSim install's `models/` dir; confirm the Pioneer model exists in your install. |
+| Robots drift wrong distance / spin oddly | Wheel geometry mismatch: set `robot_model.wheel_radius` / `wheel_base` to your model's real values (§4 caveat). |
 | Heavy chattering, localization stalls outside bound | Expected with exact `sgn`; add `--sign-boundary-layer 0.2` (§7). |
-| Runs but `inside_bound: false`, exit code 3 | Default gains don't meet the sufficient condition — use the §7 recipe if you need the bound. |
+| Runs but `inside_bound: false`, exit code 3 | Default gains don't meet the sufficient condition: use the §7 recipe if you need the bound. |
 
 ---
 
@@ -222,13 +222,13 @@ See [docs/OUTPUT_ANALYSIS.md](OUTPUT_ANALYSIS.md) §3.1 for the full analysis be
 
 Written to `outputs/coppelia/<run_id>/` (git-ignored):
 
-- `trajectory.png` — robot trails, target circle, source, centroid path
-- `formation_error.png` — aggregate consensus error vs time
-- `formation_error_per_robot.png` — per-robot formation error (paper Fig. 3)
-- `localization_error.png` — centroid-to-source distance with the epsilon bound
-- `animation.gif` / `.mp4` — 4 synchronized panels (unless `--no-animation`)
-- `summary.json` — parameters, theory validation, and metrics
-- `validation_report.md` — human-readable report (unless `--no-report`)
+- `trajectory.png`: robot trails, target circle, source, centroid path
+- `formation_error.png`: aggregate consensus error vs time
+- `formation_error_per_robot.png`: per-robot formation error (paper Fig. 3)
+- `localization_error.png`: centroid-to-source distance with the epsilon bound
+- `animation.gif` / `.mp4`: 4 synchronized panels (unless `--no-animation`)
+- `summary.json`: parameters, theory validation, and metrics
+- `validation_report.md`: human-readable report (unless `--no-report`)
 
 The default `run-id` when omitted is `<backend>_<topology>_<noise>_seed<seed>`.
 

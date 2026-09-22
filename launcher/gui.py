@@ -64,7 +64,7 @@ class LauncherGUI:
         # source keeps every robot within sensing range). Any manual position edit
         # turns this off so the user's custom layout is preserved.
         self._positions_are_default = self.state.positions is None
-        root.title("SGF Simulator — Launcher")
+        root.title("SGF Simulator: Launcher")
         self._build()
         self._sync_modes()
         self._refresh_readout()

@@ -1,4 +1,4 @@
-# Publishable Extension Directions — Du et al. (2024) Sign Gradient-Free Source Localization + Circular Formation
+# Publishable Extension Directions: Du et al. (2024) Sign Gradient-Free Source Localization + Circular Formation
 
 Status: working analysis. Target venues: IEEE TCNS / TAC, Automatica, CDC / ACC.
 Selection bias: directions that admit a NEW theorem (a new Lyapunov certificate, a new epsilon-style
@@ -7,13 +7,13 @@ existing simulation stack before committing to hardware.
 
 This document fuses four independent analysis tracks:
 
-1. Theory proof-gap analysis — for each direction, exactly which step of the Du et al. proof breaks,
+1. Theory proof-gap analysis: for each direction, exactly which step of the Du et al. proof breaks,
    what the technical fix is, and a sketch of the new theorem. Grounded directly in the local proof
    text (`tmp/paper_fulltext.txt`, Theorem 1 both stages, and the epsilon derivation / Remarks 4-7).
-2. Web novelty — whether the direction is already occupied in the literature (recovered from the
+2. Web novelty: whether the direction is already occupied in the literature (recovered from the
    deep-research pass; claims that survived 3-vote adversarial verification are marked CONFIRMED).
-3. Existing empirical evidence — what the repo's current runs already show that motivates the direction.
-4. Validation feasibility — can it be exercised in (i) the existing Python/CoppeliaSim/MATLAB/Simulink
+3. Existing empirical evidence: what the repo's current runs already show that motivates the direction.
+4. Validation feasibility: can it be exercised in (i) the existing Python/CoppeliaSim/MATLAB/Simulink
    kinematic stack, (ii) a new ROS2/Gazebo distributed build, (iii) real TurtleBot3 hardware.
 
 ---
@@ -28,13 +28,13 @@ Control law (Eq. 4):
     u_i = alpha * sum_{j in N_i} sgn(z_j - z_i)  -  (2 beta / R) * sigma(p_i) * phi(theta_i)
     z_i = p_i - R * phi(theta_i),   phi(theta_i) = [cos(2 pi i / n), sin(2 pi i / n)],   theta_i = 2 pi i / n
 
-Stage 1 — finite-time circular formation. Lyapunov Vc = (1/2) sum ||z_i - z*||^2.
+Stage 1: finite-time circular formation. Lyapunov Vc = (1/2) sum ||z_i - z*||^2.
   P1. Undirected-graph symmetry folds the sign double-sum (Eq. 6 -> 7). REQUIRES A = A^T.
   P2. A connectivity / spanning-path argument lower-bounds the folded sum (Eq. 8). REQUIRES connected.
   P3. Gain condition alpha/beta > 4 n f_Dmax / R gives Vc_dot <= -c sqrt(Vc) < 0 => finite time Tc.
       REQUIRES the localization term to be a bounded disturbance during Stage 1.
 
-Stage 2 — asymptotic localization. Lyapunov V = (1/2) ||p* - ps||^2.
+Stage 2: asymptotic localization. Lyapunov V = (1/2) ||p* - ps||^2.
   P4. First-order Taylor of f at z* = p* (Eq. 11). REQUIRES f smooth; exactness REQUIRES f quadratic.
   P5. Symmetric-sum identities (sum phi = 0; sum cos 2 theta_i = sum sin 2 theta_i = 0 for n > 2)
       cancel the gradient/Hessian bias, giving -(2 beta / n R) sum f(p_i) phi(theta_i) = -beta grad f(p*)

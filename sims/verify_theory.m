@@ -29,7 +29,7 @@ end
 registry = checkRegistry();
 selected = selectChecks(registry, varargin);
 
-fprintf("verify_theory.m — %d check(s)\n", numel(selected));
+fprintf("verify_theory.m: %d check(s)\n", numel(selected));
 fprintf("Reference: docs/research/research_gaps.tex\n\n");
 
 summaryPath = fullfile(outDir, "summary.json");
@@ -128,7 +128,7 @@ else
 end
 end
 
-%% V1 — Regular-polygon identities (lem:circle-identities)
+%% V1: Regular-polygon identities (lem:circle-identities)
 
 function record = checkPolygonIdentities(outDir)
 % Verifies sum(phi)=0, sum(phi phi')=n/2 I, and sum((phi' H phi) phi)=0.
@@ -204,7 +204,7 @@ record = struct( ...
     "figure", "v1_polygon_identities.png");
 end
 
-%% V2 — Connectivity bound (lem:connectivity-bound)
+%% V2: Connectivity bound (lem:connectivity-bound)
 
 function record = checkConnectivityBound(outDir)
 % Verifies Q(z) <= n S(z) and S(z) >= sqrt(2 Vf)/n on random connected
@@ -281,7 +281,7 @@ record = struct( ...
     "figure", "v2_connectivity_bound.png");
 end
 
-%% V3 — Finite-time formation (prop:formation)
+%% V3: Finite-time formation (prop:formation)
 
 function record = checkFormationFiniteTime(outDir)
 % The continuous-time claim is finite-time convergence to exactly zero.
@@ -393,7 +393,7 @@ record = struct( ...
     "figure", "v3_formation_finite_time.png");
 end
 
-%% V4 — Exact circular gradient identity (eq:exact-gradient-identity)
+%% V4: Exact circular gradient identity (eq:exact-gradient-identity)
 
 function record = checkGradientIdentity(outDir)
 % For the quadratic field the identity sum f(p_i) phi_i = kappa n R e is
@@ -456,7 +456,7 @@ record = struct( ...
     "figure", "v4_gradient_identity.png");
 end
 
-%% V5 — All-informed localization bound (thm:all-informed)
+%% V5: All-informed localization bound (thm:all-informed)
 
 function record = checkAllInformedBound(outDir)
 % Verifies the transient envelope and the ultimate radius delta/(kappa R)
@@ -531,7 +531,7 @@ record = struct( ...
     "figure", "v5_all_informed_bound.png");
 end
 
-%% V6 — Consistency of epsilon and lambda (eq:du-epsilon, eq:lambda-informed)
+%% V6: Consistency of epsilon and lambda (eq:du-epsilon, eq:lambda-informed)
 
 function record = checkEpsilonLambda(outDir)
 % Verifies the algebraic identity lambda_X * epsilon(n_X) = 2 beta delta / R
@@ -592,7 +592,7 @@ record = struct( ...
     "figure", "v6_epsilon_lambda_consistency.png");
 end
 
-%% V7 — Team-size cancellation (eq:team-epsilon-scale)
+%% V7: Team-size cancellation (eq:team-epsilon-scale)
 
 function record = checkTeamScaling(outDir)
 % Verifies that epsilon_k depends on the informed fraction chi_k and the
@@ -659,7 +659,7 @@ record = struct( ...
     "figure", "v7_team_size_cancellation.png");
 end
 
-%% V8 — Basin-containment certificate (lem:basin-certificate)
+%% V8: Basin-containment certificate (lem:basin-certificate)
 
 function record = checkBasinCertificate(outDir)
 % Two scenarios, because a certificate that is always satisfied proves
@@ -842,7 +842,7 @@ out = struct( ...
     "contained", all(margin(keep, :) > 0, "all"));
 end
 
-%% V9 — Moving-source steady lag (cor:constant-velocity)
+%% V9: Moving-source steady lag (cor:constant-velocity)
 
 function record = checkMovingSourceLag(outDir)
 % Noiseless constant-velocity source: the predicted steady lag is the
@@ -922,7 +922,7 @@ record = struct( ...
     "figure", "v9_moving_source_lag.png");
 end
 
-%% V10 — Circular estimator bias (lem:estimator-bias)
+%% V10: Circular estimator bias (lem:estimator-bias)
 
 function record = checkEstimatorBias(outDir)
 % The bias should scale as O(R^2) when n >= 4 and degrade to O(R) at n = 3,
@@ -996,7 +996,7 @@ record = struct( ...
     "figure", "v10_estimator_bias.png");
 end
 
-%% V11 — Local trapping of ideal ascent (prop:no-global-guarantee)
+%% V11: Local trapping of ideal ascent (prop:no-global-guarantee)
 
 function record = checkLocalTrapping(outDir)
 % Maps the basin of attraction of every local maximum under the ideal
@@ -1072,7 +1072,7 @@ record = struct( ...
     "figure", "v11_local_trapping.png");
 end
 
-%% V12 — Multi-start selection condition (thm:multistart)
+%% V12: Multi-start selection condition (thm:multistart)
 
 function record = checkMultiStartSelection(outDir)
 % The theorem guarantees correct selection when 2(L_f eps_loc + delta_F) < Delta.
@@ -1151,7 +1151,7 @@ record = struct( ...
     "figure", "v12_multistart_selection.png");
 end
 
-%% V13 — Positivity of the epsilon denominator (lem:denominator)
+%% V13: Positivity of the epsilon denominator (lem:denominator)
 
 function record = checkEpsilonDenominator(outDir)
 % The denominator of eq:du-epsilon is usually guarded by an explicit
@@ -1213,7 +1213,7 @@ record = struct( ...
     "figure", "v13_epsilon_denominator.png");
 end
 
-%% V14 — Exact leading bias constant at n = 3 (lem:n3-bias)
+%% V14: Exact leading bias constant at n = 3 (lem:n3-bias)
 
 function record = checkN3BiasConstant(outDir)
 % Check V10 fixes only the exponent of the n = 3 bias. This one tests the
