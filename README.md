@@ -74,22 +74,71 @@ flowchart TD
 
 ## Simulation Showcase
 
-Key simulation animations demonstrating formation acquisition, source seeking, and research extensions:
+Visual animations demonstrating distributed formation acquisition, source localization, and research extensions:
 
-| Multi-Source Team Splitting (Gap 1, $n=9, N=3$) | Dynamic Moving-Source Tracking (Gap 2) |
-| :---: | :---: |
-| ![Multi-Source Seeking](sims/outputs/research/gap1/n9_N3/motion.gif) | ![Moving Source Tracking](sims/outputs/research/gap2/motion.gif) |
-| *Unified cluster starts together, then splits into 3 balanced teams ($n_k=3$) to simultaneously localize 3 separate sources within theoretical bounds.* | *Swarm maintains circular formation while tracking a non-stationary source $p_s(t)$ with bounded tracking lag.* |
+### 1. Multi-Source Swarm Splitting (Gap 1: 9 Robots, 3 Sources)
 
-| Unicycle Swarm with Heading Vectors | TurtleBot Differential-Drive Swarm |
-| :---: | :---: |
-| ![Unicycle Model](sims/outputs/Unicycle/motion.gif) | ![TurtleBot Swarm](sims/outputs/TurtleBot/motion.gif) |
-| *Point-offset feedback linearization on unicycle kinematics with boundary-layer chatter suppression.* | *Differential-drive TurtleBots with wheel speed limits, validated in MATLAB and Simulink.* |
+Autonomous transition from a single unified circular formation to 3 distributed teams ($n_k = 3$) localizing separate unknown source locations.
 
-| Baseline Single-Integrator Swarm (Paper Fig. 1) | Non-Convex Multi-Modal Potential Field (Gap 3) |
-| :---: | :---: |
-| ![Single-Integrator Baseline](sims/outputs/SingleIntegrator/motion.gif) | ![Non-Convex Field](sims/outputs/research/gap3/motion.gif) |
-| *Du et al. (2024) baseline reproduction: 6 point robots localizing a quadratic minimum within $\varepsilon = 0.1$.* | *Swarm navigating a multi-modal scalar potential field with competing local extrema.* |
+![Multi-Source Swarm Splitting](sims/outputs/research/gap1/n9_N3/motion.gif)
+
+- **Scenario**: 9 robots start in a single cluster, form an initial ring around the virtual source centroid, then split at $t = 12$ s upon detecting multiple spatial minima.
+- **Outcome**: All three teams achieve stable circular formations around their respective sources with final localization errors well within the theoretical bound ($\varepsilon = 0.1$).
+
+---
+
+### 2. Dynamic Moving-Source Tracking (Gap 2)
+
+Swarm maintaining a rigid circular formation while tracking a non-stationary source $p_s(t)$ with bounded steady-state lag.
+
+![Moving Source Tracking](sims/outputs/research/gap2/motion.gif)
+
+- **Scenario**: 6-robot swarm pursuing a moving target with velocity $v_s = [0.03, 0.02]$ m/s.
+- **Outcome**: Swarm establishes circular surrounding formation while centroid tracks the moving source trajectory with an Input-to-State Stable (ISS) bounded lag.
+
+---
+
+### 3. Unicycle Swarm with Heading Vectors & Boundary-Layer Control
+
+Feedback-linearized unicycles with heading vector visualization and sliding-mode chatter elimination.
+
+![Unicycle Model with Boundary Layer](sims/outputs/Unicycle/motion.gif)
+
+- **Scenario**: 6 differential unicycle robots under point-offset feedback linearization ($r = 2.0$ m).
+- **Outcome**: Boundary-layer saturation ($\varepsilon_{\text{bl}} = 0.2$) removes high-frequency heading chattering, allowing convergence inside the theoretical bound $\varepsilon = 0.1$.
+
+---
+
+### 4. Differential-Drive TurtleBot Swarm (Simulink & Numerical)
+
+Full differential-drive kinematics with wheel velocity limits and realistic actuator dynamics.
+
+![TurtleBot Swarm](sims/outputs/TurtleBot/motion.gif)
+
+- **Scenario**: 6 TurtleBot robots with differential wheel control, tested across numerical Euler and Simulink `ode4` solvers.
+- **Outcome**: Accurate formation acquisition and source localization under kinematic constraints.
+
+---
+
+### 5. Canonical Paper Reproduction (Single-Integrator Baseline)
+
+Benchmark validation of Du et al. (2024) Section IV point-robot formulation.
+
+![Single-Integrator Baseline](sims/outputs/SingleIntegrator/motion.gif)
+
+- **Scenario**: 6 single-integrator robots with quadratic source field and bounded noise.
+- **Outcome**: Exact verification of the sufficient gain condition ($\alpha/\beta = 2000 > 1730.4$) and localization error bound ($\varepsilon = 0.1$).
+
+---
+
+### 6. Non-Convex Potential Field Search (Gap 3)
+
+Swarm behavior in scalar fields with multiple local maxima and saddle points.
+
+![Non-Convex Potential Field](sims/outputs/research/gap3/motion.gif)
+
+- **Scenario**: Scalar potential field containing multiple local extrema, testing convergence and basin of attraction properties.
+- **Outcome**: Swarm avoids divergence, forms circular formation around local potential well, demonstrating need for multi-start or dither mechanisms to guarantee global optimum selection.
 
 ## Setup
 
