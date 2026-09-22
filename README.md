@@ -38,19 +38,58 @@ The paper does not publish exact numeric gains or the exact adjacency matrix fro
 
 ```mermaid
 flowchart TD
-    A[Paper PDF and extraction notes] --> B[SimulationConfig]
-    B --> C[Theory helpers]
-    B --> D[Control primitives]
-    D --> E[Fixed-step simulator]
-    C --> F[Validation summary]
-    E --> F
-    E --> G[Plots]
-    F --> H[summary.json]
-    G --> I[trajectory and error PNGs]
-    B --> J[Shared JSON configs]
-    J --> K[MATLAB parity layer]
-    K --> L[MATLAB plots and summary.json]
+    subgraph Theory["Theoretical Foundations"]
+        T1["Du et al. 2024 Paper"] --> T2["Sign Gradient-Free Control Law"]
+        T2 --> T3["Theorem Checks (Gain Ratio & Error Bounds)"]
+    end
+
+    subgraph Runtimes["Execution Engines"]
+        direction TB
+        R1["Python Simulator (sgf_sim)"]
+        R2["Standalone MATLAB (sims/)"]
+        R3["Simulink TurtleBot Swarm"]
+        R4["CoppeliaSim Physics Engine"]
+    end
+
+    subgraph Research["Research Extensions"]
+        direction TB
+        G1["Gap 1: Multi-Source Teams (Unified to Split)"]
+        G2["Gap 2: Dynamic Moving-Source Tracking"]
+        G3["Gap 3: Non-Convex Field Search"]
+    end
+
+    subgraph Outputs["Validation & Artifacts"]
+        direction TB
+        O1["Animated GIFs (motion.gif)"]
+        O2["Trajectory & Error Plots (PNG)"]
+        O3["Machine-Readable Summaries (JSON)"]
+        O4["Internship & Proof Reports (LaTeX)"]
+    end
+
+    Theory --> Runtimes
+    Runtimes --> Research
+    Research --> Outputs
+    Runtimes --> Outputs
 ```
+
+## Simulation Showcase
+
+Key simulation animations demonstrating formation acquisition, source seeking, and research extensions:
+
+| Multi-Source Team Splitting (Gap 1, $n=9, N=3$) | Dynamic Moving-Source Tracking (Gap 2) |
+| :---: | :---: |
+| ![Multi-Source Seeking](sims/outputs/research/gap1/n9_N3/motion.gif) | ![Moving Source Tracking](sims/outputs/research/gap2/motion.gif) |
+| *Unified cluster starts together, then splits into 3 balanced teams ($n_k=3$) to simultaneously localize 3 separate sources within theoretical bounds.* | *Swarm maintains circular formation while tracking a non-stationary source $p_s(t)$ with bounded tracking lag.* |
+
+| Unicycle Swarm with Heading Vectors | TurtleBot Differential-Drive Swarm |
+| :---: | :---: |
+| ![Unicycle Model](sims/outputs/Unicycle/motion.gif) | ![TurtleBot Swarm](sims/outputs/TurtleBot/motion.gif) |
+| *Point-offset feedback linearization on unicycle kinematics with boundary-layer chatter suppression.* | *Differential-drive TurtleBots with wheel speed limits, validated in MATLAB and Simulink.* |
+
+| Baseline Single-Integrator Swarm (Paper Fig. 1) | Non-Convex Multi-Modal Potential Field (Gap 3) |
+| :---: | :---: |
+| ![Single-Integrator Baseline](sims/outputs/SingleIntegrator/motion.gif) | ![Non-Convex Field](sims/outputs/research/gap3/motion.gif) |
+| *Du et al. (2024) baseline reproduction: 6 point robots localizing a quadratic minimum within $\varepsilon = 0.1$.* | *Swarm navigating a multi-modal scalar potential field with competing local extrema.* |
 
 ## Setup
 
